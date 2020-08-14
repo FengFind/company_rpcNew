@@ -162,8 +162,6 @@ public class ReportServiceImpl implements ReportService{
 			
 			// 返回的jsonarray
 			JSONArray ja = new JSONArray();
-			// 亿 万
-			int yi = 100000000, wan = 10000;
 			// 四舍五入保留2位小数
 			DecimalFormat df = new DecimalFormat("#.00");
 			
@@ -192,6 +190,56 @@ public class ReportServiceImpl implements ReportService{
 			ja.add(Util.returnTodayTotalDoubleMsg("成本总额", "元", res[0], res[1], df));
 			
 			map.put("ttdata", ja);
+		}
+		
+		return map;
+	}
+
+	@RpcMethod(loginValidate = false)
+	@Override
+	public Map<String, Object> findCompanyMsgByCompany(FetchWebRequest<Map<String, String>> fetchWebReq)
+			throws Exception {
+		StringBuffer sql = new StringBuffer();
+		
+		sql.append(" select TABLE_NAME_EN from table_zjyt where TABLE_UUID='VIEW_ZJYT_SORG_LEVEL3' and TABLE_STATE=1 ");
+		
+		Object tableName= DBManager.get("kabBan").createNativeQuery(sql.toString()).getSingleResult();
+		
+		if(tableName == null || tableName.toString().equals("")) {
+			throw new Exception();
+		}
+		
+		sql.delete(0, sql.length());
+		sql.append(" select * from ( " + 
+				"select  " + 
+				"      SORG_LEVEL2 as a, '父节点' as b, "
+				+ " case when sum(委托单数) is null then 0 else sum(委托单数) end as c, "
+				+ " case when sum(开票) is null then 0 else sum(开票) end as d, "
+				+ " case when sum(成本) is null then 0 else sum(成本) end as e, "
+				+ " case when sum(证书) is null then 0 else sum(证书) end as f " + 
+				"from VIEW_ZJYT_SORG_LEVEL3_T2 aa " + 
+				"group by SORG_LEVEL2  " + 
+				" " + 
+				"union   " + 
+				" " + 
+				"select  " + 
+				"     SORG_LEVEL2 a, SORG_LEVEL3 b,  " + 
+				"     (case when 委托单数 is null then 0 else 委托单数 end) as c,  " + 
+				"     (case when 开票 is null then 0 else 开票 end) as d,  " + 
+				"     (case when 成本 is null then 0 else 成本 end) as e,  " + 
+				"     (case when 证书 is null then 0 else 证书 end) as f " + 
+				"from  " + 
+				"       VIEW_ZJYT_SORG_LEVEL3_T2  " + 
+				") aa        " + 
+				"order by aa.a asc, aa.d desc ");
+		System.out.println(sql.toString());
+		List<Object[]> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
+			
+		Map<String,Object> map = new HashMap<String,Object>();
+		
+		if(resultList != null && resultList.size() > 0) {
+			JSONArray ja = Util.returnCompanyMsg(resultList, "父节点");
+			map.put("tableData", ja);
 		}
 		
 		return map;
