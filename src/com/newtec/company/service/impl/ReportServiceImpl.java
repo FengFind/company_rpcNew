@@ -32,6 +32,11 @@ public class ReportServiceImpl implements ReportService{
 		}
 		
 		sql.delete(0, sql.length());
+		
+		// 获取当前公司id
+		Map<String, String> resMap = fetchWebReq.getData();
+		String companyId = resMap.get("companyId");
+		String whereCond = (companyId!= null && !companyId.equals("") && !companyId.equals("zj") ) ? " where COMPANY_BUSI_ORG_ID = "+ companyId: "";
 		sql.append("select "
 							+ "to_char(a.mon)||'月' as yue,a.curYear, a.lastYear, round(a.curYear/a.lastYear*100, 2) as tongbi  "
 						+ "from ( " 
@@ -39,6 +44,7 @@ public class ReportServiceImpl implements ReportService{
 										+ "to_number(substr(INVOICE_DATE,6,7)) as mon,sum((SYSTEM_TAX_PRICE+TAXPRICE_YX+TAXPRICE_FYW)) as curYear, sum(YYSRSNTQLJ) as lastYear "
 								+ "from  "
 										+ tableName
+								+ whereCond
 								+	" group by INVOICE_DATE "
 								+  " order by mon  "
 						+ ")  a");
@@ -162,60 +168,28 @@ public class ReportServiceImpl implements ReportService{
 			DecimalFormat df = new DecimalFormat("#.00");
 			
 			// 开工数量 4 年开工 5 日开工
-			int year = ((BigDecimal) res[4]).intValue();
-			int day =  ((BigDecimal) res[5]).intValue();
-			JSONObject jobj = Util.returnTodayTotalIntMsg("开工数量", "单", year, day, df);
-			
-			ja.add(jobj);
+			ja.add(Util.returnTodayTotalIntMsg("开工数量", "单", res[4], res[5], df));
 			
 			// 出证数量 14 年证书 15 日证书
-			year =  ((BigDecimal) res[14]).intValue();
-			day =  ((BigDecimal) res[15]).intValue();;
-			jobj = Util.returnTodayTotalIntMsg("出证数量", "", year, day, df);
-			
-			ja.add(jobj);
+			ja.add(Util.returnTodayTotalIntMsg("出证数量", "", res[14], res[15], df));
 			
 			// 客户数量 8 年客户 9 日客户
-			year =  ((BigDecimal) res[8]).intValue();
-			day =  ((BigDecimal) res[9]).intValue();
-			jobj = Util.returnTodayTotalIntMsg("客户数量", "个", year, day, df);
-			
-			ja.add(jobj);
+			ja.add(Util.returnTodayTotalIntMsg("客户数量", "个", res[8], res[9], df));
 			
 			// 供应商数量 3 年供应商 2 日供应商
-			year =  ((BigDecimal) res[3]).intValue();
-			day =  ((BigDecimal) res[2]).intValue();
-			jobj = Util.returnTodayTotalIntMsg("供应商数量", "个", year, day, df);
-			
-			ja.add(jobj);
+			ja.add(Util.returnTodayTotalIntMsg("供应商数量", "个", res[3], res[2], df));
 
 			// 委托金额 12 年委托金额 13 日委托金额
-			double yeard =  ((BigDecimal) res[12]).doubleValue();
-			double dayd = ((BigDecimal) res[13]).doubleValue();
-			jobj = Util.returnTodayTotalDoubleMsg("委托金额", "元", yeard, dayd, df);
-			
-			ja.add(jobj);
+			ja.add(Util.returnTodayTotalDoubleMsg("委托金额", "元", res[12], res[13], df));
 
 			// 完工金额 10 年完工金额 11 日完工金额 
-			yeard = ((BigDecimal) res[10]).doubleValue();
-			dayd = ((BigDecimal) res[11]).doubleValue();
-			jobj = Util.returnTodayTotalDoubleMsg("完工金额", "元", yeard, dayd, df);
-			
-			ja.add(jobj);
+			ja.add(Util.returnTodayTotalDoubleMsg("完工金额", "元", res[10], res[11], df));
 			
 			// 开票收入 6 年开票收入 7 日开票收入 
-			yeard = ((BigDecimal) res[6]).doubleValue();
-			dayd = ((BigDecimal) res[7]).doubleValue();
-			jobj = Util.returnTodayTotalDoubleMsg("开票收入", "元", yeard, dayd, df);
-			
-			ja.add(jobj);
+			ja.add(Util.returnTodayTotalDoubleMsg("开票收入", "元", res[6], res[7], df));
 			
 			// 成本总额 0 年成本总额 1 日成本总额 
-			yeard = ((BigDecimal) res[0]).doubleValue();
-			dayd = ((BigDecimal) res[1]).doubleValue();
-			jobj = Util.returnTodayTotalDoubleMsg("成本总额", "元", yeard, dayd, df);
-			
-			ja.add(jobj);
+			ja.add(Util.returnTodayTotalDoubleMsg("成本总额", "元", res[0], res[1], df));
 			
 			map.put("ttdata", ja);
 		}
