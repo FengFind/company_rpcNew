@@ -217,7 +217,7 @@ public class ReportServiceImpl implements ReportService{
 				+ " case when sum(开票) is null then 0 else sum(开票) end as d, "
 				+ " case when sum(成本) is null then 0 else sum(成本) end as e, "
 				+ " case when sum(证书) is null then 0 else sum(证书) end as f " + 
-				"from VIEW_ZJYT_SORG_LEVEL3_T2 aa " + 
+				"from "+tableName+" aa " + 
 				"group by SORG_LEVEL2  " + 
 				" " + 
 				"union   " + 
@@ -228,9 +228,9 @@ public class ReportServiceImpl implements ReportService{
 				"     (case when 开票 is null then 0 else 开票 end) as d,  " + 
 				"     (case when 成本 is null then 0 else 成本 end) as e,  " + 
 				"     (case when 证书 is null then 0 else 证书 end) as f " + 
-				"from  " + 
-				"       VIEW_ZJYT_SORG_LEVEL3_T2  " + 
-				") aa        " + 
+				"from  "
+					+ tableName + 
+				"  ) aa        " + 
 				"order by aa.a asc, aa.d desc ");
 		System.out.println(sql.toString());
 		List<Object[]> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
@@ -244,5 +244,146 @@ public class ReportServiceImpl implements ReportService{
 		
 		return map;
 	}
-	
+
+	@RpcMethod(loginValidate = false)
+	@Override
+	public Map<String, Object> findCompanyMsgByArea(FetchWebRequest<Map<String, String>> fetchWebReq)
+			throws Exception {
+		StringBuffer sql = new StringBuffer();
+		
+		sql.append(" select TABLE_NAME_EN from table_zjyt where TABLE_UUID='VIEW_ZJYT_AREA' and TABLE_STATE=1 ");
+		
+		Object tableName= DBManager.get("kabBan").createNativeQuery(sql.toString()).getSingleResult();
+		
+		if(tableName == null || tableName.toString().equals("")) {
+			throw new Exception();
+		}
+		
+		sql.delete(0, sql.length());
+		sql.append(" select * from ( " + 
+				"select  " + 
+				"        BUSINESS_REGION as a, '父节点' as b, " + 
+				"        case " + 
+				"                when sum(委托单数) is null then " + 
+				"                 0 " + 
+				"                else " + 
+				"                 sum(委托单数) " + 
+				"              end as c, " + 
+				"              case " + 
+				"                when sum(开票) is null then " + 
+				"                 0 " + 
+				"                else " + 
+				"                 sum(开票) " + 
+				"              end as d, " + 
+				"              case " + 
+				"                when sum(成本) is null then " + 
+				"                 0 " + 
+				"                else " + 
+				"                 sum(成本) " + 
+				"              end as e, " + 
+				"              case " + 
+				"                when sum(证书) is null then " + 
+				"                 0 " + 
+				"                else " + 
+				"                 sum(证书) " + 
+				"              end as f  " + 
+				" from  " + tableName + 
+				" group by BUSINESS_REGION " + 
+				" " + 
+				"union  " + 
+				" " + 
+				"select  " + 
+				"      BUSINESS_REGION as a, SORG_LEVEL3 b,  " + 
+				"     (case when 委托单数 is null then 0 else 委托单数 end) as c,  " + 
+				"     (case when 开票 is null then 0 else 开票 end) as d,  " + 
+				"     (case when 成本 is null then 0 else 成本 end) as e,  " + 
+				"     (case when 证书 is null then 0 else 证书 end) as f " + 
+				"from  " + tableName + 
+				" ) aa " + 
+				" " + 
+				"order by aa.a asc, aa.d desc ");
+		System.out.println(sql.toString());
+		List<Object[]> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
+			
+		Map<String,Object> map = new HashMap<String,Object>();
+		
+		if(resultList != null && resultList.size() > 0) {
+			JSONArray ja = Util.returnCompanyMsg(resultList, "父节点");
+			map.put("tableData", ja);
+		}
+		
+		return map;
+	}
+
+	@RpcMethod(loginValidate = false)
+	@Override
+	public Map<String, Object> findCompanyMsgByCpx(FetchWebRequest<Map<String, String>> fetchWebReq)
+			throws Exception {
+		StringBuffer sql = new StringBuffer();
+		
+		sql.append(" select TABLE_NAME_EN from table_zjyt where TABLE_UUID='VIEW_ZJYT_PRODUCT' and TABLE_STATE=1 ");
+		
+		Object tableName= DBManager.get("kabBan").createNativeQuery(sql.toString()).getSingleResult();
+		
+		if(tableName == null || tableName.toString().equals("")) {
+			throw new Exception();
+		}
+		
+		sql.delete(0, sql.length());
+		sql.append(" select * from ( " + 
+				"select  " + 
+				"        PRODUCT_LINE_NAME_ST1 as a, '父节点' as b, " + 
+				"        case " + 
+				"                when sum(委托单数) is null then " + 
+				"                 0 " + 
+				"                else " + 
+				"                 sum(委托单数) " + 
+				"              end as c, " + 
+				"              case " + 
+				"                when sum(开票) is null then " + 
+				"                 0 " + 
+				"                else " + 
+				"                 sum(开票) " + 
+				"              end as d, " + 
+				"              case " + 
+				"                when sum(成本) is null then " + 
+				"                 0 " + 
+				"                else " + 
+				"                 sum(成本) " + 
+				"              end as e, " + 
+				"              case " + 
+				"                when sum(证书) is null then " + 
+				"                 0 " + 
+				"                else " + 
+				"                 sum(证书) " + 
+				"              end as f  " + 
+				"from  " + tableName+ 
+				"        " + 
+				"group by PRODUCT_LINE_NAME_ST1 " + 
+				" " + 
+				"union  " + 
+				" " + 
+				"select  " + 
+				"      PRODUCT_LINE_NAME_ST1 as a, 产品线NAME b,  " + 
+				"     (case when 委托单数 is null then 0 else 委托单数 end) as c,  " + 
+				"     (case when 开票 is null then 0 else 开票 end) as d,  " + 
+				"     (case when 成本 is null then 0 else 成本 end) as e,  " + 
+				"     (case when 证书 is null then 0 else 证书 end) as f " + 
+				"from  " + tableName+ 
+				"        " + 
+				") aa " + 
+				" " + 
+				"order by aa.a asc, aa.d desc " );
+		System.out.println(sql.toString());
+		List<Object[]> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
+			
+		Map<String,Object> map = new HashMap<String,Object>();
+		
+		if(resultList != null && resultList.size() > 0) {
+			JSONArray ja = Util.returnCompanyMsg(resultList, "父节点");
+			map.put("tableData", ja);
+		}
+		
+		return map;
+	}
 }

@@ -90,15 +90,18 @@ public class Util {
 			Object[] rdata = res.get(i);
 			
 			// 2级公司名称
-			String company2 = rdata[0].toString();
+			Object company0 = rdata[0];
 			// 3级公司名称
-			String company3 = rdata[1].toString();
+			Object company1 = rdata[1];
 			
-			if(company2 == null || company2.equals("")
-					|| company3 == null || company3.equals("")
-					|| company2.indexOf("参股") > 0) {
+			if(company0== null || company0.equals("")
+					|| company1 == null || company1.equals("")
+					|| company0.toString().indexOf("参股") > 0) {
 				continue;
 			}
+			
+			String company2 = company0.toString();
+			String company3 = company1.toString();
 			
 			if(cur2.equals("")) {
 				cur2 = company2;
@@ -206,7 +209,7 @@ public class Util {
 	public static String returnYiOrWan(BigDecimal bd, int ws) {
 		// 如果 ==0 或者 没带小数点 直接返回
 		if(bd.compareTo(new BigDecimal(0)) == 0 
-				|| bd.toString().indexOf(".") == -1) {
+				|| (bd.toString().indexOf(".") == -1 && bd.compareTo(new BigDecimal(10000)) == -1)) {
 			return bd.toString();
 		}
 		
