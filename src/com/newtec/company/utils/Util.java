@@ -28,8 +28,8 @@ public class Util {
 			DecimalFormat df) {
 		JSONObject jo = new JSONObject();
 		JSONObject total = new JSONObject();
-		int year =  ((BigDecimal) y).intValue(), 
-			day =  ((BigDecimal) d).intValue();
+		int year =  y == null ? 0 : ((BigDecimal) y).intValue(), 
+			day =  d == null ? 0 : ((BigDecimal) d).intValue();
 		// 亿 万
 		int yi = 100000000, wan = 10000;
 		
@@ -57,8 +57,8 @@ public class Util {
 			DecimalFormat df) {
 		JSONObject jo = new JSONObject();
 		JSONObject total = new JSONObject();
-		double year =  ((BigDecimal) y).doubleValue(), 
-				day =  ((BigDecimal) d).doubleValue();
+		double year =  y == null ? 0d : ((BigDecimal) y).doubleValue(), 
+				day =  d == null ? 0d : ((BigDecimal) d).doubleValue();
 		// 亿 万
 		int yi = 100000000, wan = 10000;
 		
@@ -208,6 +208,10 @@ public class Util {
 	 */
 	public static String returnYiOrWan(BigDecimal bd, int ws) {
 		// 如果 ==0 或者 没带小数点 直接返回
+		if(bd == null) {
+			return "0";
+		}
+		
 		if(bd.compareTo(new BigDecimal(0)) == 0 
 				|| (bd.toString().indexOf(".") == -1 && bd.compareTo(new BigDecimal(10000)) == -1)) {
 			return bd.toString();
@@ -219,5 +223,195 @@ public class Util {
 		return bd.compareTo(yi)== 1 ? 
 				Util.returnStringForNumber(bd.divide(yi), ws) + "亿" :
 					( bd.compareTo(wan)== 1 ? Util.returnStringForNumber(bd.divide(wan), ws) + "万"   : Util.returnStringForNumber(bd, ws) );
+	}
+	
+	/**
+	 * 根据查询结果 返回对应的柱状图option
+	 * @param res
+	 * @return
+	 */
+	public static JSONObject returnJtgsGxbarOption(List<Object[]> res) {
+		JSONObject jo = new JSONObject();
+		
+		// xAxis 
+		JSONObject xAxis = new JSONObject();
+		// min max
+		double min = 0d, max = 0d;
+		// yData
+		JSONArray yData = new JSONArray();
+		// sdatas
+		JSONArray sdatas = new JSONArray();
+		// sdtat1
+		JSONArray sdata1 = new JSONArray();
+		// sdata2
+		JSONArray sdata2 = new JSONArray();
+		
+		for (int i = 0; i < res.size(); i++) {
+			Object[] reso = res.get(i);
+			
+			// 公司名称/客户名称为空 直接下一条
+			if(reso[0] == null || reso[0].toString().equals("")
+					|| reso[1] == null || reso[1].toString().equals("")) {
+				continue;
+			}
+			
+			// 客户名称
+			String khm = reso[1].toString();
+			// 贡献值
+			BigDecimal gxz = reso[2] == null ? new BigDecimal(0) : (BigDecimal) reso[2]; 
+			// 已到款
+			BigDecimal ydk= reso[3] == null ? new BigDecimal(0) : (BigDecimal) reso[3];
+			
+			yData.add(khm);
+			sdata1.add(gxz);
+			sdata2.add(ydk);
+			
+			if(min > ydk.doubleValue()) {
+				min = ydk.doubleValue();
+			}
+			
+			if(max < gxz.doubleValue()) {
+				max = gxz.doubleValue();
+			}
+		}
+		
+		xAxis.put("min", min);
+		xAxis.put("max", max);
+		
+		jo.put("xAxis", xAxis);
+		jo.put("yData", yData);
+		
+		sdatas.add(sdata1);
+		sdatas.add(sdata2);
+		
+		jo.put("sdata", sdatas);
+		
+		return jo;
+	}
+	
+	/**
+	 * 根据查询的list 返回 公司列表数组
+	 * @param res
+	 * @return
+	 */
+	public static JSONArray findJtgsCompanyMsg(List<Object[]> res) {
+		JSONArray ja = new JSONArray();
+		
+		for (int i = 0; i < res.size(); i++) {
+			Object[] reso = res.get(i);
+			
+			// 公司名称为空 直接下一条
+			if(reso[0] == null || reso[0].toString().equals("")) {
+				continue;
+			}
+			
+			// 公司名称
+			String gsname = reso[0].toString();
+			// 委托单量
+			String wtdl = Util.returnYiOrWan((BigDecimal) reso[1], 2);
+			// 开票收入
+			String kpsr = Util.returnYiOrWan((BigDecimal) reso[2], 2);
+			// 成本总额
+			String cbze = Util.returnYiOrWan((BigDecimal) reso[3], 2);
+			// 出证数量
+			String czsl = Util.returnYiOrWan((BigDecimal) reso[4], 2);
+			
+			JSONObject child = new JSONObject();
+			
+			child.put("id", gsname);
+			child.put("gsname", gsname);
+			child.put("wtdl", wtdl);
+			child.put("kpsr", kpsr);
+			child.put("cbze", cbze);
+			child.put("czsl", czsl);
+			
+			ja.add(child);
+		}
+		
+		return ja;
+	}
+	
+	/**
+	 * 根据查询的list 返回 公司列表数组
+	 * @param res
+	 * @return
+	 */
+	public static JSONArray returnTableKh(List<Object[]> res) {
+		JSONArray ja = new JSONArray();
+		
+		for (int i = 0; i < res.size(); i++) {
+			Object[] reso = res.get(i);
+			
+			// 公司名称为空 直接下一条
+			if(reso[0] == null || reso[0].toString().equals("")) {
+				continue;
+			}
+			
+			// 客户名称
+			String khname = reso[0].toString();
+			// 委托金额
+			String wtje = Util.returnYiOrWan((BigDecimal) reso[1], 2);
+			// 已开票
+			String ykp = Util.returnYiOrWan((BigDecimal) reso[2], 2);
+			// 已收款
+			String ysk = Util.returnYiOrWan((BigDecimal) reso[3], 2);
+			// 出证数量
+			String czsl = Util.returnYiOrWan((BigDecimal) reso[4], 2);
+			
+			JSONObject child = new JSONObject();
+			
+			child.put("id", khname);
+			child.put("khname", khname);
+			child.put("wtje", wtje);
+			child.put("ykp", ykp);
+			child.put("ysk", ysk);
+			child.put("czsl", czsl);
+			
+			ja.add(child);
+		}
+		
+		return ja;
+	}
+	
+	/**
+	 * 根据查询的list 返回 公司列表数组
+	 * @param res
+	 * @return
+	 */
+	public static JSONArray returnJTGSCompanyCpx(List<Object[]> res) {
+		JSONArray ja = new JSONArray();
+		
+		for (int i = 0; i < res.size(); i++) {
+			Object[] reso = res.get(i);
+			
+			// 公司名称为空 直接下一条
+			if(reso[0] == null || reso[0].toString().equals("")) {
+				continue;
+			}
+			
+			// 公司名称
+			String cpxname = reso[0].toString();
+			// 委托单量
+			String wtdl = Util.returnYiOrWan((BigDecimal) reso[1], 2);
+			// 开票收入
+			String kpsr = Util.returnYiOrWan((BigDecimal) reso[2], 2);
+			// 成本总额
+			String cbze = Util.returnYiOrWan((BigDecimal) reso[3], 2);
+			// 出证数量
+			String czsl = Util.returnYiOrWan((BigDecimal) reso[4], 2);
+			
+			JSONObject child = new JSONObject();
+			
+			child.put("id", cpxname);
+			child.put("cpxname", cpxname);
+			child.put("wtdl", wtdl);
+			child.put("kpsr", kpsr);
+			child.put("cbze", cbze);
+			child.put("czsl", czsl);
+			
+			ja.add(child);
+		}
+		
+		return ja;
 	}
 }

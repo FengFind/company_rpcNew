@@ -2,7 +2,9 @@ package com.newtec.company.service.impl;
 
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -36,9 +38,9 @@ public class ReportServiceImpl implements ReportService{
 		// 获取当前公司id
 		Map<String, String> resMap = fetchWebReq.getData();
 		String companyId = resMap.get("companyId");
-		String whereCond = (companyId!= null && !companyId.equals("") && !companyId.equals("zj") ) ? " where COMPANY_BUSI_ORG_ID = "+ companyId: "";
+		String whereCond = (companyId!= null && !companyId.equals("") && !companyId.equals("zj") ) ? " where COMPANY_BUSI_ORG_NAME = '"+ companyId + "'": "";
 		sql.append("select "
-							+ "to_char(a.mon)||'月' as yue,a.curYear, a.lastYear, round(a.curYear/a.lastYear*100, 2) as tongbi  "
+							+ "to_char(a.mon)||'月' as yue,a.curYear, a.lastYear, round((a.curYear - a.lastYear)/a.lastYear*100, 2) as tongbi  "
 						+ "from ( " 
 								+ "select  "
 										+ "to_number(substr(INVOICE_DATE,6,7)) as mon,sum((SYSTEM_TAX_PRICE+TAXPRICE_YX+TAXPRICE_FYW)) as curYear, sum(YYSRSNTQLJ) as lastYear "
@@ -386,4 +388,298 @@ public class ReportServiceImpl implements ReportService{
 		
 		return map;
 	}
+	
+	@RpcMethod(loginValidate = false)
+	@Override
+	public Map<String, Object> findJtgsGxbar(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception {
+		StringBuffer sql = new StringBuffer();
+		
+		sql.append(" select TABLE_NAME_EN from table_zjyt where TABLE_UUID='VEIW_ZJYT_SORG_GX' and TABLE_STATE=1 ");
+		
+		Object tableName= DBManager.get("kabBan").createNativeQuery(sql.toString()).getSingleResult();
+		
+		if(tableName == null || tableName.toString().equals("")) {
+			throw new Exception();
+		}
+		
+		sql.delete(0, sql.length());
+		
+		// 获取当前公司id
+		Map<String, String> resMap = fetchWebReq.getData();
+		String companyId = resMap.get("companyId");
+		sql.append("select * from "+tableName).append(" where SORG_LEVEL3= '").append(companyId).append("'");
+		System.out.println(sql.toString());
+		List<Object[]> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
+			
+		Map<String,Object> map = new HashMap<String,Object>();
+		
+		if(resultList != null && resultList.size() > 0) {
+			JSONObject ja = Util.returnJtgsGxbarOption(resultList);
+			
+			map.put("gxbarOption", ja);
+		}
+		
+		return map;
+	}
+	
+	@RpcMethod(loginValidate = false)
+	@Override
+	public Map<String, Object> findJtgsCompanyMsg(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception {
+		StringBuffer sql = new StringBuffer();
+		
+		sql.append(" select TABLE_NAME_EN from table_zjyt where TABLE_UUID='VIEW_ZJYT_SORG_COMPANY' and TABLE_STATE=1 ");
+		
+		Object tableName= DBManager.get("kabBan").createNativeQuery(sql.toString()).getSingleResult();
+		
+		if(tableName == null || tableName.toString().equals("")) {
+			throw new Exception();
+		}
+		
+		sql.delete(0, sql.length());
+		// 获取当前公司id
+		Map<String, String> resMap = fetchWebReq.getData();
+		String companyId = resMap.get("companyId");
+		sql.append("select 公司NAME, ")
+			.append(" case when 委托单数 is null then 0 else 委托单数 end as c, ")
+			.append(" case when 开票 is null then 0 else 开票 end as d, ")
+			.append(" case when 成本 is null then 0 else 成本 end as e, ")
+			.append(" case when 证书 is null then 0 else 证书 end as f ")
+			.append(" from ")
+			.append(tableName)
+			.append(" where SORG_LEVEL3= '")
+			.append(companyId).append("'")
+			.append(" order by  d desc");
+		System.out.println(sql.toString());
+		List<Object[]> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
+			
+		Map<String,Object> map = new HashMap<String,Object>();
+		
+		if(resultList != null && resultList.size() > 0) {
+			JSONArray ja = Util.findJtgsCompanyMsg(resultList);
+			
+			map.put("tableData", ja);
+		}
+		
+		return map;
+	}
+
+	@RpcMethod(loginValidate = false)
+	@Override
+	public Map<String,Object> findFirstCompanyKp(FetchWebRequest<Map<String, String>> fetchWebReq)
+			throws Exception {
+		// TODO Auto-generated method stub
+		StringBuffer sql = new StringBuffer();
+		sql.append(
+				"select TABLE_NAME_EN from table_zjyt where table_uuid = 'VIEW_ZJYT_SORG_INVOICE' and table_state=1");
+		Object tableName = DBManager.get("kabBan").createNativeQuery(sql.toString()).getSingleResult();
+
+		if (tableName == null || tableName.toString().equals("")) {
+			throw new Exception();
+		}
+
+		sql.delete(0, sql.length());
+		// 获取当前公司id
+		Map<String, String> resMap = fetchWebReq.getData();
+		String companyId = resMap.get("companyId");
+		sql.append("select * from "+tableName+" where SORG_LEVEL3 = '"+companyId+"'");
+		System.out.println("------------------" + sql.toString());
+		List<Object[]> obj = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
+		
+		Map<String,Object> map = new HashMap<String,Object>();
+		JSONArray ja = new JSONArray();
+		if (obj != null && obj.size() > 0) {
+			for (Object[] o : obj) {
+				JSONObject jo = new JSONObject();
+				jo.put("name", o[2] == null ? "" : o[2]);
+				jo.put("value", o[3] == null ? 0 : o[3]);
+				ja.add(jo);
+			}
+		}
+		
+		map.put("zbpieOption",ja);
+		
+		return map;
+	}
+
+	@RpcMethod(loginValidate = false)
+	@Override
+	public Map<String, Object> findJtgsTableKh(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception {
+		StringBuffer sql = new StringBuffer();
+		
+		sql.append(" select TABLE_NAME_EN from table_zjyt where TABLE_UUID='VIEW_ZJYT_SORG_CUSTOMER' and TABLE_STATE=1 ");
+		
+		Object tableName= DBManager.get("kabBan").createNativeQuery(sql.toString()).getSingleResult();
+		
+		if(tableName == null || tableName.toString().equals("")) {
+			throw new Exception();
+		}
+		
+		sql.delete(0, sql.length());
+		
+		// 获取当前公司id
+		Map<String, String> resMap = fetchWebReq.getData();
+		String companyId = resMap.get("companyId");
+		String groupType = resMap.get("groupType");
+		String pageNum = resMap.get("pageNum");
+		
+		sql.append(" select * from ( ")
+			.append("       select aa.*, rownum as rm from ( ")
+			.append("             select CUSTOMER_NAME,委托金额,开票,已到款,证书  ")
+			.append("             from ").append(tableName)
+			.append("             where SORG_LEVEL3 ='").append(companyId).append("' ")
+			.append("              and GROUP_TYPE='").append(groupType).append("' ")
+			.append("             order by 委托金额 desc  ")
+			.append("       ) aa where rownum < ").append(Integer.parseInt(pageNum)*10+1)
+			.append(" )bb where rm > ").append((Integer.parseInt(pageNum) - 1) * 10);
+		System.out.println(sql.toString());
+		List<Object[]> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
+			
+		Map<String,Object> map = new HashMap<String,Object>();
+		
+		if(resultList != null && resultList.size() > 0) {
+			JSONArray ja = Util.returnTableKh(resultList);
+			
+			map.put("tableData", ja);
+		}
+		
+		return map;
+	}
+
+	@RpcMethod(loginValidate = false)
+	@Override
+	public Map<String, Object> findZjytTableKh(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception {
+		StringBuffer sql = new StringBuffer();
+		
+		sql.append(" select TABLE_NAME_EN from table_zjyt where TABLE_UUID='VIEW_ZJYT_CUSTOMER' and TABLE_STATE=1 ");
+		
+		Object tableName= DBManager.get("kabBan").createNativeQuery(sql.toString()).getSingleResult();
+		
+		if(tableName == null || tableName.toString().equals("")) {
+			throw new Exception();
+		}
+		
+		sql.delete(0, sql.length());
+		
+		// 获取当前公司id
+		Map<String, String> resMap = fetchWebReq.getData();
+		String groupType = resMap.get("groupType");
+		String pageNum = resMap.get("pageNum");
+		
+		sql.append(" select * from ( ")
+			.append("       select aa.*, rownum as rm from ( ")
+			.append("             select CUSTOMER_NAME,委托金额,已开票,已收款,出证数量 ")
+			.append("             from ").append(tableName)
+			.append("             where GROUP_TYPE='").append(groupType).append("' ")
+			.append("             order by 委托金额 desc  ")
+			.append("       ) aa where rownum < ").append(Integer.parseInt(pageNum)*10+1)
+			.append(" )bb where rm > ").append((Integer.parseInt(pageNum) - 1) * 10);
+		System.out.println(sql.toString());
+		List<Object[]> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
+			
+		Map<String,Object> map = new HashMap<String,Object>();
+		
+		if(resultList != null && resultList.size() > 0) {
+			JSONArray ja = Util.returnTableKh(resultList);
+			
+			map.put("tableData", ja);
+		}
+		
+		return map;
+	}
+	
+	@RpcMethod(loginValidate = false)
+	@Override
+	public Map<String, Object> findTotalCompany(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception {
+		StringBuffer sql = new StringBuffer();
+
+		sql.append(" select TABLE_NAME_EN from table_zjyt where TABLE_UUID='VIEW_ZJYT_SORG_DY' and TABLE_STATE=1 ");
+
+		Object tableName = DBManager.get("kabBan").createNativeQuery(sql.toString()).getSingleResult();
+
+		if (tableName == null || tableName.toString().equals("")) {
+			throw new Exception();
+		}
+
+		sql.delete(0, sql.length());
+		Map<String, String> resMap = fetchWebReq.getData();
+		String companyId = resMap.get("companyId");
+
+		sql.append("select * from " + tableName + " where SORG_LEVEL3 ='"+companyId+"'");
+		System.out.println(sql.toString());
+		List<Object[]> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
+
+		Map<String, Object> map = new HashMap<String, Object>();
+		// 返回的jsonarray
+		JSONArray ja = new JSONArray();
+		if (resultList != null && resultList.size() > 0) {
+
+			Object[] res = resultList.get(0);
+
+			// 四舍五入保留2位小数
+			DecimalFormat df = new DecimalFormat("#.00");
+
+			// 开工数量 5年开工 6日开工
+			ja.add(Util.returnTodayTotalIntMsg("开工数量", "单", res[5], res[6], df));
+
+			// 出证数量 15 年证书 16 日证书
+			ja.add(Util.returnTodayTotalIntMsg("出证数量", "", res[15], res[16], df));
+
+			// 客户数量 9年客户 10日客户
+			ja.add(Util.returnTodayTotalIntMsg("客户数量", "个", res[9], res[10], df));
+
+			// 供应商数量 4 年供应商 3 日供应商
+			ja.add(Util.returnTodayTotalIntMsg("供应商数量", "个", res[4], res[3], df));
+
+			// 委托金额 13 年委托金额 14 日委托金额
+			ja.add(Util.returnTodayTotalDoubleMsg("委托金额", "元", res[13], res[14], df));
+
+			// 完工金额 11 年完工金额 12 日完工金额
+			ja.add(Util.returnTodayTotalDoubleMsg("完工金额", "元", res[11], res[12], df));
+
+			// 开票收入 7 年开票收入 8 日开票收入
+			ja.add(Util.returnTodayTotalDoubleMsg("开票收入", "元", res[7], res[8], df));
+
+			// 成本总额 1年成本总额 2 日成本总额
+			ja.add(Util.returnTodayTotalDoubleMsg("成本总额", "元", res[1], res[2], df));
+		}
+
+		map.put("ttdata", ja);
+
+		return map;
+	}
+	
+	@RpcMethod(loginValidate = false)
+	@Override
+	public Map<String, Object> findJTGSCompanyCpx(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception {
+		StringBuffer sql = new StringBuffer();
+
+		sql.append(" select TABLE_NAME_EN from table_zjyt where TABLE_UUID='VIEW_ZJYT_SORG_PRODUCT' and TABLE_STATE=1");
+		Object tableName = DBManager.get("kabBan").createNativeQuery(sql.toString()).getSingleResult();
+
+		if (tableName == null || tableName.toString().equals("")) {
+			throw new Exception();
+		}
+		sql.delete(0, sql.length());
+		Map<String, String> resMap = fetchWebReq.getData();
+		String companyId = resMap.get("companyId");
+		
+		sql.append("select  产品线NAME a,  " 
+				+ "     (case when 委托单数 is null then 0 else 委托单数 end) as c,  "
+				+ "     (case when 开票 is null then 0 else 开票 end) as d,  "
+				+ "     (case when 成本 is null then 0 else 成本 end) as e,  "
+				+ "     (case when 证书 is null then 0 else 证书 end) as f " 
+				+ " from  " + tableName
+				+ " where SORG_LEVEL3 ='"+companyId+"' ");
+		System.out.println(sql.toString());
+		List<Object[]> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
+
+		Map<String, Object> map = new HashMap<String, Object>();
+
+		if (resultList != null && resultList.size() > 0) {
+			JSONArray ja = Util.returnJTGSCompanyCpx(resultList);
+			map.put("tableData", ja);
+		}
+
+		return map;
+	}  
 }

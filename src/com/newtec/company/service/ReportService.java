@@ -1,5 +1,6 @@
 package com.newtec.company.service;
 
+import java.util.List;
 import java.util.Map;
 
 import com.newtec.router.request.FetchWebRequest;
@@ -15,4 +16,18 @@ public interface ReportService {
 	public Map<String, Object> findCompanyMsgByArea(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
 	
 	public Map<String, Object> findCompanyMsgByCpx(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+	
+	public Map<String, Object> findJtgsGxbar(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+	
+	public Map<String, Object> findJtgsCompanyMsg(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+	
+	public Map<String, Object> findFirstCompanyKp(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+	
+	public Map<String, Object> findJtgsTableKh(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+	
+	public Map<String, Object> findZjytTableKh(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+	
+	public Map<String, Object> findTotalCompany(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+	
+	public Map<String, Object> findJTGSCompanyCpx(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
 }
