@@ -414,4 +414,92 @@ public class Util {
 		
 		return ja;
 	}
+	
+	/**
+	 * 根据查询的list 返回 重点服务技术中类收入饼图
+	 * @param res
+	 * @return
+	 */
+	public static JSONArray returnSrpieCpx(List<Object[]> res) {
+		JSONArray ja = new JSONArray();
+		// 支取最多5个数据
+		int len = res.size() > 5 ? 5 : res.size();
+		
+		for (int i = 0; i < len; i++) {
+			Object[] reso = res.get(i);
+			
+			// 名称为空 直接下一条
+			if(reso[0] == null || reso[0].toString().equals("")) {
+				continue;
+			}
+			
+			// 名称
+			String name = reso[0].toString();
+			// 委托单量
+			BigDecimal value = (BigDecimal) reso[1];
+			JSONObject child = new JSONObject();
+			
+			child.put("name", name);;
+			child.put("value", value);
+			
+			ja.add(child);
+		}
+		
+		return ja;
+	}
+
+	/**
+	 * 根据查询结果 返回对应的柱状图option
+	 * @param res
+	 * @return
+	 */
+	public static JSONObject returnJtgsSrbarOption(List<Object[]> res) {
+		JSONObject jo = new JSONObject();
+		
+		// xAxis 
+		JSONObject xAxis = new JSONObject();
+		// min max
+		double min = 0d, max = 0d;
+		// yData
+		JSONArray yData = new JSONArray();
+		// sdtat1
+		JSONArray sdata = new JSONArray();
+		// 支取最多5个数据
+		int len = res.size() > 5 ? 5 : res.size();
+		
+		for (int i = len - 1; i >= 0; i--) {
+			Object[] reso = res.get(i);
+			
+			// 名称为空 直接下一条
+			if(reso[0] == null || reso[0].toString().equals("")) {
+				continue;
+			}
+			
+			// 名称
+			String name = reso[0].toString();
+			// 开票
+			BigDecimal kp = reso[1] == null ? new BigDecimal(0) : (BigDecimal) reso[1];
+			
+			yData.add(name);
+			sdata.add(kp);
+			
+			if(min > kp.doubleValue()) {
+				min = kp.doubleValue();
+			}
+			
+			if(max < kp.doubleValue()) {
+				max = kp.doubleValue();
+			}
+		}
+		
+		xAxis.put("min", min);
+		xAxis.put("max", max);
+		
+		jo.put("xAxis", xAxis);
+		jo.put("yData", yData);
+		
+		jo.put("sdata", sdata);
+		
+		return jo;
+	}
 }
