@@ -38,4 +38,10 @@ public interface ReportService {
 	public Map<String, Object> findJtgsSrbar(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
 	
 	public Map<String, Object> findCpxGxbar(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+	
+	public Map<String, Object> findCpxMsgByJsfl(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+	
+	public Map<String, Object> findCpxTableKh(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+	
+	public Map<String, Object> findCompanyMsgByCpxName(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
 }

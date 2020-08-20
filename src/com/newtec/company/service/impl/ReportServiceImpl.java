@@ -869,4 +869,239 @@ public class ReportServiceImpl implements ReportService{
 		
 		return map;
 	}
+
+	@RpcMethod(loginValidate = false)
+	@Override
+	public Map<String, Object> findCpxMsgByJsfl(FetchWebRequest<Map<String, String>> fetchWebReq)
+			throws Exception {
+		StringBuffer sql = new StringBuffer();
+		// 获取当前查询jsid
+		Map<String, String> resMap = fetchWebReq.getData();
+		String jsid = resMap.get("jsid");
+		String cpxname = resMap.get("cpxname");
+		String cond = jsid.equals("1") ? "VIEW_ZJYT_PROD_SERVICE" : "VIEW_ZJYT_PROD_GOODS" ;
+		
+		sql.append(" select TABLE_NAME_EN from table_zjyt where TABLE_UUID='"+cond+"' and TABLE_STATE=1 ");
+		
+		Object tableName= DBManager.get("kabBan").createNativeQuery(sql.toString()).getSingleResult();
+		
+		if(tableName == null || tableName.toString().equals("")) {
+			throw new Exception();
+		}
+		
+		sql.delete(0, sql.length());
+		
+		String as = "SERVICE";
+				
+		if( jsid.equals("2")) {
+			as = "GOODS";
+		}
+		
+		sql.append(" select * from ( " + 
+				"select  " + 
+				"        "+as+"_MAINCLASS_NAME as a, '父节点' as b, " + 
+				"        case " + 
+				"                when sum(委托单数) is null then " + 
+				"                 0 " + 
+				"                else " + 
+				"                 sum(委托单数) " + 
+				"              end as c, " + 
+				"              case " + 
+				"                when sum(开票) is null then " + 
+				"                 0 " + 
+				"                else " + 
+				"                 sum(开票) " + 
+				"              end as d, " + 
+				"              case " + 
+				"                when sum(成本) is null then " + 
+				"                 0 " + 
+				"                else " + 
+				"                 sum(成本) " + 
+				"              end as e, " + 
+				"              case " + 
+				"                when sum(证书) is null then " + 
+				"                 0 " + 
+				"                else " + 
+				"                 sum(证书) " + 
+				"              end as f  " + 
+				" from  " + tableName + 
+				" where PRODUCT_LINE_NAME='"+cpxname+"' " +
+				" and "+as+"_MAINCLASS_NAME is not null " +
+				" group by "+as+"_MAINCLASS_NAME " + 
+				" " + 
+				"union  " + 
+				" " + 
+				"select  " + 
+				"      "+as+"_MAINCLASS_NAME as a, "+as+"_MEDIUMCLASS_NAME b,  " + 
+				"        case " + 
+				"                when sum(委托单数) is null then " + 
+				"                 0 " + 
+				"                else " + 
+				"                 sum(委托单数) " + 
+				"              end as c, " + 
+				"              case " + 
+				"                when sum(开票) is null then " + 
+				"                 0 " + 
+				"                else " + 
+				"                 sum(开票) " + 
+				"              end as d, " + 
+				"              case " + 
+				"                when sum(成本) is null then " + 
+				"                 0 " + 
+				"                else " + 
+				"                 sum(成本) " + 
+				"              end as e, " + 
+				"              case " + 
+				"                when sum(证书) is null then " + 
+				"                 0 " + 
+				"                else " + 
+				"                 sum(证书) " + 
+				"              end as f  " + 
+				"from  " + tableName + 
+				" where PRODUCT_LINE_NAME='"+cpxname+"' " +
+				" and "+as+"_MAINCLASS_NAME is not null " +
+				" group by "+as+"_MAINCLASS_NAME, "+as+"_MEDIUMCLASS_NAME ) aa " + 
+				" " + 
+				"order by aa.a asc, aa.d desc ");
+		System.out.println(sql.toString());
+		List<Object[]> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
+			
+		Map<String,Object> map = new HashMap<String,Object>();
+		
+		if(resultList != null && resultList.size() > 0) {
+			JSONArray ja = Util.returnCompanyMsg(resultList, "父节点");
+			map.put("tableData", ja);
+		}
+		
+		return map;
+	}
+
+	@RpcMethod(loginValidate = false)
+	@Override
+	public Map<String, Object> findCpxTableKh(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception {
+		StringBuffer sql = new StringBuffer();
+		
+		sql.append(" select TABLE_NAME_EN from table_zjyt where TABLE_UUID='VIEW_ZJYT_PROD_CUSTOMER' and TABLE_STATE=1 ");
+		
+		Object tableName= DBManager.get("kabBan").createNativeQuery(sql.toString()).getSingleResult();
+		
+		if(tableName == null || tableName.toString().equals("")) {
+			throw new Exception();
+		}
+		
+		sql.delete(0, sql.length());
+		
+		// 获取当前公司id
+		Map<String, String> resMap = fetchWebReq.getData();
+		String cpxName = resMap.get("cpxName");
+		String groupType = resMap.get("groupType");
+		String pageNum = resMap.get("pageNum");
+		
+		sql.append(" select * from ( ")
+			.append("       select aa.*, rownum as rm from ( ")
+			.append("             select CUSTOMER_NAME,委托金额,开票,已到款,证书 ")
+			.append("             from ").append(tableName)
+			.append("             where GROUP_TYPE='").append(groupType).append("' ")
+			.append("             and PRODUCT_LINE_NAME='").append(cpxName).append("' ")
+			.append("             order by 委托金额 desc  ")
+			.append("       ) aa where rownum < ").append(Integer.parseInt(pageNum)*10+1)
+			.append(" )bb where rm > ").append((Integer.parseInt(pageNum) - 1) * 10);
+		System.out.println(sql.toString());
+		List<Object[]> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
+			
+		Map<String,Object> map = new HashMap<String,Object>();
+		
+		if(resultList != null && resultList.size() > 0) {
+			JSONArray ja = Util.returnTableKh(resultList);
+			
+			map.put("tableData", ja);
+		}
+		
+		return map;
+	}
+
+	@RpcMethod(loginValidate = false)
+	@Override
+	public Map<String, Object> findCompanyMsgByCpxName(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception {
+		StringBuffer sql = new StringBuffer();
+		
+		sql.append(" select TABLE_NAME_EN from table_zjyt where TABLE_UUID='VIEW_ZJYT_PROD_COMPANY' and TABLE_STATE=1 ");
+		
+		Object tableName= DBManager.get("kabBan").createNativeQuery(sql.toString()).getSingleResult();
+		
+		if(tableName == null || tableName.toString().equals("")) {
+			throw new Exception();
+		}
+		
+		sql.delete(0, sql.length());
+		
+		// 获取当前产品线名称
+		Map<String, String> resMap = fetchWebReq.getData();
+		String cpxName = resMap.get("cpxName");
+		
+		sql.append("select * from ( " + 
+				"select COMPANY_BUSI_ORG_NAME as a, " + 
+				"      case " + 
+				"        when 委托单数 is null then " + 
+				"         0 " + 
+				"        else " + 
+				"         委托单数 " + 
+				"      end as c, case " + 
+				"        when 开票 is null then " + 
+				"         0 " + 
+				"        else " + 
+				"         开票 " + 
+				"      end as d, case " + 
+				"        when 成本 is null then " + 
+				"         0 " + 
+				"        else " + 
+				"         成本 " + 
+				"      end as e, case " + 
+				"        when 证书 is null then " + 
+				"         0 " + 
+				"        else " + 
+				"         证书 " + 
+				"      end as f  " + 
+				"from " + tableName +" " +
+				"where PRODUCT_LINE_NAME = '"+cpxName+"' and COMPANY_BUSI_ORG_NAME is not null " + 
+				"union " + 
+				"select '总计' as a, " + 
+				"      case " + 
+				"        when sum(委托单数) is null then " + 
+				"         0 " + 
+				"        else " + 
+				"         sum(委托单数) " + 
+				"      end as c, case " + 
+				"        when sum(开票) is null then " + 
+				"         0 " + 
+				"        else " + 
+				"         sum(开票) " + 
+				"      end as d, case " + 
+				"        when sum(成本) is null then " + 
+				"         0 " + 
+				"        else " + 
+				"         sum(成本) " + 
+				"      end as e, case " + 
+				"        when sum(证书) is null then " + 
+				"         0 " + 
+				"        else " + 
+				"         sum(证书) " + 
+				"      end as f  " + 
+				"from "  + tableName +" " + 
+				"where PRODUCT_LINE_NAME = '"+cpxName+"' and COMPANY_BUSI_ORG_NAME is not null " + 
+				"group by PRODUCT_LINE_NAME " + 
+				") aa order by aa.d desc ");
+		System.out.println(sql.toString());
+		List<Object[]> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
+			
+		Map<String,Object> map = new HashMap<String,Object>();
+		
+		if(resultList != null && resultList.size() > 0) {
+			JSONArray ja = Util.returnCompanyMsgByCpxName(resultList);
+			
+			map.put("tableData", ja);
+		}
+		
+		return map;
+	}
 }

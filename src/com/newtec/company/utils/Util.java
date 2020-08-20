@@ -502,4 +502,70 @@ public class Util {
 		
 		return jo;
 	}
+	
+	/**
+	 * 根据查询结果 返回对应的公司信息列表
+	 * @param res
+	 * @return
+	 */
+	public static JSONArray returnCompanyMsgByCpxName(List<Object[]> res) {
+		JSONArray ja = new JSONArray();
+		
+		for (int i =1; i < res.size(); i++) {
+			Object[] reso = res.get(i);
+			
+			// 名称为空 直接下一条
+			if(reso[0] == null || reso[0].toString().equals("")) {
+				continue;
+			}
+			
+			// 公司名称
+			String gsname = reso[0].toString();
+			// 委托单量
+			String wtdl = Util.returnYiOrWan((BigDecimal) reso[1], 2);
+			// 开票收入
+			String kpsr = Util.returnYiOrWan((BigDecimal) reso[2], 2);
+			// 成本总额
+			String cbze = Util.returnYiOrWan((BigDecimal) reso[3], 2);
+			// 出证数量
+			String czsl = Util.returnYiOrWan((BigDecimal) reso[4], 2);
+			
+			JSONObject child = new JSONObject();
+			
+			child.put("id", gsname);
+			child.put("gsname", gsname);
+			child.put("wtdl", wtdl);
+			child.put("kpsr", kpsr);
+			child.put("cbze", cbze);
+			child.put("czsl", czsl);
+			
+			ja.add(child);
+		}
+		
+		Object[] reso = res.get(0);
+		
+		// 公司名称
+		String gsname = reso[0].toString();
+		// 委托单量
+		String wtdl = Util.returnYiOrWan((BigDecimal) reso[1], 2);
+		// 开票收入
+		String kpsr = Util.returnYiOrWan((BigDecimal) reso[2], 2);
+		// 成本总额
+		String cbze = Util.returnYiOrWan((BigDecimal) reso[3], 2);
+		// 出证数量
+		String czsl = Util.returnYiOrWan((BigDecimal) reso[4], 2);
+		
+		JSONObject child = new JSONObject();
+		
+		child.put("id", gsname);
+		child.put("gsname", gsname);
+		child.put("wtdl", wtdl);
+		child.put("kpsr", kpsr);
+		child.put("cbze", cbze);
+		child.put("czsl", czsl);
+		
+		ja.add(child);
+		
+		return ja;
+	}
 }
