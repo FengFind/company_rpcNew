@@ -7,6 +7,8 @@ import com.newtec.router.request.FetchWebRequest;
 
 public interface ReportService {
 
+	public Map<String, Object> findInvoiceDataCpx(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+	
 	public Map<String, Object> findInvoiceData(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
 
 	public Map<String, Object> findTodayTotal(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
@@ -44,4 +46,12 @@ public interface ReportService {
 	public Map<String, Object> findCpxTableKh(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
 	
 	public Map<String, Object> findCompanyMsgByCpxName(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+	
+	public Map<String, Object> findStationByCompany(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+	
+	public Map<String, Object> findGdmsgByCompanyId(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+	
+	public Map<String, Object> findGgmsgByCompanyId(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+	
+	public Map<String, Object> findFzjgmsgByCompanyId(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
 }

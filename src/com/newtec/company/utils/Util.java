@@ -10,9 +10,12 @@ import com.alibaba.fastjson.JSONObject;
 public class Util {
 
 	public static void main(String[] args) {
-		DecimalFormat df = new DecimalFormat("#.000");
+//		DecimalFormat df = new DecimalFormat("#.000");
+//		
+//		System.out.println(df.format(new BigDecimal("1235.6978")));
+		String s = "烟台恒邦集团有限公司", s1 = "恒邦集团烟台恒邦集团有限公司大股东他参股29家公司 ";
 		
-		System.out.println(df.format(new BigDecimal("1235.6978")));
+		System.out.println(s1.substring(s1.indexOf(s)+s.length()).replace("大股东", ""));
 	}
 	
 	/**
@@ -565,6 +568,156 @@ public class Util {
 		child.put("czsl", czsl);
 		
 		ja.add(child);
+		
+		return ja;
+	}
+	
+	/**
+	 * 返回jsonobject
+	 * @param obj1
+	 * @param obj2
+	 * @return
+	 */
+	public static JSONObject returnStionCompany(Object obj1, Object obj2) {
+		JSONObject jo = new JSONObject(); 
+		
+		jo.put("td0", obj1);
+		jo.put("td1", obj2);
+		
+		return jo;
+	}
+	
+	/**
+	 * 返回jsonobject
+	 * @param obj1
+	 * @param obj2
+	 * @return
+	 */
+	public static JSONObject returnGdMsgJobj(Object obj1, Object obj2, 
+			Object obj3, String obj3Name, Object obj4, String obj4Name) {
+		JSONObject jo = new JSONObject(); 
+		
+		jo.put("td0", obj1);
+		jo.put("td1", obj2);
+		
+		if(obj3Name != null) {
+			jo.put(obj3Name, obj3);
+		}
+
+		if(obj4Name != null) {
+			jo.put(obj4Name, obj4);
+		}
+		
+		return jo;
+	}
+	
+	/**
+	 * 根据查询结果返回股东jsonarray msg
+	 * @param res
+	 * @return
+	 */
+	public static JSONArray returnGdMsg(List<Object[]> res) {
+		JSONArray ja = new JSONArray(); 
+		
+		for (int i = 0; i < res.size(); i++) {
+			Object[] o = res.get(i);
+			
+			// 股东 名称
+			String gdname = o[0].toString();
+			// 认缴出资额
+			String rjcze = o[2].toString();
+			// 持股比例 
+			String cgbl = o[1].toString();
+			
+			// 第一行
+			JSONObject first = Util.returnGdMsgJobj(gdname, "", true,"gdname", null, null);
+			// 第二行
+			JSONObject second = Util.returnGdMsgJobj(i == 0? "大股东":"", "", i == 0?true:false,"dgd", null, null);
+			// 第三行
+			JSONObject third = Util.returnStionCompany("认缴出资额", "持股比例");
+			// 第四行
+			JSONObject four = Util.returnGdMsgJobj(rjcze, cgbl,true,"cgbl", null, null);
+			
+			// 加入数组
+			ja.add(first);
+			ja.add(second);
+			ja.add(third);
+			ja.add(four);
+		}
+		
+		return ja;
+	}
+	
+	/**
+	 * 根据查询结果返回高管信息jsonarray msg
+	 * @param res
+	 * @return
+	 */
+	public static JSONArray returnGgMsg(List<Object[]> res) {
+		JSONArray ja = new JSONArray(); 
+		
+		for (int i = 0; i < res.size(); i++) {
+			Object[] o = res.get(i);
+			
+			// 高管名称
+			String ggname = o[0].toString();
+			// 职务
+			String duty = o[1].toString();
+			
+			// 第一行
+			JSONObject first = Util.returnStionCompany("姓名", "职位");
+			// 第二行
+			JSONObject second = Util.returnStionCompany(ggname, duty);
+			
+			// 加入数组
+			ja.add(first);
+			ja.add(second);
+		}
+		
+		return ja;
+	}
+	
+	/**
+	 * 根据查询结果返回分支机构信息jsonarray msg
+	 * @param res
+	 * @return
+	 */
+	public static JSONArray returnFzjgMsg(List<Object[]> res) {
+		JSONArray ja = new JSONArray(); 
+		
+		for (int i = 0; i < res.size(); i++) {
+			Object[] o = res.get(i);
+			
+			// 分支机构名称
+			String name = o[0].toString();
+			// 分支机构法定代表人
+			String duty = o[1].toString();
+			// 经营状态
+			String state = o[2].toString();
+			// 注册时间
+			String time = o[3].toString();
+			
+			// 第一行
+			JSONObject first = Util.returnStionCompany("", "");
+			// 第二行
+			JSONObject second = Util.returnGdMsgJobj(name, "", true,"gdname", null, null);
+			// 第三行
+			JSONObject third = Util.returnStionCompany("法定代表人", "经营状态");
+			// 第四行
+			JSONObject four = Util.returnGdMsgJobj(duty, state,true,"ggname", null, null);
+			// 第五行
+			JSONObject five = Util.returnStionCompany("注册时间", "");
+			// 第六行
+			JSONObject six = Util.returnStionCompany(time, "");
+			
+			// 加入数组
+			ja.add(first);
+			ja.add(second);
+			ja.add(third);
+			ja.add(four);
+			ja.add(five);
+			ja.add(six);
+		}
 		
 		return ja;
 	}
