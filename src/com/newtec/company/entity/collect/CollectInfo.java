@@ -13,6 +13,8 @@ public class CollectInfo {
 	private String sou_id;
 	private String same;
 	private String ch_name;
+	private String sou_ch_name;
+	private String tar_ch_name;
 	private String sou_sys_name;
 	private String tar_sys_name;
 	
@@ -28,11 +30,17 @@ public class CollectInfo {
 	public void setTar_sys_name(String tar_sys_name) {
 		this.tar_sys_name = tar_sys_name;
 	}
-	public String getCh_name() {
-		return ch_name;
+	public String getSou_ch_name() {
+		return sou_ch_name;
 	}
-	public void setCh_name(String ch_name) {
-		this.ch_name = ch_name;
+	public void setSou_ch_name(String sou_ch_name) {
+		this.sou_ch_name = sou_ch_name;
+	}
+	public String getTar_ch_name() {
+		return tar_ch_name;
+	}
+	public void setTar_ch_name(String tar_ch_name) {
+		this.tar_ch_name = tar_ch_name;
 	}
 	public String getId() {
 		return id;
@@ -88,9 +96,17 @@ public class CollectInfo {
 	public void setCreate_time(String create_time) {
 		this.create_time = create_time;
 	}
+	@Override
+	public String toString() {
+		return "CollectInfo [id=" + id + ", target_name=" + target_name + ", target_count=" + target_count
+				+ ", target_id=" + target_id + ", create_time=" + create_time + ", sou_name=" + sou_name
+				+ ", sou_count=" + sou_count + ", sou_id=" + sou_id + ", same=" + same + ", ch_name=" + ch_name
+				+ ", sou_ch_name=" + sou_ch_name + ", tar_ch_name=" + tar_ch_name + ", sou_sys_name=" + sou_sys_name
+				+ ", tar_sys_name=" + tar_sys_name + "]";
+	}
 	public CollectInfo(String id, String target_name, Integer target_count, String target_id, String create_time,
-			String sou_name, Integer sou_count, String sou_id, String same, String ch_name, String sou_sys_name,
-			String tar_sys_name) {
+			String sou_name, Integer sou_count, String sou_id, String same, String ch_name, String sou_ch_name,
+			String tar_ch_name, String sou_sys_name, String tar_sys_name) {
 		super();
 		this.id = id;
 		this.target_name = target_name;
@@ -102,8 +118,16 @@ public class CollectInfo {
 		this.sou_id = sou_id;
 		this.same = same;
 		this.ch_name = ch_name;
+		this.sou_ch_name = sou_ch_name;
+		this.tar_ch_name = tar_ch_name;
 		this.sou_sys_name = sou_sys_name;
 		this.tar_sys_name = tar_sys_name;
+	}
+	public String getCh_name() {
+		return ch_name;
+	}
+	public void setCh_name(String ch_name) {
+		this.ch_name = ch_name;
 	}
 	public CollectInfo() {
 		super();

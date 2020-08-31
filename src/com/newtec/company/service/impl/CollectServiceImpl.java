@@ -138,6 +138,8 @@ public class CollectServiceImpl implements CollectService{
 				while(rs.next()) {
 					c = new CollectInfo();
 					c.setCh_name(rs.getString("ch_name"));
+					c.setSou_ch_name(rs.getString("ch_name"));
+					c.setTar_ch_name(rs.getString("ch_name"));
 					c.setCreate_time(rs.getString("create_time"));
 					c.setId(rs.getString("id"));
 					c.setSame(rs.getString("same"));
@@ -168,7 +170,13 @@ public class CollectServiceImpl implements CollectService{
 			PreparedStatement pre = null;
 			ResultSet rs = null;
 			List<CollectInfo> list = new ArrayList<CollectInfo>();
-			String sql = "select * from db_collect where target_name = ? ORDER BY create_time desc limit ?,?";
+			String sql = "select * from ("
+					+ " select dc.*,dl.sysname as sou_sys_name, dlt.sysname as tar_sys_name"
+					+ "	from db_collect dc "
+					+ " inner join db_limit dl on dl.id=dc.sou_id "
+					+ " inner join db_limit dlt on dlt.id=dc.target_id "
+					+ " where target_name = ? "
+					+ " order by create_time desc) as a limit ?,?";
 			try {
 				pre = conn.prepareStatement(sql);
 				pre.setString(1, tableName);
@@ -179,6 +187,8 @@ public class CollectServiceImpl implements CollectService{
 				while(rs.next()) {
 					c = new CollectInfo();
 					c.setCh_name(rs.getString("ch_name"));
+					c.setSou_ch_name(rs.getString("ch_name"));
+					c.setTar_ch_name(rs.getString("ch_name"));
 					c.setCreate_time(rs.getString("create_time"));
 					c.setId(rs.getString("id"));
 					c.setSame(rs.getString("same"));
@@ -188,6 +198,8 @@ public class CollectServiceImpl implements CollectService{
 					c.setSou_name(rs.getString("sou_name"));
 					c.setTarget_name(rs.getString("target_name"));
 					c.setTarget_id(rs.getString("target_id"));
+					c.setSou_sys_name(rs.getString("sou_sys_name"));
+					c.setTar_sys_name(rs.getString("tar_sys_name"));
 					list.add(c);
 				}
 			} catch (SQLException e) {
