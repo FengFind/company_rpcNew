@@ -74,9 +74,9 @@ public class CollectServiceImpl implements CollectService{
 				map.put("status", -1);
 				map.put("msg", "您输入的sql中不能包含delete、update、create等关键字");
 			}else{
-				System.out.println(checkSql);
+				System.out.println(checkSql.replaceAll("\n", ""));
 				
-				PreparedStatement pre = connection.prepareStatement(checkSql);
+				PreparedStatement pre = connection.prepareStatement(checkSql.replaceAll("\n", ""));
 				ResultSet rs = pre.executeQuery();
 				
 				map.put("status", 0);
@@ -175,13 +175,13 @@ public class CollectServiceImpl implements CollectService{
 				ssql = "select * from ("
 						+ " select b.*,dl.sysname as sou_sys_name, dl.sysname as tar_sys_name"
 						+ " from ( "
-						+ sql
+						+ sql.replaceAll("\n", "")
 						+ " ) as b"
 						+ " inner join db_limit dl on dl.id=b.sou_id "
 						+ " inner join db_limit dlt on dlt.id=b.target_id "
 						+ " order by b.create_time desc limit ?) as a limit ?,?";
 			}
-			
+			System.out.println(ssql);
 			try {
 				pre = conn.prepareStatement(ssql);
 				pre.setInt(1, count);
