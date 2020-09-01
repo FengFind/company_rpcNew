@@ -11,4 +11,6 @@ public interface CollectService {
 	public Map<String, Object> getCollectByName(FetchWebRequest<Map<String, String>> fetchWebReq);
 	
 	public Map<String, Object> getCollectBySql(FetchWebRequest<Map<String, String>> fetchWebReq);
+	
+	public Map<String, Object> checkSql(FetchWebRequest<Map<String, String>> fetchWebReq);
 }
