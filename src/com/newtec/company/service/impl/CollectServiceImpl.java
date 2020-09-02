@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -33,10 +34,20 @@ public class CollectServiceImpl implements CollectService{
 		try{
 			//共需要对比的表的数量
 			// 对比的表的数量，Map<String,Object> map = new HashMap<String,Object>();
-			int count = getCount(connection);
 			Map<String, String> resMap = fetchWebReq.getData();
 			String strPageNum = resMap.get("pageNum");
 			String sql = resMap.get("sql");
+			String ch_name = resMap.get("ch_name");
+			String sou_name = resMap.get("sou_name");
+			String target_name = resMap.get("target_name");
+			int count = 1;
+			
+			if((ch_name == null || ch_name.equals("")) 
+					&& (sou_name == null || sou_name.equals(""))
+					&& (target_name == null || target_name.equals(""))) {
+				count = getCount(connection);
+			}
+			
 			Integer pageNum = StringUtils.isStrNull(strPageNum)?1:Integer.valueOf(strPageNum);
 			List<CollectInfo> list = getCollectInfo(connection, pageNum, count, sql);
 			map.put("pageNum", pageNum);
@@ -160,7 +171,7 @@ public class CollectServiceImpl implements CollectService{
 		 * @param count
 		 * @return
 		 */
-		public static List<CollectInfo> getCollectInfo(Connection conn,Integer pageNum,int count,String sql){
+		public static List<CollectInfo> getCollectInfo(Connection conn,Integer pageNum,int count,String sql)throws Exception{
 			PreparedStatement pre = null;
 			ResultSet rs = null;
 			List<CollectInfo> list = new ArrayList<CollectInfo>();
@@ -179,7 +190,7 @@ public class CollectServiceImpl implements CollectService{
 						+ " ) as b"
 						+ " inner join db_limit dl on dl.id=b.sou_id "
 						+ " inner join db_limit dlt on dlt.id=b.target_id "
-						+ " order by b.create_time desc limit ?) as a limit ?,?";
+						+ " order by b.create_time desc limit ? ) as a limit ?,?";
 			}
 			System.out.println(ssql);
 			try {
@@ -189,12 +200,13 @@ public class CollectServiceImpl implements CollectService{
 				pre.setInt(3, pageSize);
 				rs = pre.executeQuery();
 				CollectInfo c = null;
+				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 				while(rs.next()) {
 					c = new CollectInfo();
 					c.setCh_name(rs.getString("ch_name"));
 					c.setSou_ch_name(rs.getString("ch_name"));
 					c.setTar_ch_name(rs.getString("ch_name"));
-					c.setCreate_time(rs.getString("create_time"));
+					c.setCreate_time(sdf.format(sdf.parse(rs.getString("create_time"))));
 					c.setId(rs.getString("id"));
 					c.setSame(rs.getString("same"));
 					c.setSou_count(rs.getInt("sou_count"));
@@ -220,7 +232,7 @@ public class CollectServiceImpl implements CollectService{
 		 * @param count
 		 * @return
 		 */
-		public static List<CollectInfo> getCollectInfoByName(Connection conn,Integer pageNum,String tableName){
+		public static List<CollectInfo> getCollectInfoByName(Connection conn,Integer pageNum,String tableName) throws Exception{
 			PreparedStatement pre = null;
 			ResultSet rs = null;
 			List<CollectInfo> list = new ArrayList<CollectInfo>();
@@ -238,12 +250,13 @@ public class CollectServiceImpl implements CollectService{
 				pre.setInt(3, pageSize);
 				rs = pre.executeQuery();
 				CollectInfo c = null;
+				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 				while(rs.next()) {
 					c = new CollectInfo();
 					c.setCh_name(rs.getString("ch_name"));
 					c.setSou_ch_name(rs.getString("ch_name"));
 					c.setTar_ch_name(rs.getString("ch_name"));
-					c.setCreate_time(rs.getString("create_time"));
+					c.setCreate_time(sdf.format(sdf.parse(rs.getString("create_time"))));
 					c.setId(rs.getString("id"));
 					c.setSame(rs.getString("same"));
 					c.setSou_count(rs.getInt("sou_count"));
