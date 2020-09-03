@@ -45,13 +45,21 @@ public class CollectServiceImpl implements CollectService{
 			if((ch_name == null || ch_name.equals("")) 
 					&& (sou_name == null || sou_name.equals(""))
 					&& (target_name == null || target_name.equals(""))) {
-				count = getCount(connection);
+				count = getCount(connection,"select count(1) as count from db_mapper where state = '0'");
 			}
 			
 			Integer pageNum = StringUtils.isStrNull(strPageNum)?1:Integer.valueOf(strPageNum);
 			List<CollectInfo> list = getCollectInfo(connection, pageNum, count, sql);
 			map.put("pageNum", pageNum);
 			map.put("data", list);
+			
+			// 设置分页数据
+			Map m = new HashMap();
+			
+			// 总页数
+			m.put("total",  (count % pageSize == 0) ? count/pageSize : (count/pageSize + 1));
+			
+			map.put("pageMsg", m);
 		}catch (Exception e) {
 			// TODO: handle exception
 			e.printStackTrace();
@@ -118,6 +126,24 @@ public class CollectServiceImpl implements CollectService{
 			List<CollectInfo> list = getCollectInfoByName(connection, pageNum, tableName);
 			map.put("pageNum", pageNum);
 			map.put("data", list);
+
+			// 设置分页数据
+			String sql = " select count(*) as count "
+					+ "	from db_collect dc "
+					+ " inner join db_limit dl on dl.id=dc.sou_id "
+					+ " inner join db_limit dlt on dlt.id=dc.target_id "
+					+ " where dc.target_name = '"+tableName+"' "
+					+ " order by create_time desc";
+			
+			System.out.println(sql);
+			
+			int count = getCount(connection, sql);
+			Map m = new HashMap();
+			
+			// 总页数
+			m.put("total",  (count % pageSize == 0) ? count/pageSize : (count/pageSize + 1));
+			
+			map.put("pageMsg", m);
 		}catch (Exception e) {
 			// TODO: handle exception
 			e.printStackTrace();
@@ -134,8 +160,7 @@ public class CollectServiceImpl implements CollectService{
 		 * @param tableName
 		 * @return
 		 */
-		public static int getCount(Connection conn) {
-			String sql = "select count(1) as count from db_mapper where state = '0'";
+		public static int getCount(Connection conn, String sql) {
 			ResultSet rs = null;
 			PreparedStatement pre = null;
 			int rowCount = 0;
