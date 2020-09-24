@@ -89,17 +89,17 @@ public class NewReportServiceImpl implements NewReportService {
 		// TODO Auto-generated method stub
 		Map<String, String>reMap = fetchWebReq.getData();
 		String companyId = reMap.get("companyId");
-		String sql ="select org_name_t as 公司名称," + 
-                "         case when to_number(yysrbnlj) is null then 0 else to_number(yysrbnlj) end as 营业收入," + 
-                "         case when to_number(yycbbnlj )is null then 0 else to_number(yycbbnlj) end as 营业成本," + 
-                "         case when to_number(yylybnlj )is null then 0 else to_number(yylybnlj) end as 营业利润," + 
-                "         case when to_number(lrzebnlj )is null then 0 else to_number(lrzebnlj) end as 利润总额," + 
-                "         case when to_number(jlrbnlj ) is null then 0 else to_number(jlrbnlj ) end as 净利润," +
-                "         month" + 
+		String sql = " select '总计' as a,quyu," + 
+                "         case when sum(yysrbnlj) is null then 0 else sum(yysrbnlj) end as b," + 
+                "         case when sum(yycbbnlj) is null then 0 else sum(yycbbnlj) end as c," + 
+                "         case when sum(yylybnlj) is null then 0 else sum(yylybnlj) end as d," + 
+                "         case when sum(lrzebnlj) is null then 0 else sum(lrzebnlj) end as e," + 
+                "         case when sum(jlrbnlj)  is null then 0 else sum(jlrbnlj) end as f" + 
                 "    from infoshar_202007kbsj " + 
-                "    where month=(select max(month) from infoshar_202007kbsj)"+
-                "   and org_name_t is not null " + 
-                "   and org_name_t = '"+companyId+"'";
+                " where month=(select max(month) from infoshar_202007kbsj)"+
+                "   and org_name_t is not null " +
+                "   and quyu='"+companyId+"'"+
+                " group by quyu";  
     	System.out.println(sql);
 		List<Object[]> list = DBManager.get("kabBan").createNativeQuery(sql).getResultList();
 		Map<String, Object> map = new HashMap<String, Object>();
