@@ -35,7 +35,7 @@ public class NewReportServiceImpl implements NewReportService {
     			"         when month = to_char(add_months(sysdate, -1), 'yyyy-mm') then" + 
     			"          to_char(add_months(sysdate, -1), 'yyyy-mm')" + 
     			"         else" + 
-    			"          to_char(add_months(sysdate, -2), 'yyyy-mm')" + 
+    			"          to_char(add_months(sysdate, 0), 'yyyy-mm')" + 
     			"       end) = month" + 
     			"   and substr(month, 1, 4) = to_char(sysdate, 'YYYY')" + 
     			"   and org_name_t is not null  ";		
@@ -79,7 +79,7 @@ public class NewReportServiceImpl implements NewReportService {
     			"         when month = to_char(add_months(sysdate, -1), 'yyyy-mm') then" + 
     			"          to_char(add_months(sysdate, -1), 'yyyy-mm')" + 
     			"         else" + 
-    			"          to_char(add_months(sysdate, -2), 'yyyy-mm')" + 
+    			"          to_char(add_months(sysdate, 0), 'yyyy-mm')" + 
     			"       end) = month" + 
     			"   and substr(month, 1, 4) = to_char(sysdate, 'YYYY')" + 
     			"   and org_name_t is not null " + 
