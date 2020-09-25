@@ -31,7 +31,7 @@ public class NewReportServiceImpl implements NewReportService {
                 "    from infoshar_202007kbsj " + 
                 " where month=(select max(month) from infoshar_202007kbsj)"+ 
                 "   and org_name_t is not null  ";
-    	
+    	System.out.println(sql);
     List<Object[]> list = DBManager.get("kabBan").createNativeQuery(sql).getResultList();
 		Map<String, Object> map = new HashMap<String, Object>();
 		if(list != null && list.size() != 0) {
@@ -67,6 +67,7 @@ public class NewReportServiceImpl implements NewReportService {
                 "    where month=(select max(month) from infoshar_202007kbsj)"+
                 "   and org_name_t is not null " + 
                 "   and org_name_t = '"+companyId+"'";
+		System.out.println(sql);
     	List<Object[]> list = DBManager.get("kabBan").createNativeQuery(sql).getResultList();
 		Map<String, Object> map = new HashMap<String, Object>();
 		if(list != null && list.size() != 0) {
@@ -122,14 +123,14 @@ public class NewReportServiceImpl implements NewReportService {
 	@Override
 	public Map<String, Object> findYysrTbByZhongjian(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception {
 		// TODO Auto-generated method stub
-    	String sql = "select  substr(month, 6, 2)||'月' as month," + 
+    	String sql = "select  to_number(substr(month, 6, 2))||'月' as month," + 
     			"       sum(yysrbnlj) 今年营业收入," + 
     			"       sum(yysrsntqljje) 去年营业收入," + 
     			"       round((sum(yysrbnlj) - sum(yysrsntqljje))/sum(yysrsntqljje) * 100,2) as 营业收入同比" + 
     			"  from infoshar_202007kbsj" + 
     			" where substr(month, 6, 2) <= to_char(sysdate, 'mm')  and  substr(month, 1, 4)='2020'" + 
     			" group by substr(month, 6, 2) order by month";
-    	
+    	System.out.println(sql);
     	List<Object[]> reList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();	
 		Map<String, Object> map = new HashMap<String, Object>();
 		if(reList !=null && reList.size()!= 0 ) {
@@ -207,14 +208,14 @@ public class NewReportServiceImpl implements NewReportService {
 	@Override
 	public Map<String, Object> findYycbTbByZhongjian(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception {
 		// TODO Auto-generated method stub
-    	String sql = "select  substr(month, 6, 2)||'月' as month," + 
+    	String sql = "select  to_number(substr(month, 6, 2))||'月' as month," + 
     			"       sum(yycbbnlj) 今年营业成本," + 
     			"       sum(yycbsntqljje) 去年营业成本," + 
     			"       round((sum(yycbbnlj) - sum(yycbsntqljje))/sum(yycbsntqljje) * 100,2) as 营业成本同比" + 
     			"  from infoshar_202007kbsj" + 
     			" where substr(month, 6, 2) <= to_char(sysdate, 'mm')  and  substr(month, 1, 4)='2020'" + 
     			" group by substr(month, 6, 2) order by month";
-    	
+    	System.out.println(sql);
     	List<Object[]> reList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();	
 		Map<String, Object> map = new HashMap<String, Object>();
 		if(reList !=null && reList.size()!= 0 ) {
@@ -292,14 +293,14 @@ public class NewReportServiceImpl implements NewReportService {
 	@Override
 	public Map<String, Object> findYylrTbByZhongjian(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception {
 		// TODO Auto-generated method stub
-    	String sql = "select  substr(month, 6, 2)||'月' as month," + 
+    	String sql = "select  to_number(substr(month, 6, 2))||'月' as month," + 
     			"       sum(yylybnlj) 今年营业利润," + 
     			"       sum(yylrssntqljje) 去年营业利润," + 
     			"       round((sum(yylybnlj) - sum(yylrssntqljje))/sum(yylrssntqljje) * 100,2) as 营业利润同比" + 
     			"  from infoshar_202007kbsj" + 
     			" where substr(month, 6, 2) <= to_char(sysdate, 'mm')  and  substr(month, 1, 4)='2020'" + 
     			" group by substr(month, 6, 2) order by month";
-    	
+    	System.out.println(sql);
     	List<Object[]> reList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();	
 		Map<String, Object> map = new HashMap<String, Object>();
 		if(reList !=null && reList.size()!= 0 ) {
@@ -390,7 +391,7 @@ public class NewReportServiceImpl implements NewReportService {
     			"   and org_name_t = '"+companyId+"'" + 
     			" group by substr(month,7,1)" + 
     			" order by month";
-    	
+    	System.out.println(sql);
     	List<Object[]> reList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();	
 		Map<String, Object> map = new HashMap<String, Object>();
 		if(reList !=null && reList.size()!= 0 ) {
@@ -470,7 +471,7 @@ public class NewReportServiceImpl implements NewReportService {
 		// TODO Auto-generated method stub
     	Map<String, String>reMap = fetchWebReq.getData();
 		String companyId = reMap.get("companyId");
-		String sql = "select  substr(month, 7, 1)||'月' as month," + 
+		String sql = "select  to_number(substr(month, 7, 1))||'月' as month," + 
     			"       sum(yycbbnlj) 今年营业成本," + 
     			"       sum(yycbsntqljje) 去年营业成本," + 
     			"       round((sum(yycbbnlj) - sum(yycbsntqljje))/(case when sum(yycbsntqljje)='0.00'then 1 else sum(yycbsntqljje) end) * 100,2) as 营业成本同比" + 
@@ -478,7 +479,7 @@ public class NewReportServiceImpl implements NewReportService {
     			" where substr(month, 6, 2) <= to_char(sysdate, 'mm')  and  substr(month, 1, 4)='2020'" +
     			" and org_name_t = '"+companyId+"'" +
     			" group by substr(month, 7, 1) order by month";
-    	
+		System.out.println(sql);
     	List<Object[]> reList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();	
 		Map<String, Object> map = new HashMap<String, Object>();
 		if(reList !=null && reList.size()!= 0 ) {
@@ -558,7 +559,7 @@ public class NewReportServiceImpl implements NewReportService {
 		// TODO Auto-generated method stub
     	Map<String, String>reMap = fetchWebReq.getData();
 		String companyId = reMap.get("companyId");
-		String sql = "select  substr(month, 7, 1)||'月' as month," + 
+		String sql = "select  to_number(substr(month, 7, 1))||'月' as month," + 
     			"       sum(yylybnlj) 今年营业利润," + 
     			"       sum(yylrssntqljje) 去年营业利润," + 
     			"       round((sum(yylybnlj) - sum(yylrssntqljje))/(case when sum(yylrssntqljje)='0.00'then 1 else sum(yylrssntqljje) end) * 100,2) as 营业利润同比" + 
@@ -566,7 +567,7 @@ public class NewReportServiceImpl implements NewReportService {
     			" where substr(month, 6, 2) <= to_char(sysdate, 'mm')  and  substr(month, 1, 4)='2020'" +
     			" and org_name_t = '"+companyId+"'" +
     			" group by substr(month, 7, 1) order by month";
-    	
+		System.out.println(sql);
     	List<Object[]> reList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();	
 		Map<String, Object> map = new HashMap<String, Object>();
 		if(reList !=null && reList.size()!= 0 ) {
@@ -646,7 +647,7 @@ public class NewReportServiceImpl implements NewReportService {
 		// TODO Auto-generated method stub
     	Map<String, String>reMap = fetchWebReq.getData();
 		String companyId = reMap.get("companyId");
-    	String sql = "select  substr(month, 6, 2)||'月' as month，" + 
+    	String sql = "select  to_number(substr(month, 6, 2))||'月' as month，" + 
     			"       sum(yysrbnlj) 今年营业收入," + 
     			"       sum(yysrsntqljje) 去年营业收入," + 
     			"       round((sum(yysrbnlj) - sum(yysrsntqljje))/sum(yysrsntqljje) * 100,2) as 营业收入同比" + 
@@ -654,7 +655,7 @@ public class NewReportServiceImpl implements NewReportService {
     			" where substr(month, 6, 2) <= to_char(sysdate, 'mm')  and  substr(month, 1, 4)='2020'" +
     			" and quyu = '"+companyId+"'" +
     			" group by substr(month, 6, 2) order by month";
-    	
+    	System.out.println(sql);
     	List<Object[]> reList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();	
 		Map<String, Object> map = new HashMap<String, Object>();
 		if(reList !=null && reList.size()!= 0 ) {
@@ -734,7 +735,7 @@ public class NewReportServiceImpl implements NewReportService {
 		// TODO Auto-generated method stub
     	Map<String, String>reMap = fetchWebReq.getData();
 		String companyId = reMap.get("companyId");
-		String sql = "select  substr(month, 6, 2)||'月' as month," + 
+		String sql = "select  to_number(substr(month, 6, 2))||'月' as month," + 
     			"       sum(yycbbnlj) 今年营业成本," + 
     			"       sum(yycbsntqljje) 去年营业成本," + 
     			"       round((sum(yycbbnlj) - sum(yycbsntqljje))/sum(yycbsntqljje) * 100,2) as 营业成本同比" + 
@@ -742,7 +743,7 @@ public class NewReportServiceImpl implements NewReportService {
     			" where substr(month, 6, 2) <= to_char(sysdate, 'mm')  and  substr(month, 1, 4)='2020'" +
     			" and quyu = '"+companyId+"'" +
     			" group by substr(month, 6, 2) order by month";
-    	
+		System.out.println(sql);
     	List<Object[]> reList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();	
 		Map<String, Object> map = new HashMap<String, Object>();
 		if(reList !=null && reList.size()!= 0 ) {
@@ -822,7 +823,7 @@ public class NewReportServiceImpl implements NewReportService {
 		// TODO Auto-generated method stub
     	Map<String, String>reMap = fetchWebReq.getData();
 		String companyId = reMap.get("companyId");
-		String sql = "select  substr(month, 6, 2)||'月' as month," + 
+		String sql = "select  to_number(substr(month, 6, 2))||'月' as month," + 
     			"       sum(yylybnlj) 今年营业利润," + 
     			"       sum(yylrssntqljje) 去年营业利润," + 
     			"       round((sum(yylybnlj) - sum(yylrssntqljje))/sum(yylrssntqljje) * 100,2) as 营业利润同比" + 
@@ -830,7 +831,7 @@ public class NewReportServiceImpl implements NewReportService {
     			" where substr(month, 6, 2) <= to_char(sysdate, 'mm')  and  substr(month, 1, 4)='2020'" +
     			" and quyu = '"+companyId+"'" +
     			" group by substr(month, 6, 2) order by month";
-    	
+		System.out.println(sql);
     	List<Object[]> reList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();	
 		Map<String, Object> map = new HashMap<String, Object>();
 		if(reList !=null && reList.size()!= 0 ) {
@@ -1176,7 +1177,7 @@ public class NewReportServiceImpl implements NewReportService {
     			"   AND SORG_LEVEL2 = '在京单位'" + 
     			" GROUP BY SORG_LEVEL3, SORG_LEVEL3_ID" + 
     			" ORDER BY 1 DESC";
-    	
+    	System.out.println(sql);
     	List<Object[]> reList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();	
 		Map<String, Object> map = new HashMap<String, Object>();
 		if(reList !=null && reList.size()!= 0 ) {
@@ -1230,7 +1231,7 @@ public class NewReportServiceImpl implements NewReportService {
     			"   AND SORG_LEVEL2 = '在京单位'" + 
     			" GROUP BY SORG_LEVEL3" + 
     			" ORDER BY 2 DESC";
-    	
+    	System.out.println(sql);
     	List<Object[]> reList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();	
 		Map<String, Object> map = new HashMap<String, Object>();
 		if(reList !=null && reList.size()!= 0 ) {
@@ -1289,7 +1290,7 @@ public class NewReportServiceImpl implements NewReportService {
     			"   AND SORG_LEVEL2 = '地方公司'" + 
     			" GROUP BY SORG_LEVEL3, SORG_LEVEL3_ID" + 
     			" ORDER BY 1 desc";
-    	
+    	System.out.println(sql);
     	List<Object[]> reList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();	
 		Map<String, Object> map = new HashMap<String, Object>();
 		if(reList !=null && reList.size()!= 0 ) {
@@ -1343,7 +1344,7 @@ public class NewReportServiceImpl implements NewReportService {
     			"   AND SORG_LEVEL2 = '地方公司'" + 
     			" GROUP BY SORG_LEVEL3" + 
     			" ORDER BY 2 DESC";
-    	
+    	System.out.println(sql);
     	List<Object[]> reList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();	
 		Map<String, Object> map = new HashMap<String, Object>();
 		if(reList !=null && reList.size()!= 0 ) {
@@ -1402,7 +1403,7 @@ public class NewReportServiceImpl implements NewReportService {
     			"   AND SORG_LEVEL2 = '境外公司'" + 
     			" GROUP BY SORG_LEVEL3, SORG_LEVEL3_ID" + 
     			" ORDER BY 1 desc";
-    	
+    	System.out.println(sql);
     	List<Object[]> reList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();	
 		Map<String, Object> map = new HashMap<String, Object>();
 		if(reList !=null && reList.size()!= 0 ) {
@@ -1456,7 +1457,7 @@ public class NewReportServiceImpl implements NewReportService {
     			"   AND SORG_LEVEL2 = '境外公司'" + 
     			" GROUP BY SORG_LEVEL3" + 
     			" ORDER BY 2 DESC";
-    	
+    	System.out.println(sql);
     	List<Object[]> reList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();	
 		Map<String, Object> map = new HashMap<String, Object>();
 		if(reList !=null && reList.size()!= 0 ) {
@@ -1748,52 +1749,136 @@ public class NewReportServiceImpl implements NewReportService {
 	
 	@RpcMethod(loginValidate = false)
 	@Override
+	public Map<String, Object> findCompanyMsgByAreaYh(FetchWebRequest<Map<String, String>> fetchWebReq)
+			throws Exception {
+		StringBuffer sql = new StringBuffer();
+		
+		sql.append("SELECT business_region, " + 
+				"       sorg_level3, " + 
+				"       sum(委托单量) 委托单量, " + 
+				"       SUM(预测收入) 预测收入, " + 
+				"       SUM(年业务收入) 年业务收入, " + 
+				"       SUM(业务成本) 业务成本 " + 
+				"  FROM (select business_region, " + 
+				"               sorg_level3, " + 
+				"               sum(ORDER_CREATE_COUNT) 委托单量, " + 
+				"               0 as 年业务收入, " + 
+				"               0 as 预测收入, " + 
+				"               0 as 业务成本 " + 
+				"          from T_COMP_AMOUNT_ALL_MONTH " + 
+				"         where SORG_LEVEL2 not like '%参股%' " + 
+				"           and substr(data_stats_month, 0, 4) = to_char(sysdate, 'YYYY') " + 
+				"           and business_region is not null " + 
+				"         group by business_region, sorg_level3 " + 
+				"        union all " + 
+				"        SELECT business_region, " + 
+				"               sorg_level3, " + 
+				"               0 as 委托单量, " + 
+				"               SUM(EX_TAX_PRICE) 年业务收入, " + 
+				"               0 as 预测收入, " + 
+				"               0 as 业务成本 " + 
+				"          FROM T_COMP_INVOICE_ALL " + 
+				"         WHERE VOID_TIME IS NULL " + 
+				"         and business_region is not null " + 
+				"           AND TYPE = '产品线业务' " + 
+				"           AND SUBSTR(INVOICE_DATE, 0, 4) = TO_CHAR(SYSDATE, 'YYYY') " + 
+				"           AND SUBSTR(INVOICE_DATE, 0, 7) <= TO_CHAR(SYSDATE, 'YYYY-MM') " + 
+				"         GROUP BY business_region, sorg_level3 " + 
+				"        union all " + 
+				"        SELECT business_region, " + 
+				"               sorg_level3, " + 
+				"               0 as 委托单量, " + 
+				"               0 as 年业务收入, " + 
+				"               SUM(SYS_CUR_TOTAL_AMOUNT) 预测收入, " + 
+				"               0 as 业务成本 " + 
+				"          FROM T_ORDER_SERVER " + 
+				"         WHERE SUBSTR(WORK_FINISH_TIME, 1, 4) = TO_CHAR(SYSDATE, 'YYYY') " + 
+				"         and business_region is not null " + 
+				"         GROUP BY business_region, sorg_level3 " + 
+				"        union all " + 
+				"        SELECT business_region, " + 
+				"               sorg_level3, " + 
+				"               0 as 委托单量, " + 
+				"               0 as 年业务收入, " + 
+				"               0 as 预测收入, " + 
+				"               SUM(APPORT_PAY_AMOUNT + DIRECT_COST) 业务成本 " + 
+				"          FROM T_COMPANY_COST_ALL " + 
+				"         WHERE PRODUCT_NAME IS NOT NULL " + 
+				"         and business_region is not null " + 
+				"         GROUP BY business_region, sorg_level3) " + 
+				" GROUP BY business_region, sorg_level3 order by 预测收入 desc ");
+		System.out.println(sql.toString());
+		List<Object[]> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
+		
+		Map<String,Object> map = new HashMap<String,Object>();
+		
+		if(resultList != null && resultList.size() > 0) {
+			// 进行json格式化
+			JSONArray ja = NewUtils.newReturnCompanyMsg(resultList);
+			
+			map.put("tableData", ja);
+		}
+		
+		return map;
+	}
+	
+	@RpcMethod(loginValidate = false)
+	@Override
 	public Map<String, Object> findCompanyMsgByCpx(FetchWebRequest<Map<String, String>> fetchWebReq)
 			throws Exception {
 		StringBuffer sql = new StringBuffer();
 		
-		sql.append("select product_line_name_st1, " + 
-				"       PRODUCT_LINE_NAME, " + 
-				"       nvl(sum(委托单量),0) 委托单量, " + 
-				"       nvl(sum(年预测收入),0) 年预测收入, " + 
-				"       nvl(sum(收入总额),0) 收入总额, " + 
-				"       nvl(sum(业务成本),0) 业务成本 " + 
-				"  from (select product_line_name_st1 , " + 
-				"               product_line_name , " + 
+		sql.append("SELECT 一级产品线名称, " + 
+				"       产品线名称, " + 
+				"       sum(委托单量) 委托单量, " + 
+				"       SUM(预测收入) 预测收入, " + 
+				"       SUM(年业务收入) 年业务收入, " + 
+				"       SUM(业务成本) 业务成本 " + 
+				"  FROM (select product_line_name_st1 一级产品线名称, " + 
+				"               product_line_name 产品线名称, " + 
 				"               sum(ORDER_CREATE_COUNT) 委托单量, " + 
-				"               sum(server_end_amount) 年预测收入, " + 
-				"               0 as 收入总额, " + 
+				"               0 as 年业务收入, " + 
+				"               0 as 预测收入, " + 
 				"               0 as 业务成本 " + 
 				"          from T_COMP_AMOUNT_ALL_MONTH " + 
 				"         where SORG_LEVEL2 not like '%参股%' " + 
 				"           and substr(data_stats_month, 0, 4) = to_char(sysdate, 'YYYY') " + 
 				"           and product_line_name_st1 is not null " + 
-				"         group by product_line_name_st1 , product_line_name  " + 
+				"         group by product_line_name_st1, product_line_name " + 
 				"        union all " + 
-				"        SELECT product_line_name_st1 , " + 
-				"               product_line_name , " + 
-				"               0 委托单量, " + 
-				"               0 年预测收入, " + 
-				"               SUM(invoice_all_ex_tax_price) 收入总额, " + 
-				"               0 业务成本 " + 
-				"          FROM T_COMP_INVOICE_ALL_MONTH " + 
-				"         WHERE SUBSTR(invoice_date_month, 0, 4) = TO_CHAR(SYSDATE, 'YYYY') " + 
-				"           AND SUBSTR(invoice_date_month, 0, 7) <= " + 
-				"               TO_CHAR(SYSDATE, 'YYYY-MM') " + 
-				"           and product_line_name_st1 is not null     " + 
-				"         GROUP BY product_line_name_st1 , product_line_name  " + 
+				"        SELECT product_line_name_st1 一级产品线名称, " + 
+				"               PRODUCT_LINE_NAME 产品线名称, " + 
+				"               0 as 委托单量, " + 
+				"               SUM(EX_TAX_PRICE) 年业务收入, " + 
+				"               0 as 预测收入, " + 
+				"               0 as 业务成本 " + 
+				"          FROM T_COMP_INVOICE_ALL " + 
+				"         WHERE VOID_TIME IS NULL " + 
+				"           AND TYPE = '产品线业务' " + 
+				"           AND SUBSTR(INVOICE_DATE, 0, 4) = TO_CHAR(SYSDATE, 'YYYY') " + 
+				"           AND SUBSTR(INVOICE_DATE, 0, 7) <= TO_CHAR(SYSDATE, 'YYYY-MM') " + 
+				"         GROUP BY PRODUCT_LINE_NAME, product_line_name_st1 " + 
 				"        union all " + 
-				"        SELECT product_line_name_st1 , " + 
-				"               product_name as product_line_name , " + 
-				"               0 委托单量, " + 
-				"               0 年预测收入, " + 
-				"               0 as 收入总额, " + 
-				"               SUM(total_cost) 业务成本 " + 
+				"        SELECT product_line_name_st1 一级产品线名称, " + 
+				"               PRODUCT_LINE_NAME 产品线名称, " + 
+				"               0 as 委托单量, " + 
+				"               0 as 年业务收入, " + 
+				"               SUM(SYS_CUR_TOTAL_AMOUNT) 预测收入, " + 
+				"               0 as 业务成本 " + 
+				"          FROM T_ORDER_SERVER " + 
+				"         WHERE SUBSTR(WORK_FINISH_TIME, 1, 4) = TO_CHAR(SYSDATE, 'YYYY') " + 
+				"         GROUP BY PRODUCT_LINE_NAME, product_line_name_st1 " + 
+				"        union all " + 
+				"        SELECT product_line_name_st1 一级产品线名称, " + 
+				"               PRODUCT_NAME 产品线名称, " + 
+				"               0 as 委托单量, " + 
+				"               0 as 年业务收入, " + 
+				"               0 as 预测收入, " + 
+				"               SUM(APPORT_PAY_AMOUNT + DIRECT_COST) 业务成本 " + 
 				"          FROM T_COMPANY_COST_ALL " + 
-				"         where product_line_name_st1 is not null   " + 
-				"         GROUP BY product_line_name_st1 , product_name ) " + 
-				" group by product_line_name_st1 , PRODUCT_LINE_NAME " + 
-				"");
+				"         WHERE PRODUCT_NAME IS NOT NULL " + 
+				"         GROUP BY PRODUCT_NAME, product_line_name_st1) " + 
+				" GROUP BY 产品线名称, 一级产品线名称  order by 预测收入 desc ");
 		System.out.println(sql.toString());
 		List<Object[]> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
 		
@@ -2192,50 +2277,61 @@ public class NewReportServiceImpl implements NewReportService {
 		Map<String, String> resMap = fetchWebReq.getData();
 		String gsName = resMap.get("gsName");
 		
-		sql.append(" select PRODUCT_LINE_NAME, " + 
-				"       nvl(sum(委托单量),0) 委托单量, " + 
-				"       nvl(sum(年预测收入),0) 年预测收入, " + 
-				"       nvl(sum(收入总额),0) 收入总额, " + 
-				"       nvl(sum(业务成本),0) 业务成本 " + 
-				"  from (select product_line_name_st1 , " + 
-				"               product_line_name , " + 
+		sql.append(" SELECT 产品线名称, " + 
+				"       sum(委托单量) 委托单量, " + 
+				"       SUM(预测收入) 预测收入, " + 
+				"       SUM(年业务收入) 年业务收入, " + 
+				"       SUM(业务成本) 业务成本 " + 
+				"  FROM (select product_line_name_st1 一级产品线名称, " + 
+				"               product_line_name 产品线名称, " + 
 				"               sum(ORDER_CREATE_COUNT) 委托单量, " + 
-				"               sum(server_end_amount) 年预测收入, " + 
-				"               0 as 收入总额, " + 
+				"               0 as 年业务收入, " + 
+				"               0 as 预测收入, " + 
 				"               0 as 业务成本 " + 
 				"          from T_COMP_AMOUNT_ALL_MONTH " + 
 				"         where SORG_LEVEL2 not like '%参股%' " + 
-				"         and SORG_LEVEL3='"+gsName+"' " + 
-				"         and product_line_name is not null " + 
+				"         and sorg_level3 ='"+gsName+"' " + 
 				"           and substr(data_stats_month, 0, 4) = to_char(sysdate, 'YYYY') " + 
-				"         group by product_line_name_st1 , product_line_name  " + 
+				"           and product_line_name_st1 is not null " + 
+				"         group by product_line_name_st1, product_line_name " + 
 				"        union all " + 
-				"        SELECT product_line_name_st1 , " + 
-				"               product_line_name , " + 
-				"               0 委托单量, " + 
-				"               0 年预测收入, " + 
-				"               SUM(invoice_all_ex_tax_price) 收入总额, " + 
-				"               0 业务成本 " + 
-				"          FROM T_COMP_INVOICE_ALL_MONTH " + 
-				"         WHERE SUBSTR(invoice_date_month, 0, 4) = TO_CHAR(SYSDATE, 'YYYY') " + 
-				"           AND SUBSTR(invoice_date_month, 0, 7) <= " + 
-				"               TO_CHAR(SYSDATE, 'YYYY-MM') " + 
-				"              and SORG_LEVEL3='"+gsName+"' " + 
-				"              and product_line_name is not null " + 
-				"         GROUP BY product_line_name_st1 , product_line_name  " + 
+				"        SELECT product_line_name_st1 一级产品线名称, " + 
+				"               PRODUCT_LINE_NAME 产品线名称, " + 
+				"               0 as 委托单量, " + 
+				"               SUM(EX_TAX_PRICE) 年业务收入, " + 
+				"               0 as 预测收入, " + 
+				"               0 as 业务成本 " + 
+				"          FROM T_COMP_INVOICE_ALL " + 
+				"         WHERE VOID_TIME IS NULL " + 
+				"         and sorg_level3 ='"+gsName+"' " + 
+				"           AND TYPE = '产品线业务' " + 
+				"           AND SUBSTR(INVOICE_DATE, 0, 4) = TO_CHAR(SYSDATE, 'YYYY') " + 
+				"           AND SUBSTR(INVOICE_DATE, 0, 7) <= TO_CHAR(SYSDATE, 'YYYY-MM') " + 
+				"         GROUP BY PRODUCT_LINE_NAME, product_line_name_st1 " + 
 				"        union all " + 
-				"        SELECT product_line_name_st1 , " + 
-				"               product_name as product_line_name , " + 
-				"               0 委托单量, " + 
-				"               0 年预测收入, " + 
-				"               0 as 收入总额, " + 
-				"               SUM(total_cost) 业务成本 " + 
+				"        SELECT product_line_name_st1 一级产品线名称, " + 
+				"               PRODUCT_LINE_NAME 产品线名称, " + 
+				"               0 as 委托单量, " + 
+				"               0 as 年业务收入, " + 
+				"               SUM(SYS_CUR_TOTAL_AMOUNT) 预测收入, " + 
+				"               0 as 业务成本 " + 
+				"          FROM T_ORDER_SERVER " + 
+				"         WHERE SUBSTR(WORK_FINISH_TIME, 1, 4) = TO_CHAR(SYSDATE, 'YYYY') " + 
+				"         and sorg_level3 ='"+gsName+"' " + 
+				"         GROUP BY PRODUCT_LINE_NAME, product_line_name_st1 " + 
+				"        union all " + 
+				"        SELECT product_line_name_st1 一级产品线名称, " + 
+				"               PRODUCT_NAME 产品线名称, " + 
+				"               0 as 委托单量, " + 
+				"               0 as 年业务收入, " + 
+				"               0 as 预测收入, " + 
+				"               SUM(APPORT_PAY_AMOUNT + DIRECT_COST) 业务成本 " + 
 				"          FROM T_COMPANY_COST_ALL " + 
-				"          where SORG_LEVEL3='"+gsName+"' " + 
-				"          and product_name is not null " + 
-				"         GROUP BY product_line_name_st1 , product_name ) " + 
-				" group by PRODUCT_LINE_NAME " + 
-				" order by 年预测收入 desc ");
+				"         WHERE PRODUCT_NAME IS NOT NULL " + 
+				"         and sorg_level3 ='"+gsName+"' " + 
+				"         GROUP BY PRODUCT_NAME, product_line_name_st1) " + 
+				" GROUP BY 产品线名称, 一级产品线名称 " + 
+				" order by 预测收入 desc ");
 		System.out.println(sql.toString());
 		List<Object[]> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
 		
@@ -2258,50 +2354,63 @@ public class NewReportServiceImpl implements NewReportService {
 		Map<String, String> resMap = fetchWebReq.getData();
 		String gsName = resMap.get("gsName");
 		
-		sql.append(" select PRODUCT_LINE_NAME, " + 
-				"       nvl(sum(委托单量),0) 委托单量, " + 
-				"       nvl(sum(年预测收入),0) 年预测收入, " + 
-				"       nvl(sum(收入总额),0) 收入总额, " + 
-				"       nvl(sum(业务成本),0) 业务成本 " + 
-				"  from (select product_line_name_st1 , " + 
-				"               product_line_name , " + 
+		sql.append(" SELECT 产品线名称, " + 
+				"       sum(委托单量) 委托单量, " + 
+				"       SUM(预测收入) 预测收入, " + 
+				"       SUM(年业务收入) 年业务收入, " + 
+				"       SUM(业务成本) 业务成本 " + 
+				"  FROM (select product_line_name_st1 一级产品线名称, " + 
+				"               product_line_name 产品线名称, " + 
 				"               sum(ORDER_CREATE_COUNT) 委托单量, " + 
-				"               sum(server_end_amount) 年预测收入, " + 
-				"               0 as 收入总额, " + 
+				"               0 as 年业务收入, " + 
+				"               0 as 预测收入, " + 
 				"               0 as 业务成本 " + 
 				"          from T_COMP_AMOUNT_ALL_MONTH " + 
 				"         where SORG_LEVEL2 not like '%参股%' " + 
-				"         and BUSINESS_REGION='"+gsName+"' " + 
-				"         and product_line_name is not null " + 
+				"         and BUSINESS_REGION ='"+gsName+"' " + 
 				"           and substr(data_stats_month, 0, 4) = to_char(sysdate, 'YYYY') " + 
-				"         group by product_line_name_st1 , product_line_name  " + 
+				"           and product_line_name_st1 is not null " + 
+				"         group by product_line_name_st1, product_line_name " + 
 				"        union all " + 
-				"        SELECT product_line_name_st1 , " + 
-				"               product_line_name , " + 
-				"               0 委托单量, " + 
-				"               0 年预测收入, " + 
-				"               SUM(invoice_all_ex_tax_price) 收入总额, " + 
-				"               0 业务成本 " + 
-				"          FROM T_COMP_INVOICE_ALL_MONTH " + 
-				"         WHERE SUBSTR(invoice_date_month, 0, 4) = TO_CHAR(SYSDATE, 'YYYY') " + 
-				"           AND SUBSTR(invoice_date_month, 0, 7) <= " + 
-				"               TO_CHAR(SYSDATE, 'YYYY-MM') " + 
-				"              and BUSINESS_REGION='"+gsName+"' " + 
-				"              and product_line_name is not null " + 
-				"         GROUP BY product_line_name_st1 , product_line_name  " + 
+				"        SELECT product_line_name_st1 一级产品线名称, " + 
+				"               PRODUCT_LINE_NAME 产品线名称, " + 
+				"               0 as 委托单量, " + 
+				"               SUM(EX_TAX_PRICE) 年业务收入, " + 
+				"               0 as 预测收入, " + 
+				"               0 as 业务成本 " + 
+				"          FROM T_COMP_INVOICE_ALL " + 
+				"         WHERE VOID_TIME IS NULL " + 
+				"         and BUSINESS_REGION ='"+gsName+"' " + 
+				"           AND TYPE = '产品线业务' " + 
+				"           AND SUBSTR(INVOICE_DATE, 0, 4) = TO_CHAR(SYSDATE, 'YYYY') " + 
+				"           AND SUBSTR(INVOICE_DATE, 0, 7) <= TO_CHAR(SYSDATE, 'YYYY-MM') " + 
+				"         GROUP BY PRODUCT_LINE_NAME, product_line_name_st1 " + 
 				"        union all " + 
-				"        SELECT product_line_name_st1 , " + 
-				"               product_name as product_line_name , " + 
-				"               0 委托单量, " + 
-				"               0 年预测收入, " + 
-				"               0 as 收入总额, " + 
-				"               SUM(total_cost) 业务成本 " + 
+				"        SELECT product_line_name_st1 一级产品线名称, " + 
+				"               PRODUCT_LINE_NAME 产品线名称, " + 
+				"               0 as 委托单量, " + 
+				"               0 as 年业务收入, " + 
+				"               SUM(SYS_CUR_TOTAL_AMOUNT) 预测收入, " + 
+				"               0 as 业务成本 " + 
+				"          FROM T_ORDER_SERVER " + 
+				"         WHERE SUBSTR(WORK_FINISH_TIME, 1, 4) = TO_CHAR(SYSDATE, 'YYYY') " + 
+				"         and BUSINESS_REGION ='"+gsName+"' " + 
+				"         GROUP BY PRODUCT_LINE_NAME, product_line_name_st1 " + 
+				"        union all " + 
+				"        SELECT product_line_name_st1 一级产品线名称, " + 
+				"               PRODUCT_NAME 产品线名称, " + 
+				"               0 as 委托单量, " + 
+				"               0 as 年业务收入, " + 
+				"               0 as 预测收入, " + 
+				"               SUM(APPORT_PAY_AMOUNT + DIRECT_COST) 业务成本 " + 
 				"          FROM T_COMPANY_COST_ALL " + 
-				"          where BUSINESS_REGION='"+gsName+"' " + 
-				"          and product_name is not null " + 
-				"         GROUP BY product_line_name_st1 , product_name ) " + 
-				" group by PRODUCT_LINE_NAME " + 
-				" order by 年预测收入 desc ");
+				"         WHERE PRODUCT_NAME IS NOT NULL " + 
+				"         and BUSINESS_REGION ='"+gsName+"' " + 
+				"         GROUP BY PRODUCT_NAME, product_line_name_st1) " + 
+				" GROUP BY 产品线名称, 一级产品线名称 " + 
+				" order by 预测收入 desc " + 
+				" " + 
+				"");
 		System.out.println(sql.toString());
 		List<Object[]> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
 		
@@ -2886,17 +2995,28 @@ public class NewReportServiceImpl implements NewReportService {
 		// TODO Auto-generated method stub
     	Map<String, String>reMap = fetchWebReq.getData();
 		String companyId = reMap.get("companyId");
-		String sql = " SELECT 年客户, 日客户" + 
-				"           FROM (SELECT COUNT(DISTINCT(CUSTOMER_NAME)) 年客户" + 
-				"                 FROM T_ORDER_CRM" + 
-				"                 WHERE SUBSTR(CREATE_TIME_ORDER, 0, 4) =" + 
-				"                       to_char(SYSDATE, 'YYYY')" + 
-				"                 AND PRODUCT_LINE_NAME = '"+companyId+"') A," + 
-				"                (SELECT COUNT(DISTINCT(CUSTOMER_NAME)) 日客户" + 
-				"                 FROM T_ORDER_CRM" + 
-				"                 WHERE SUBSTR(CREATE_TIME_ORDER, 0, 10) =" + 
-				"                       to_char(SYSDATE, 'YYYY')" + 
-				"                 AND PRODUCT_LINE_NAME = '"+companyId+"') " ;
+		String sql = " SELECT SUM(年客户数量) 年客户数量, " + 
+				"       SUM(NVL(日客户数量, 0)) 日客户数量 " + 
+				"  FROM (SELECT product_line_name, COUNT(DISTINCT CUSTOMER_NAME) 年客户数量 " + 
+				"          FROM T_ORDER_CRM " + 
+				"         WHERE SUBSTR(CREATE_TIME_ORDER, 0, 7) >= " + 
+				"               TO_CHAR(ADD_MONTHS(SYSDATE, -12), 'yyyy-mm') " + 
+				"           AND product_line_name IS NOT NULL " + 
+				"         GROUP BY product_line_name) A " + 
+				"  LEFT JOIN (SELECT product_line_name, COUNT(DISTINCT CUSTOMER_NAME) 日客户数量 " + 
+				"               FROM T_ORDER_CRM " + 
+				"              WHERE SUBSTR(CREATE_TIME_ORDER, 1, 10) = " + 
+				"                    TO_CHAR(SYSDATE, 'YYYY-MM-DD') " + 
+				"              GROUP BY product_line_name) B " + 
+				"    ON A.product_line_name = B.product_line_name " + 
+				"  LEFT JOIN (SELECT COUNT(CUSTOMER_NAME) 非产品线活跃客户, product_line_name " + 
+				"               FROM (SELECT DISTINCT CUSTOMER_NAME, product_line_name " + 
+				"                       FROM T_ORDER_CRM T1 " + 
+				"                      WHERE TYPE <> '产品线业务') " + 
+				"              GROUP BY product_line_name) D " + 
+				"    ON A.product_line_name = D.product_line_name " + 
+				" WHERE A.product_line_name = '"+companyId+"' " + 
+				" GROUP BY A.product_line_name " ;
     	System.out.println("----------"+sql.toString());
     	List<Object[]> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
 		
@@ -2920,18 +3040,23 @@ public class NewReportServiceImpl implements NewReportService {
 		// TODO Auto-generated method stub
     	Map<String, String>reMap = fetchWebReq.getData();
 		String companyId = reMap.get("companyId");
-		String sql = " select * from (" + 
-				"select 年供应商, 日供应商" + 
-				"           from (select count(distinct(SUB_PACKAGE_NAME)) 年供应商" + 
-				"                 from T_ORDER_SRM" + 
-				"                 where substr(create_time_order, 0, 4) =" + 
-				"                       TO_CHAR(SYSDATE, 'YYYY')" + 
-				"                 and PRODUCT_NAME = '"+companyId+"') a," + 
-				"                (select count(distinct(SUB_PACKAGE_NAME)) 日供应商" + 
-				"                 from T_ORDER_SRM" + 
-				"                 where substr(create_time_order, 0, 10) =" + 
-				"                       TO_CHAR(SYSDATE, 'YYYY-MM-DD')" + 
-				"                 and PRODUCT_NAME = '"+companyId+"')) " ;
+		String sql = " SELECT SUM(年供应商数量) 年供应商数量, " + 
+				"       SUM(NVL(日供应商数量, 0)) 日供应商数量 " + 
+				"  FROM (SELECT PRODUCT_NAME, COUNT(DISTINCT SUB_PACKAGE_NAME) 年供应商数量 " + 
+				"          FROM T_ORDER_SRM " + 
+				"         WHERE SUBSTR(CREATE_TIME_ORDER, 0, 7) >= " + 
+				"               TO_CHAR(ADD_MONTHS(SYSDATE, -12), 'yyyy-mm') " + 
+				"           AND PRODUCT_NAME IS NOT NULL " + 
+				"         GROUP BY PRODUCT_NAME) A " + 
+				"  LEFT JOIN (SELECT PRODUCT_NAME, " + 
+				"                    COUNT(DISTINCT SUB_PACKAGE_NAME) 日供应商数量 " + 
+				"               FROM T_ORDER_SRM " + 
+				"              WHERE SUBSTR(CREATE_TIME_ORDER, 1, 10) = " + 
+				"                    TO_CHAR(SYSDATE, 'YYYY-MM-DD') " + 
+				"              GROUP BY PRODUCT_NAME) B " + 
+				"    ON A.PRODUCT_NAME = B.PRODUCT_NAME " + 
+				"WHERE A.PRODUCT_NAME = '"+companyId+"' " + 
+				" GROUP BY A.PRODUCT_NAME " ;
     	System.out.println("----------"+sql.toString());
     	List<Object[]> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
 		
@@ -3398,7 +3523,7 @@ public class NewReportServiceImpl implements NewReportService {
 					"                AND PRODUCT_NAME = '"+companyId+"'" + 
 					"              GROUP BY SUBSTR(PAY_END_DATE, 1, 7)) B" + 
 					"    ON A.月份 = B.月份";
-	    	
+			System.out.println(sql);
 	    	List<Object[]> reList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();	
 			Map<String, Object> map = new HashMap<String, Object>();
 			if(reList !=null && reList.size()!= 0 ) {
@@ -3657,7 +3782,6 @@ public class NewReportServiceImpl implements NewReportService {
 					"       SUM(NVL(产品线活跃客户数量, 0)) 产品线活跃客户数量, " + 
 					"       SUM(NVL(非产品线活跃客户, 0)) 非产品线活跃客户, " + 
 					"       SUM(NVL(活跃客户数量, 0)) 活跃客户数量, " + 
-					"       sum(年客户数量 - 产品线活跃客户数量) 非活跃客户数量, " + 
 					"       A.SORG_LEVEL3 " + 
 					"  FROM (SELECT COUNT(DISTINCT CUSTOMER_NAME) 年客户数量, " + 
 					"               SORG_LEVEL3, " + 
@@ -3713,7 +3837,7 @@ public class NewReportServiceImpl implements NewReportService {
 			Map<String,Object> map = new HashMap<String,Object>();
 			
 			if(resultList != null && resultList.size() > 0) {
-				JSONObject ja = NewUtils.returnYwskMsgSql3(resultList);
+				JSONObject ja = NewUtils.returnYwskMsgSql3(resultList,1);
 				map.put("result", ja);
 			}
 			
@@ -3729,14 +3853,14 @@ public class NewReportServiceImpl implements NewReportService {
 			String companyId = resMap.get("companyId");
 			
 			sql.append(" SELECT SUM(年供应商数量) 供应商数量, " + 
-					"       SUM(NVL(产品线活跃供应商数量,0)) 产品线活跃供应商数量, " + 
+					"       SUM(业务供应商数量 - NVL(非产品线活跃供应商, 0)) 产品线活跃供应商数量, " + 
 					"       SUM(NVL(非产品线活跃供应商, 0)) 非产品线活跃供应商, " + 
 					"       SUM(NVL(日供应商数量, 0)) 日供应商数量, " + 
-					"       sum(年供应商数量 - 业务供应商数量) 非活跃供应商数量, " + 
 					"       A.SORG_LEVEL3 " + 
 					"  FROM (SELECT SORG_LEVEL3, COUNT(DISTINCT SUB_PACKAGE_NAME) 年供应商数量 " + 
 					"          FROM T_ORDER_SRM " + 
-					"         WHERE SUBSTR(INSERT_TIME, 0, 4) = TO_CHAR(SYSDATE, 'yyyy') " + 
+					"         WHERE SUBSTR(CREATE_TIME_ORDER, 0, 7) >= " + 
+					"               TO_CHAR(ADD_MONTHS(SYSDATE, -12), 'yyyy-mm') " + 
 					"           AND SORG_LEVEL3 IS NOT NULL " + 
 					"         GROUP BY SORG_LEVEL3) A " + 
 					"  LEFT JOIN (SELECT SORG_LEVEL3, " + 
@@ -3749,37 +3873,26 @@ public class NewReportServiceImpl implements NewReportService {
 					"  LEFT JOIN (SELECT SORG_LEVEL3, " + 
 					"                    COUNT(DISTINCT SUB_PACKAGE_ID) 业务供应商数量 " + 
 					"               FROM T_ORDER_SRM " + 
-					"              WHERE SUBSTR(CREATE_TIME_ORDER, 1, 7) > " + 
-					"                    TO_CHAR(ADD_MONTHS(TRUNC(SYSDATE), -12), 'yyyy-mm') " + 
-					"                AND SUBSTR(CREATE_TIME_ORDER, 1, 7) <= " + 
-					"                    TO_CHAR(TRUNC(SYSDATE), 'yyyy-mm') " + 
+					"              WHERE SUBSTR(CREATE_TIME_ORDER, 0, 7) >= " + 
+					"                    TO_CHAR(ADD_MONTHS(SYSDATE, -12), 'yyyy-mm') " + 
 					"              GROUP BY SORG_LEVEL3) C " + 
 					"    ON A.SORG_LEVEL3 = C.SORG_LEVEL3 " + 
-					"  LEFT JOIN (SELECT COUNT(sub_package_name) 非产品线活跃供应商, T2.SORG_LEVEL3 " + 
-					"               FROM (SELECT DISTINCT sub_package_name, COMPANY_BUSI_ORG_ID " + 
+					"  LEFT JOIN (SELECT COUNT(SUB_PACKAGE_NAME) 非产品线活跃供应商, SORG_LEVEL3 " + 
+					"               FROM (SELECT DISTINCT SUB_PACKAGE_NAME, SORG_LEVEL3 " + 
 					"                       FROM T_ORDER_SRM T1 " + 
-					"                      WHERE TYPE = '非产品线业务') T1 " + 
-					"              INNER JOIN VIEW_ORG_TREE_COMPANY_ALL T2 " + 
-					"                 ON T1.COMPANY_BUSI_ORG_ID = T2.X_UNIFYCODE " + 
+					"                      WHERE TYPE <> '产品线业务') " + 
 					"              GROUP BY SORG_LEVEL3) D " + 
 					"    ON A.SORG_LEVEL3 = D.SORG_LEVEL3 " + 
-					"   LEFT JOIN (SELECT COUNT(sub_package_name) 产品线活跃供应商数量, T2.SORG_LEVEL3 " + 
-					"               FROM (SELECT DISTINCT sub_package_name, COMPANY_BUSI_ORG_ID " + 
-					"                       FROM T_ORDER_SRM T1 " + 
-					"                      WHERE TYPE <> '非产品线业务') T1 " + 
-					"              INNER JOIN VIEW_ORG_TREE_COMPANY_ALL T2 " + 
-					"                 ON T1.COMPANY_BUSI_ORG_ID = T2.X_UNIFYCODE " + 
-					"              GROUP BY SORG_LEVEL3) E " + 
-					"    ON A.SORG_LEVEL3 = D.SORG_LEVEL3 " + 
-					" WHERE A.SORG_LEVEL3 = '"+companyId+"' " + 
-					" GROUP BY A.SORG_LEVEL3 ");
+					"WHERE A.SORG_LEVEL3 = '"+companyId+"' " + 
+					" GROUP BY A.SORG_LEVEL3 " + 
+					" ");
 			System.out.println(sql.toString());
 			List<Object[]> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
 			
 			Map<String,Object> map = new HashMap<String,Object>();
 			
 			if(resultList != null && resultList.size() > 0) {
-				JSONObject ja = NewUtils.returnYwskMsgSql4(resultList);
+				JSONObject ja = NewUtils.returnYwskMsgSql4(resultList,1);
 				map.put("result", ja);
 			}
 			
@@ -4028,43 +4141,34 @@ public class NewReportServiceImpl implements NewReportService {
 			Map<String, String> resMap = fetchWebReq.getData();
 			String companyId = resMap.get("companyId");
 			
-			sql.append(" SELECT 年客户数量, " + 
-					"                  日客户数量, " + 
-					"                  产品线活跃客户数量 产品线活跃客户数量, " + 
-					"                  非产品线活跃客户, " + 
-					"                  0, " +
-					"                  年客户数量 - 活跃客户数量 非活跃客户数量 " + 
-					"           FROM (SELECT COUNT(年客户数量) 年客户数量 " + 
-					"                 FROM (SELECT COUNT(1) 年客户数量 " + 
-					"                       FROM VIEW_CUSTOMER_ALL " + 
-					"                       GROUP BY CUSTOMER_ID)) A, " + 
-					"                (SELECT COUNT(日客户数量) 日客户数量 " + 
-					"                 FROM (SELECT COUNT(1) 日客户数量 " + 
-					"                       FROM VIEW_CUSTOMER_ALL " + 
-					"                       WHERE SUBSTR(CREATE_TIME, 1, 10) = " + 
-					"                             TO_CHAR(SYSDATE, 'YYYY-MM-DD') " + 
-					"                       GROUP BY CUSTOMER_NAME)) B, " + 
-					"                (SELECT COUNT(distinct CUSTOMER_NAME) 活跃客户数量 " + 
-					"                 FROM (SELECT CUSTOMER_NAME " + 
-					"                       FROM T_ORDER_CRM " + 
-					"                       WHERE SUBSTR(CREATE_TIME_ORDER, 1, 7) >= " + 
-					"                             TO_CHAR(ADD_MONTHS(SYSDATE, -12), 'YYYY-mm') " + 
-					"                       GROUP BY CUSTOMER_NAME)) C, " + 
-					"                (SELECT COUNT(CUSTOMER_ID) 非产品线活跃客户 " + 
-					"                 FROM (SELECT DISTINCT CUSTOMER_ID, CUSTOMER_NAME " + 
-					"                       FROM T_ORDER_CRM " + 
-					"                       WHERE TYPE = '非产品线业务')) D, " + 
-					"                (SELECT COUNT(CUSTOMER_ID) 产品线活跃客户数量 " + 
-					"                 FROM (SELECT DISTINCT CUSTOMER_ID, CUSTOMER_NAME " + 
-					"                       FROM T_ORDER_CRM " + 
-					"                       WHERE TYPE <> '非产品线业务')) E ");
+			sql.append("  SELECT 客户数量 年客户数量, " + 
+					"       NVL(日客户数量, 0) 日客户数量, " + 
+					"       产品线活跃客户数量, " + 
+					"        NVL(非产品线活跃客户, 0) 非产品线活跃客户, " + 
+					"        0, " + 
+					"       客户数量 - 产品线活跃客户数量 非活跃客户数量   " + 
+					"  FROM (SELECT COUNT(DISTINCT CUSTOMER_NAME) 客户数量 " + 
+					"          FROM T_ORDER_CRM) A, " + 
+					"  (SELECT COUNT(DISTINCT CUSTOMER_NAME) 日客户数量 " + 
+					"               FROM T_ORDER_CRM " + 
+					"              WHERE SUBSTR(CREATE_TIME_ORDER, 1, 10) = " + 
+					"                    TO_CHAR(SYSDATE, 'YYYY-MM-DD')) B, " + 
+					"  (SELECT COUNT(DISTINCT CUSTOMER_NAME) 产品线活跃客户数量 " + 
+					"               FROM T_ORDER_CRM " + 
+					"              WHERE SUBSTR(CREATE_TIME_ORDER, 0, 7) >= " + 
+					"                    TO_CHAR(ADD_MONTHS(SYSDATE, -12), 'yyyy-mm') " + 
+					"                    AND TYPE = '产品线业务') C, " + 
+					"  (SELECT COUNT(CUSTOMER_NAME) 非产品线活跃客户 " + 
+					"               FROM (SELECT DISTINCT CUSTOMER_NAME " + 
+					"                       FROM T_ORDER_CRM T1 " + 
+					"                      WHERE TYPE <> '产品线业务')) D ");
 			System.out.println(sql.toString());
 			List<Object[]> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
 			
 			Map<String,Object> map = new HashMap<String,Object>();
 			
 			if(resultList != null && resultList.size() > 0) {
-				JSONObject ja = NewUtils.returnYwskMsgSql3(resultList);
+				JSONObject ja = NewUtils.returnYwskMsgSql3(resultList,0);
 				map.put("result", ja);
 			}
 			
@@ -4079,40 +4183,31 @@ public class NewReportServiceImpl implements NewReportService {
 			Map<String, String> resMap = fetchWebReq.getData();
 			String companyId = resMap.get("companyId");
 			
-			sql.append(" SELECT 年供应商数量,                   " + 
-					"                  产品线活跃供应商数量 产品线活跃供应商数量, " + 
-					"                  非产品线活跃供应商, " + 
-					"                  日供应商数量, " + 
-					"                  年供应商数量 - 活跃供应商数量 非活跃供应商数量 " + 
-					"           FROM (SELECT COUNT(CODE) 年供应商数量 " + 
-					"                 FROM (SELECT CODE FROM INFOSHAR_618389493 GROUP BY CODE)) A, " + 
-					"                (SELECT COUNT(CODE) 日供应商数量 " + 
-					"                 FROM (SELECT CODE " + 
-					"                       FROM INFOSHAR_618389493 " + 
-					"                       WHERE SUBSTR(START_TIME, 1, 10) = " + 
-					"                             TO_CHAR(SYSDATE, 'YYYY-MM-DD') " + 
-					"                       GROUP BY CODE)) B, " + 
-					"                (SELECT COUNT(SUB_PACKAGE_ID) 活跃供应商数量 " + 
-					"                 FROM (SELECT SUB_PACKAGE_ID " + 
-					"                       FROM T_ORDER_SRM " + 
-					"                       GROUP BY SUB_PACKAGE_ID)) C, " + 
-					"                (SELECT COUNT(1) 非产品线活跃供应商 " + 
-					"                 FROM (SELECT SUB_PACKAGE_ID " + 
-					"                       FROM T_ORDER_SRM " + 
-					"                       WHERE TYPE = '非产品线业务' " + 
-					"                       GROUP BY SUB_PACKAGE_ID)) D, " + 
-					"                (SELECT COUNT(1) 产品线活跃供应商数量 " + 
-					"                 FROM (SELECT SUB_PACKAGE_ID " + 
-					"                       FROM T_ORDER_SRM " + 
-					"                       WHERE TYPE <> '非产品线业务' " + 
-					"                       GROUP BY SUB_PACKAGE_ID)) E ");
+			sql.append(" SELECT 年供应商数量 年供应商数量, " + 
+					"       活跃供应商数量 - NVL(非产品线活跃供应商, 0) 产品线活跃供应商数量, " + 
+					"       NVL(非产品线活跃供应商, 0) 非产品线活跃供应商, " + 
+					"       NVL(日供应商数量, 0) 日供应商数量, " + 
+					"       年供应商数量 - 活跃供应商数量 非活跃供应商数量 " + 
+					"FROM (SELECT COUNT(DISTINCT NAME) 年供应商数量 FROM INFOSHAR_618389493) A, " + 
+					"     (SELECT COUNT(DISTINCT NAME) 日供应商数量 " + 
+					"      FROM INFOSHAR_618389493 " + 
+					"      WHERE SUBSTR(START_TIME, 1, 10) = TO_CHAR(SYSDATE, 'YYYY-MM-DD')) B, " + 
+					"     (SELECT COUNT(DISTINCT SUB_PACKAGE_ID) 活跃供应商数量 " + 
+					"      FROM T_ORDER_SRM " + 
+					"      WHERE SUBSTR(CREATE_TIME_ORDER, 0, 7) >= " + 
+					"            TO_CHAR(ADD_MONTHS(SYSDATE, -12), 'yyyy-mm')) C, " + 
+					"     (SELECT COUNT(SUB_PACKAGE_NAME) 非产品线活跃供应商, SORG_LEVEL3 " + 
+					"      FROM (SELECT DISTINCT SUB_PACKAGE_NAME, SORG_LEVEL3 " + 
+					"            FROM T_ORDER_SRM T1 " + 
+					"            WHERE TYPE <> '产品线业务')) D " + 
+					" ");
 			System.out.println(sql.toString());
 			List<Object[]> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
 			
 			Map<String,Object> map = new HashMap<String,Object>();
 			
 			if(resultList != null && resultList.size() > 0) {
-				JSONObject ja = NewUtils.returnYwskMsgSql4(resultList);
+				JSONObject ja = NewUtils.returnYwskMsgSql4(resultList,0);
 				map.put("result", ja);
 			}
 			
@@ -4266,64 +4361,40 @@ public class NewReportServiceImpl implements NewReportService {
 			Map<String, String> resMap = fetchWebReq.getData();
 			String companyId = resMap.get("companyId");
 			
-			sql.append(" SELECT SUM(NVL(年客户数量, 0)) AS 年客户数量, " + 
-					"       SUM(NVL(日客户数量, 0)) AS 日客户数量, " + 
-					"       SUM(NVL(产品线活跃客户数量, 0)) 产品线活跃客户数量, " + 
+			sql.append(" " + 
+					"SELECT SUM(年客户数量) 年客户数量, " + 
+					"       SUM(NVL(日客户数量, 0)) 日客户数量, " + 
+					"       SUM(年客户数量 - NVL(非产品线活跃客户, 0)) 产品线活跃客户数量, " + 
 					"       SUM(NVL(非产品线活跃客户, 0)) 非产品线活跃客户, " + 
-					"       SUM(NVL(活跃客户数量, 0)) 活跃客户数量, " + 
-					"       sum(年客户数量 - 产品线活跃客户数量) 非活跃客户数量, " + 
-					"       A.BUSINESS_REGION " + 
-					"  FROM (SELECT COUNT(DISTINCT CUSTOMER_NAME) 年客户数量, " + 
-					"               BUSINESS_REGION, " + 
-					"               COMPANY_BUSI_ORG_ID " + 
+					"       SUM(NVL(年客户数量, 0)) 活跃客户数量, " + 
+					"       A.BUSINESS_REGION  " + 
+					"  FROM (SELECT BUSINESS_REGION, COUNT(DISTINCT CUSTOMER_NAME) 年客户数量 " + 
 					"          FROM T_ORDER_CRM " + 
-					"         GROUP BY BUSINESS_REGION, COMPANY_BUSI_ORG_ID) A " + 
-					"  LEFT JOIN (SELECT COUNT(DISTINCT CUSTOMER_ID) 日客户数量, " + 
-					"                    BUSINESS_REGION, " + 
-					"                    COMPANY_BUSI_ORG_ID " + 
+					"         WHERE SUBSTR(CREATE_TIME_ORDER, 0, 7) >= " + 
+					"               TO_CHAR(ADD_MONTHS(SYSDATE, -12), 'yyyy-mm') " + 
+					"           AND BUSINESS_REGION IS NOT NULL " + 
+					"         GROUP BY BUSINESS_REGION) A " + 
+					"  LEFT JOIN (SELECT BUSINESS_REGION, COUNT(DISTINCT CUSTOMER_NAME) 日客户数量 " + 
 					"               FROM T_ORDER_CRM " + 
 					"              WHERE SUBSTR(CREATE_TIME_ORDER, 1, 10) = " + 
 					"                    TO_CHAR(SYSDATE, 'YYYY-MM-DD') " + 
-					"              GROUP BY BUSINESS_REGION, COMPANY_BUSI_ORG_ID) B " + 
-					"    ON A.COMPANY_BUSI_ORG_ID = B.COMPANY_BUSI_ORG_ID " + 
-					"  LEFT JOIN (SELECT COUNT(DISTINCT CUSTOMER_NAME) 活跃客户数量, " + 
-					"                    BUSINESS_REGION, " + 
-					"                    COMPANY_BUSI_ORG_ID " + 
-					"               FROM T_ORDER_CRM " + 
-					"              WHERE SUBSTR(CREATE_TIME_ORDER, 1, 7) > " + 
-					"                    TO_CHAR(ADD_MONTHS(TRUNC(SYSDATE), -12), 'yyyy-mm') " + 
-					"                AND SUBSTR(CREATE_TIME_ORDER, 1, 7) <= " + 
-					"                    TO_CHAR(TRUNC(SYSDATE), 'yyyy-mm') " + 
-					"                AND BUSINESS_REGION IS NOT NULL " + 
-					"              GROUP BY BUSINESS_REGION, COMPANY_BUSI_ORG_ID) C " + 
-					"    ON A.COMPANY_BUSI_ORG_ID = C.COMPANY_BUSI_ORG_ID " + 
-					"  LEFT JOIN (SELECT COUNT(CUSTOMER_ID) 非产品线活跃客户, " + 
-					"                    BUSINESS_REGION, " + 
-					"                    COMPANY_BUSI_ORG_ID " + 
-					"               FROM (SELECT DISTINCT CUSTOMER_ID, " + 
-					"                                     CUSTOMER_NAME, " + 
-					"                                     COMPANY_BUSI_ORG_ID, " + 
-					"                                     BUSINESS_REGION " + 
-					"                       FROM T_ORDER_CRM " + 
-					"                      WHERE TYPE = '非产品线业务') " + 
-					"              GROUP BY COMPANY_BUSI_ORG_ID, BUSINESS_REGION) D " + 
-					"    ON A.COMPANY_BUSI_ORG_ID = D.COMPANY_BUSI_ORG_ID " + 
-					"  LEFT JOIN (SELECT COUNT(CUSTOMER_ID) 产品线活跃客户数量, " + 
-					"                    BUSINESS_REGION " + 
-					"               FROM (SELECT DISTINCT CUSTOMER_NAME, CUSTOMER_ID, BUSINESS_REGION " + 
-					"                       FROM T_ORDER_CRM " + 
-					"                      WHERE TYPE <> '非产品线业务') " + 
-					"              GROUP BY BUSINESS_REGION) E " + 
-					"    ON A.COMPANY_BUSI_ORG_ID = D.COMPANY_BUSI_ORG_ID  " + 
+					"              GROUP BY BUSINESS_REGION) B " + 
+					"    ON A.BUSINESS_REGION = B.BUSINESS_REGION " + 
+					"  LEFT JOIN (SELECT COUNT(CUSTOMER_NAME) 非产品线活跃客户, BUSINESS_REGION " + 
+					"               FROM (SELECT DISTINCT CUSTOMER_NAME, BUSINESS_REGION " + 
+					"                       FROM T_ORDER_CRM T1 " + 
+					"                      WHERE TYPE <> '产品线业务') " + 
+					"              GROUP BY BUSINESS_REGION) D " + 
+					"    ON A.BUSINESS_REGION = D.BUSINESS_REGION " + 
 					" WHERE A.BUSINESS_REGION = '"+companyId+"' " + 
-					" GROUP BY A.BUSINESS_REGION ");
+					" GROUP BY A.BUSINESS_REGION");
 			System.out.println(sql.toString());
 			List<Object[]> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
 			
 			Map<String,Object> map = new HashMap<String,Object>();
 			
 			if(resultList != null && resultList.size() > 0) {
-				JSONObject ja = NewUtils.returnYwskMsgSql3(resultList);
+				JSONObject ja = NewUtils.returnYwskMsgSql3(resultList,3);
 				map.put("result", ja);
 			}
 			
@@ -4339,63 +4410,45 @@ public class NewReportServiceImpl implements NewReportService {
 			String companyId = resMap.get("companyId");
 			
 			sql.append("  SELECT SUM(年供应商数量) 供应商数量, " + 
-					"        SUM(NVL(产品线活跃供应商数量, 0)) 产品线活跃供应商数量, " + 
-					"        SUM(NVL(非产品线活跃供应商, 0)) 非产品线活跃供应商, " + 
-					"        SUM(NVL(日供应商数量, 0)) 日供应商数量, " + 
-					"        sum(年供应商数量 - 业务供应商数量) 非活跃供应商数量, " + 
-					"        A.BUSINESS_REGION " + 
-					" FROM (SELECT BUSINESS_REGION, COUNT(DISTINCT SUB_PACKAGE_NAME) 年供应商数量 " + 
-					"       FROM T_ORDER_SRM " + 
-					"       WHERE SUBSTR(INSERT_TIME, 0, 4) = TO_CHAR(SYSDATE, 'yyyy') " + 
-					"       AND BUSINESS_REGION IS NOT NULL " + 
-					"       GROUP BY BUSINESS_REGION) A " + 
-					" LEFT JOIN (SELECT BUSINESS_REGION, " + 
-					"                   COUNT(DISTINCT SUB_PACKAGE_NAME) 日供应商数量 " + 
-					"            FROM T_ORDER_SRM " + 
-					"            WHERE SUBSTR(CREATE_TIME_ORDER, 1, 10) = " + 
-					"                  TO_CHAR(SYSDATE, 'YYYY-MM-DD') " + 
-					"            GROUP BY BUSINESS_REGION) B " + 
-					" ON A.BUSINESS_REGION = B.BUSINESS_REGION " + 
-					" LEFT JOIN (SELECT BUSINESS_REGION, " + 
-					"                   COUNT(DISTINCT SUB_PACKAGE_ID) 业务供应商数量 " + 
-					"            FROM T_ORDER_SRM " + 
-					"            WHERE SUBSTR(CREATE_TIME_ORDER, 1, 7) > " + 
-					"                  TO_CHAR(ADD_MONTHS(TRUNC(SYSDATE), -12), 'yyyy-mm') " + 
-					"            AND SUBSTR(CREATE_TIME_ORDER, 1, 7) <= " + 
-					"                  TO_CHAR(TRUNC(SYSDATE), 'yyyy-mm') " + 
-					"            AND BUSINESS_REGION is not null       " + 
-					"            GROUP BY BUSINESS_REGION) C " + 
-					" ON A.BUSINESS_REGION = C.BUSINESS_REGION " + 
-					" LEFT JOIN (SELECT COUNT(sub_package_name) 非产品线活跃供应商, " + 
-					"                   T1.BUSINESS_REGION " + 
-					"            FROM (SELECT DISTINCT sub_package_name, COMPANY_BUSI_ORG_ID,BUSINESS_REGION " + 
-					"                  FROM T_ORDER_SRM T1 " + 
-					"                  WHERE TYPE = '非产品线业务') T1 " + 
-					"            INNER JOIN VIEW_ORG_TREE_COMPANY_ALL T2 " + 
-					"            ON T1.COMPANY_BUSI_ORG_ID = T2.X_UNIFYCODE " + 
-					"            where T1.BUSINESS_REGION is not null " + 
-					"            GROUP BY BUSINESS_REGION) D " + 
-					" ON A.BUSINESS_REGION = D.BUSINESS_REGION " + 
-					" LEFT JOIN (SELECT COUNT(sub_package_name) 产品线活跃供应商数量, " + 
-					"                   T1.BUSINESS_REGION " + 
-					"            FROM (SELECT DISTINCT sub_package_name, COMPANY_BUSI_ORG_ID,BUSINESS_REGION " + 
-					"                  FROM T_ORDER_SRM T1 " + 
-					"                  WHERE TYPE <> '非产品线业务') T1 " + 
-					"            INNER JOIN VIEW_ORG_TREE_COMPANY_ALL T2 " + 
-					"            ON T1.COMPANY_BUSI_ORG_ID = T2.X_UNIFYCODE " + 
-					"            where T1.BUSINESS_REGION is not null " + 
-					"            GROUP BY BUSINESS_REGION) E " + 
-					" ON A.BUSINESS_REGION = D.BUSINESS_REGION " + 
-					" WHERE A.BUSINESS_REGION = '"+companyId+"' " + 
-					" GROUP BY A.BUSINESS_REGION " + 
-					" ");
+					"       SUM(业务供应商数量 - NVL(非产品线活跃供应商, 0)) 产品线活跃供应商数量, " + 
+					"       SUM(NVL(非产品线活跃供应商, 0)) 非产品线活跃供应商, " + 
+					"       SUM(NVL(日供应商数量, 0)) 日供应商数量, " + 
+					"       A.BUSINESS_REGION " + 
+					"  FROM (SELECT BUSINESS_REGION, COUNT(DISTINCT SUB_PACKAGE_NAME) 年供应商数量 " + 
+					"          FROM T_ORDER_SRM " + 
+					"         WHERE SUBSTR(CREATE_TIME_ORDER, 0, 7) >= " + 
+					"               TO_CHAR(ADD_MONTHS(SYSDATE, -12), 'yyyy-mm') " + 
+					"           AND BUSINESS_REGION IS NOT NULL " + 
+					"         GROUP BY BUSINESS_REGION) A " + 
+					"  LEFT JOIN (SELECT BUSINESS_REGION, " + 
+					"                    COUNT(DISTINCT SUB_PACKAGE_NAME) 日供应商数量 " + 
+					"               FROM T_ORDER_SRM " + 
+					"              WHERE SUBSTR(CREATE_TIME_ORDER, 1, 10) = " + 
+					"                    TO_CHAR(SYSDATE, 'YYYY-MM-DD') " + 
+					"              GROUP BY BUSINESS_REGION) B " + 
+					"    ON A.BUSINESS_REGION = B.BUSINESS_REGION " + 
+					"  LEFT JOIN (SELECT BUSINESS_REGION, " + 
+					"                    COUNT(DISTINCT SUB_PACKAGE_ID) 业务供应商数量 " + 
+					"               FROM T_ORDER_SRM " + 
+					"              WHERE SUBSTR(CREATE_TIME_ORDER, 0, 7) >= " + 
+					"                    TO_CHAR(ADD_MONTHS(SYSDATE, -12), 'yyyy-mm') " + 
+					"              GROUP BY BUSINESS_REGION) C " + 
+					"    ON A.BUSINESS_REGION = C.BUSINESS_REGION " + 
+					"  LEFT JOIN (SELECT COUNT(SUB_PACKAGE_NAME) 非产品线活跃供应商, BUSINESS_REGION " + 
+					"               FROM (SELECT DISTINCT SUB_PACKAGE_NAME, BUSINESS_REGION " + 
+					"                       FROM T_ORDER_SRM T1 " + 
+					"                      WHERE TYPE <> '产品线业务') " + 
+					"              GROUP BY BUSINESS_REGION) D " + 
+					"    ON A.BUSINESS_REGION = D.BUSINESS_REGION " + 
+					"WHERE A.BUSINESS_REGION = '"+companyId+"' " + 
+					" GROUP BY A.BUSINESS_REGION");
 			System.out.println(sql.toString());
 			List<Object[]> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
 			
 			Map<String,Object> map = new HashMap<String,Object>();
 			
 			if(resultList != null && resultList.size() > 0) {
-				JSONObject ja = NewUtils.returnYwskMsgSql4(resultList);
+				JSONObject ja = NewUtils.returnYwskMsgSql4(resultList,3);
 				map.put("result", ja);
 			}
 			

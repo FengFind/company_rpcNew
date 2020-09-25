@@ -18,8 +18,8 @@ public class RpcNodeTest {
 	public static void main(String[] args) throws CustomException, InterruptedException {        
 		CompanyRpc.start(DEV_PATH);
 		NodeUtils.getLocHost(); 
-		CollectThread c = new CollectThread();
-		c.start();
+//		CollectThread c = new CollectThread();
+//		c.start();
 		MyqdpEncryptImpl.getMyqdpServerHttpAddr();  
 	}                        
 }

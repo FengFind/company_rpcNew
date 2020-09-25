@@ -52,6 +52,8 @@ public interface NewReportService {
     
     public Map<String, Object> findCompanyMsgByArea(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
     
+    public Map<String, Object> findCompanyMsgByAreaYh(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+    
     public Map<String, Object> findCompanyMsgByCpx(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
     
     public Map<String, Object> findCompanyMsgByCpxName(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;

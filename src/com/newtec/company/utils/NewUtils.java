@@ -1203,7 +1203,7 @@ public class NewUtils {
 		return res;
 	}
 	
-	public static JSONObject returnYwskMsgSql3(List<Object[]> list) {
+	public static JSONObject returnYwskMsgSql3(List<Object[]> list, int type) {
 		JSONObject res = new JSONObject();
 		
 		if(list == null || list.size() == 0) {
@@ -1221,14 +1221,16 @@ public class NewUtils {
 		
 		dl.add(NewUtils.returnYwjiqkIntMsg1("产品线活跃客户数量", result[2], df));
 		dl.add(NewUtils.returnYwjiqkIntMsg1("非产品线活跃客户数量", result[3], df));
-		dl.add(NewUtils.returnYwjiqkIntMsg1("非活跃客户数量", result[5], df));
+		if(type == 0) {
+			dl.add(NewUtils.returnYwjiqkIntMsg1("非活跃客户数量", result[5], df));
+		}
 		
 		res.put("detail", dl);
 		
 		return res;
 	}
 	
-	public static JSONObject returnYwskMsgSql4(List<Object[]> list) {
+	public static JSONObject returnYwskMsgSql4(List<Object[]> list, int type) {
 		JSONObject res = new JSONObject();
 		
 		if(list == null || list.size() == 0) {
@@ -1246,7 +1248,9 @@ public class NewUtils {
 		
 		dl.add(NewUtils.returnYwjiqkIntMsg1("产品线活跃供应商数量", result[1], df));
 		dl.add(NewUtils.returnYwjiqkIntMsg1("非产品线活跃供应商数量", result[2], df));
-		dl.add(NewUtils.returnYwjiqkIntMsg1("非活跃供应商数量", result[4], df));
+		if(type == 0) {
+			dl.add(NewUtils.returnYwjiqkIntMsg1("非活跃供应商数量", result[4], df));
+		}
 		
 		res.put("detail", dl);
 		
