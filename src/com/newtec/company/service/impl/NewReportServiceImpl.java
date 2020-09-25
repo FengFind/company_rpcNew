@@ -1753,60 +1753,58 @@ public class NewReportServiceImpl implements NewReportService {
 			throws Exception {
 		StringBuffer sql = new StringBuffer();
 		
-		sql.append("SELECT business_region, " + 
-				"       sorg_level3, " + 
-				"       sum(委托单量) 委托单量, " + 
+		sql.append("SELECT BUSINESS_REGION, " + 
+				"       SORG_LEVEL3, " + 
+				"       SUM(委托单量) 委托单量, " + 
 				"       SUM(预测收入) 预测收入, " + 
 				"       SUM(年业务收入) 年业务收入, " + 
 				"       SUM(业务成本) 业务成本 " + 
-				"  FROM (select business_region, " + 
-				"               sorg_level3, " + 
-				"               sum(ORDER_CREATE_COUNT) 委托单量, " + 
-				"               0 as 年业务收入, " + 
-				"               0 as 预测收入, " + 
-				"               0 as 业务成本 " + 
-				"          from T_COMP_AMOUNT_ALL_MONTH " + 
-				"         where SORG_LEVEL2 not like '%参股%' " + 
-				"           and substr(data_stats_month, 0, 4) = to_char(sysdate, 'YYYY') " + 
-				"           and business_region is not null " + 
-				"         group by business_region, sorg_level3 " + 
-				"        union all " + 
-				"        SELECT business_region, " + 
-				"               sorg_level3, " + 
-				"               0 as 委托单量, " + 
+				"  FROM (SELECT BUSINESS_REGION, " + 
+				"               SORG_LEVEL3, " + 
+				"               COUNT(DISTINCT(ORDER_UUID)) 委托单量, " + 
+				"               0 AS 年业务收入, " + 
+				"               0 AS 预测收入, " + 
+				"               0 AS 业务成本 " + 
+				"          FROM T_ORDER_SERVER " + 
+				"         WHERE SUBSTR(CREATE_TIME_ORDER, 0, 4) = TO_CHAR(SYSDATE, 'YYYY') " + 
+				"           AND BUSINESS_REGION IS NOT NULL " + 
+				"         GROUP BY BUSINESS_REGION, SORG_LEVEL3 " + 
+				"        UNION ALL " + 
+				"        SELECT BUSINESS_REGION, " + 
+				"               SORG_LEVEL3, " + 
+				"               0 AS 委托单量, " + 
 				"               SUM(EX_TAX_PRICE) 年业务收入, " + 
-				"               0 as 预测收入, " + 
-				"               0 as 业务成本 " + 
+				"               0 AS 预测收入, " + 
+				"               0 AS 业务成本 " + 
 				"          FROM T_COMP_INVOICE_ALL " + 
 				"         WHERE VOID_TIME IS NULL " + 
-				"         and business_region is not null " + 
-				"           AND TYPE = '产品线业务' " + 
+				"           AND BUSINESS_REGION IS NOT NULL " + 
 				"           AND SUBSTR(INVOICE_DATE, 0, 4) = TO_CHAR(SYSDATE, 'YYYY') " + 
 				"           AND SUBSTR(INVOICE_DATE, 0, 7) <= TO_CHAR(SYSDATE, 'YYYY-MM') " + 
-				"         GROUP BY business_region, sorg_level3 " + 
-				"        union all " + 
-				"        SELECT business_region, " + 
-				"               sorg_level3, " + 
-				"               0 as 委托单量, " + 
-				"               0 as 年业务收入, " + 
+				"         GROUP BY BUSINESS_REGION, SORG_LEVEL3         " + 
+				"        UNION ALL " + 
+				"        SELECT BUSINESS_REGION, " + 
+				"               SORG_LEVEL3, " + 
+				"               0 AS 委托单量, " + 
+				"               0 AS 年业务收入, " + 
 				"               SUM(SYS_CUR_TOTAL_AMOUNT) 预测收入, " + 
-				"               0 as 业务成本 " + 
+				"               0 AS 业务成本 " + 
 				"          FROM T_ORDER_SERVER " + 
 				"         WHERE SUBSTR(WORK_FINISH_TIME, 1, 4) = TO_CHAR(SYSDATE, 'YYYY') " + 
-				"         and business_region is not null " + 
-				"         GROUP BY business_region, sorg_level3 " + 
-				"        union all " + 
-				"        SELECT business_region, " + 
-				"               sorg_level3, " + 
-				"               0 as 委托单量, " + 
-				"               0 as 年业务收入, " + 
-				"               0 as 预测收入, " + 
+				"           AND BUSINESS_REGION IS NOT NULL " + 
+				"         GROUP BY BUSINESS_REGION, SORG_LEVEL3 " + 
+				"        UNION ALL " + 
+				"        SELECT BUSINESS_REGION, " + 
+				"               SORG_LEVEL3, " + 
+				"               0 AS 委托单量, " + 
+				"               0 AS 年业务收入, " + 
+				"               0 AS 预测收入, " + 
 				"               SUM(APPORT_PAY_AMOUNT + DIRECT_COST) 业务成本 " + 
 				"          FROM T_COMPANY_COST_ALL " + 
-				"         WHERE PRODUCT_NAME IS NOT NULL " + 
-				"         and business_region is not null " + 
-				"         GROUP BY business_region, sorg_level3) " + 
-				" GROUP BY business_region, sorg_level3 order by 预测收入 desc ");
+				"         WHERE  BUSINESS_REGION IS NOT NULL " + 
+				"         GROUP BY BUSINESS_REGION, SORG_LEVEL3) " + 
+				" GROUP BY BUSINESS_REGION, SORG_LEVEL3 " + 
+				" order by 预测收入 desc");
 		System.out.println(sql.toString());
 		List<Object[]> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
 		
@@ -1828,26 +1826,27 @@ public class NewReportServiceImpl implements NewReportService {
 			throws Exception {
 		StringBuffer sql = new StringBuffer();
 		
-		sql.append("SELECT 一级产品线名称, " + 
-				"       产品线名称, " + 
-				"       sum(委托单量) 委托单量, " + 
+		sql.append("SELECT PRODUCT_LINE_NAME_ST1, " + 
+				"       PRODUCT_LINE_NAME, " + 
+				"       sum(年委托单) 委托单量, " + 
 				"       SUM(预测收入) 预测收入, " + 
 				"       SUM(年业务收入) 年业务收入, " + 
 				"       SUM(业务成本) 业务成本 " + 
-				"  FROM (select product_line_name_st1 一级产品线名称, " + 
-				"               product_line_name 产品线名称, " + 
-				"               sum(ORDER_CREATE_COUNT) 委托单量, " + 
+				"  FROM (select PRODUCT_LINE_NAME_ST1, " + 
+				"               PRODUCT_LINE_NAME, " + 
+				"               count(distinct(order_uuid)) 年委托单, " + 
 				"               0 as 年业务收入, " + 
 				"               0 as 预测收入, " + 
 				"               0 as 业务成本 " + 
-				"          from T_COMP_AMOUNT_ALL_MONTH " + 
-				"         where SORG_LEVEL2 not like '%参股%' " + 
-				"           and substr(data_stats_month, 0, 4) = to_char(sysdate, 'YYYY') " + 
-				"           and product_line_name_st1 is not null " + 
-				"         group by product_line_name_st1, product_line_name " + 
+				"          from T_ORDER_SERVER " + 
+				"         where substr(create_time_order, 0, 4) = to_char(sysdate, 'yyyy') " + 
+				"           and data_state_order <> '草稿' " + 
+				"           and data_state_order <> '草稿' " + 
+				"           and audit_state_order <> '已删除' " + 
+				"         group by PRODUCT_LINE_NAME_ST1, PRODUCT_LINE_NAME " + 
 				"        union all " + 
-				"        SELECT product_line_name_st1 一级产品线名称, " + 
-				"               PRODUCT_LINE_NAME 产品线名称, " + 
+				"        SELECT PRODUCT_LINE_NAME_ST1, " + 
+				"               PRODUCT_LINE_NAME, " + 
 				"               0 as 委托单量, " + 
 				"               SUM(EX_TAX_PRICE) 年业务收入, " + 
 				"               0 as 预测收入, " + 
@@ -1857,28 +1856,29 @@ public class NewReportServiceImpl implements NewReportService {
 				"           AND TYPE = '产品线业务' " + 
 				"           AND SUBSTR(INVOICE_DATE, 0, 4) = TO_CHAR(SYSDATE, 'YYYY') " + 
 				"           AND SUBSTR(INVOICE_DATE, 0, 7) <= TO_CHAR(SYSDATE, 'YYYY-MM') " + 
-				"         GROUP BY PRODUCT_LINE_NAME, product_line_name_st1 " + 
+				"         GROUP BY PRODUCT_LINE_NAME_ST1, PRODUCT_LINE_NAME " + 
 				"        union all " + 
-				"        SELECT product_line_name_st1 一级产品线名称, " + 
-				"               PRODUCT_LINE_NAME 产品线名称, " + 
+				"        SELECT PRODUCT_LINE_NAME_ST1, " + 
+				"               PRODUCT_LINE_NAME, " + 
 				"               0 as 委托单量, " + 
 				"               0 as 年业务收入, " + 
 				"               SUM(SYS_CUR_TOTAL_AMOUNT) 预测收入, " + 
 				"               0 as 业务成本 " + 
 				"          FROM T_ORDER_SERVER " + 
 				"         WHERE SUBSTR(WORK_FINISH_TIME, 1, 4) = TO_CHAR(SYSDATE, 'YYYY') " + 
-				"         GROUP BY PRODUCT_LINE_NAME, product_line_name_st1 " + 
+				"         GROUP BY PRODUCT_LINE_NAME_ST1, PRODUCT_LINE_NAME  " + 
 				"        union all " + 
-				"        SELECT product_line_name_st1 一级产品线名称, " + 
-				"               PRODUCT_NAME 产品线名称, " + 
+				"        SELECT PRODUCT_LINE_NAME_ST1, " + 
+				"               product_name PRODUCT_LINE_NAME, " + 
 				"               0 as 委托单量, " + 
 				"               0 as 年业务收入, " + 
 				"               0 as 预测收入, " + 
-				"               SUM(APPORT_PAY_AMOUNT + DIRECT_COST) 业务成本 " + 
+				"               SUM(total_cost) AS 业务成本 " + 
 				"          FROM T_COMPANY_COST_ALL " + 
 				"         WHERE PRODUCT_NAME IS NOT NULL " + 
-				"         GROUP BY PRODUCT_NAME, product_line_name_st1) " + 
-				" GROUP BY 产品线名称, 一级产品线名称  order by 预测收入 desc ");
+				"         GROUP BY PRODUCT_LINE_NAME_ST1, product_name) " + 
+				" GROUP BY PRODUCT_LINE_NAME_ST1, PRODUCT_LINE_NAME " + 
+				" order by 预测收入 desc ");
 		System.out.println(sql.toString());
 		List<Object[]> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
 		
@@ -2277,26 +2277,27 @@ public class NewReportServiceImpl implements NewReportService {
 		Map<String, String> resMap = fetchWebReq.getData();
 		String gsName = resMap.get("gsName");
 		
-		sql.append(" SELECT 产品线名称, " + 
-				"       sum(委托单量) 委托单量, " + 
+		sql.append(" SELECT PRODUCT_LINE_NAME, " + 
+				"       sum(年委托单) 委托单量, " + 
 				"       SUM(预测收入) 预测收入, " + 
 				"       SUM(年业务收入) 年业务收入, " + 
 				"       SUM(业务成本) 业务成本 " + 
-				"  FROM (select product_line_name_st1 一级产品线名称, " + 
-				"               product_line_name 产品线名称, " + 
-				"               sum(ORDER_CREATE_COUNT) 委托单量, " + 
+				"  FROM (select PRODUCT_LINE_NAME_ST1, " + 
+				"               PRODUCT_LINE_NAME, " + 
+				"               count(distinct(order_uuid)) 年委托单, " + 
 				"               0 as 年业务收入, " + 
 				"               0 as 预测收入, " + 
 				"               0 as 业务成本 " + 
-				"          from T_COMP_AMOUNT_ALL_MONTH " + 
-				"         where SORG_LEVEL2 not like '%参股%' " + 
+				"          from T_ORDER_SERVER " + 
+				"         where substr(create_time_order, 0, 4) = to_char(sysdate, 'yyyy') " + 
 				"         and sorg_level3 ='"+gsName+"' " + 
-				"           and substr(data_stats_month, 0, 4) = to_char(sysdate, 'YYYY') " + 
-				"           and product_line_name_st1 is not null " + 
-				"         group by product_line_name_st1, product_line_name " + 
+				"           and data_state_order <> '草稿' " + 
+				"           and data_state_order <> '草稿' " + 
+				"           and audit_state_order <> '已删除' " + 
+				"         group by PRODUCT_LINE_NAME_ST1, PRODUCT_LINE_NAME " + 
 				"        union all " + 
-				"        SELECT product_line_name_st1 一级产品线名称, " + 
-				"               PRODUCT_LINE_NAME 产品线名称, " + 
+				"        SELECT PRODUCT_LINE_NAME_ST1, " + 
+				"               PRODUCT_LINE_NAME, " + 
 				"               0 as 委托单量, " + 
 				"               SUM(EX_TAX_PRICE) 年业务收入, " + 
 				"               0 as 预测收入, " + 
@@ -2307,10 +2308,10 @@ public class NewReportServiceImpl implements NewReportService {
 				"           AND TYPE = '产品线业务' " + 
 				"           AND SUBSTR(INVOICE_DATE, 0, 4) = TO_CHAR(SYSDATE, 'YYYY') " + 
 				"           AND SUBSTR(INVOICE_DATE, 0, 7) <= TO_CHAR(SYSDATE, 'YYYY-MM') " + 
-				"         GROUP BY PRODUCT_LINE_NAME, product_line_name_st1 " + 
+				"         GROUP BY PRODUCT_LINE_NAME_ST1, PRODUCT_LINE_NAME " + 
 				"        union all " + 
-				"        SELECT product_line_name_st1 一级产品线名称, " + 
-				"               PRODUCT_LINE_NAME 产品线名称, " + 
+				"        SELECT PRODUCT_LINE_NAME_ST1, " + 
+				"               PRODUCT_LINE_NAME, " + 
 				"               0 as 委托单量, " + 
 				"               0 as 年业务收入, " + 
 				"               SUM(SYS_CUR_TOTAL_AMOUNT) 预测收入, " + 
@@ -2318,19 +2319,19 @@ public class NewReportServiceImpl implements NewReportService {
 				"          FROM T_ORDER_SERVER " + 
 				"         WHERE SUBSTR(WORK_FINISH_TIME, 1, 4) = TO_CHAR(SYSDATE, 'YYYY') " + 
 				"         and sorg_level3 ='"+gsName+"' " + 
-				"         GROUP BY PRODUCT_LINE_NAME, product_line_name_st1 " + 
+				"         GROUP BY PRODUCT_LINE_NAME_ST1, PRODUCT_LINE_NAME  " + 
 				"        union all " + 
-				"        SELECT product_line_name_st1 一级产品线名称, " + 
-				"               PRODUCT_NAME 产品线名称, " + 
+				"        SELECT PRODUCT_LINE_NAME_ST1, " + 
+				"               product_name PRODUCT_LINE_NAME, " + 
 				"               0 as 委托单量, " + 
 				"               0 as 年业务收入, " + 
 				"               0 as 预测收入, " + 
-				"               SUM(APPORT_PAY_AMOUNT + DIRECT_COST) 业务成本 " + 
+				"               SUM(total_cost) AS 业务成本 " + 
 				"          FROM T_COMPANY_COST_ALL " + 
 				"         WHERE PRODUCT_NAME IS NOT NULL " + 
 				"         and sorg_level3 ='"+gsName+"' " + 
-				"         GROUP BY PRODUCT_NAME, product_line_name_st1) " + 
-				" GROUP BY 产品线名称, 一级产品线名称 " + 
+				"         GROUP BY PRODUCT_LINE_NAME_ST1, product_name) " + 
+				" GROUP BY PRODUCT_LINE_NAME_ST1, PRODUCT_LINE_NAME " + 
 				" order by 预测收入 desc ");
 		System.out.println(sql.toString());
 		List<Object[]> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
@@ -2354,26 +2355,27 @@ public class NewReportServiceImpl implements NewReportService {
 		Map<String, String> resMap = fetchWebReq.getData();
 		String gsName = resMap.get("gsName");
 		
-		sql.append(" SELECT 产品线名称, " + 
-				"       sum(委托单量) 委托单量, " + 
+		sql.append(" SELECT PRODUCT_LINE_NAME, " + 
+				"       sum(年委托单) 委托单量, " + 
 				"       SUM(预测收入) 预测收入, " + 
 				"       SUM(年业务收入) 年业务收入, " + 
 				"       SUM(业务成本) 业务成本 " + 
-				"  FROM (select product_line_name_st1 一级产品线名称, " + 
-				"               product_line_name 产品线名称, " + 
-				"               sum(ORDER_CREATE_COUNT) 委托单量, " + 
+				"  FROM (select PRODUCT_LINE_NAME_ST1, " + 
+				"               PRODUCT_LINE_NAME, " + 
+				"               count(distinct(order_uuid)) 年委托单, " + 
 				"               0 as 年业务收入, " + 
 				"               0 as 预测收入, " + 
 				"               0 as 业务成本 " + 
-				"          from T_COMP_AMOUNT_ALL_MONTH " + 
-				"         where SORG_LEVEL2 not like '%参股%' " + 
+				"          from T_ORDER_SERVER " + 
+				"         where substr(create_time_order, 0, 4) = to_char(sysdate, 'yyyy') " + 
 				"         and BUSINESS_REGION ='"+gsName+"' " + 
-				"           and substr(data_stats_month, 0, 4) = to_char(sysdate, 'YYYY') " + 
-				"           and product_line_name_st1 is not null " + 
-				"         group by product_line_name_st1, product_line_name " + 
+				"           and data_state_order <> '草稿' " + 
+				"           and data_state_order <> '草稿' " + 
+				"           and audit_state_order <> '已删除' " + 
+				"         group by PRODUCT_LINE_NAME_ST1, PRODUCT_LINE_NAME " + 
 				"        union all " + 
-				"        SELECT product_line_name_st1 一级产品线名称, " + 
-				"               PRODUCT_LINE_NAME 产品线名称, " + 
+				"        SELECT PRODUCT_LINE_NAME_ST1, " + 
+				"               PRODUCT_LINE_NAME, " + 
 				"               0 as 委托单量, " + 
 				"               SUM(EX_TAX_PRICE) 年业务收入, " + 
 				"               0 as 预测收入, " + 
@@ -2384,10 +2386,10 @@ public class NewReportServiceImpl implements NewReportService {
 				"           AND TYPE = '产品线业务' " + 
 				"           AND SUBSTR(INVOICE_DATE, 0, 4) = TO_CHAR(SYSDATE, 'YYYY') " + 
 				"           AND SUBSTR(INVOICE_DATE, 0, 7) <= TO_CHAR(SYSDATE, 'YYYY-MM') " + 
-				"         GROUP BY PRODUCT_LINE_NAME, product_line_name_st1 " + 
+				"         GROUP BY PRODUCT_LINE_NAME_ST1, PRODUCT_LINE_NAME " + 
 				"        union all " + 
-				"        SELECT product_line_name_st1 一级产品线名称, " + 
-				"               PRODUCT_LINE_NAME 产品线名称, " + 
+				"        SELECT PRODUCT_LINE_NAME_ST1, " + 
+				"               PRODUCT_LINE_NAME, " + 
 				"               0 as 委托单量, " + 
 				"               0 as 年业务收入, " + 
 				"               SUM(SYS_CUR_TOTAL_AMOUNT) 预测收入, " + 
@@ -2395,22 +2397,20 @@ public class NewReportServiceImpl implements NewReportService {
 				"          FROM T_ORDER_SERVER " + 
 				"         WHERE SUBSTR(WORK_FINISH_TIME, 1, 4) = TO_CHAR(SYSDATE, 'YYYY') " + 
 				"         and BUSINESS_REGION ='"+gsName+"' " + 
-				"         GROUP BY PRODUCT_LINE_NAME, product_line_name_st1 " + 
+				"         GROUP BY PRODUCT_LINE_NAME_ST1, PRODUCT_LINE_NAME  " + 
 				"        union all " + 
-				"        SELECT product_line_name_st1 一级产品线名称, " + 
-				"               PRODUCT_NAME 产品线名称, " + 
+				"        SELECT PRODUCT_LINE_NAME_ST1, " + 
+				"               product_name PRODUCT_LINE_NAME, " + 
 				"               0 as 委托单量, " + 
 				"               0 as 年业务收入, " + 
 				"               0 as 预测收入, " + 
-				"               SUM(APPORT_PAY_AMOUNT + DIRECT_COST) 业务成本 " + 
+				"               SUM(total_cost) AS 业务成本 " + 
 				"          FROM T_COMPANY_COST_ALL " + 
 				"         WHERE PRODUCT_NAME IS NOT NULL " + 
 				"         and BUSINESS_REGION ='"+gsName+"' " + 
-				"         GROUP BY PRODUCT_NAME, product_line_name_st1) " + 
-				" GROUP BY 产品线名称, 一级产品线名称 " + 
-				" order by 预测收入 desc " + 
-				" " + 
-				"");
+				"         GROUP BY PRODUCT_LINE_NAME_ST1, product_name) " + 
+				" GROUP BY PRODUCT_LINE_NAME_ST1, PRODUCT_LINE_NAME " + 
+				" order by 预测收入 desc");
 		System.out.println(sql.toString());
 		List<Object[]> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
 		
@@ -3709,7 +3709,7 @@ public class NewReportServiceImpl implements NewReportService {
 					"               0 as 今日完工数量, " + 
 					"               0 as 今日预测收入 " + 
 					"          from T_COMP_AMOUNT_ALL_MONTH " +
-					"          where SORG_LEVEL3 = '"+companyId+"'  " +
+					"          where SORG_LEVEL3 = '"+companyId+"'  and substr(data_stats_month,0,4) = to_char(sysdate,'yyyy') " +
 					"        union all " + 
 					"        select 0 as 委托单数量, " + 
 					"               0 as 委托金额, " + 
@@ -4025,14 +4025,14 @@ public class NewReportServiceImpl implements NewReportService {
 					"           FROM (SELECT COUNT(日完工单量) 日完工单量 " + 
 					"                 FROM (SELECT ORDER_UUID 日完工单量 " + 
 					"                       FROM T_ORDER_SERVER " + 
-					"                       WHERE SUBSTR(work_finish_time, 1, 10) = " + 
+					"                       WHERE SUBSTR(JOB_END_TIME_ORDER, 1, 10) = " + 
 					"                             TO_CHAR(SYSDATE, 'YYYY-MM-DD') " + 
 					"                       AND JOB_END_TIME_ORDER IS NOT NULL " + 
 					"                       GROUP BY ORDER_UUID)) A, " + 
 					"                (SELECT COUNT(年完工单量) 年完工单量 " + 
 					"                 FROM (SELECT ORDER_UUID 年完工单量 " + 
 					"                       FROM T_ORDER_SERVER " + 
-					"                       WHERE SUBSTR(work_finish_time, 1, 4) = " + 
+					"                       WHERE SUBSTR(JOB_END_TIME_ORDER, 1, 4) = " + 
 					"                             TO_CHAR(SYSDATE, 'YYYY') " + 
 					"                       GROUP BY ORDER_UUID)) B ");
 			System.out.println(sql.toString());
@@ -4141,27 +4141,27 @@ public class NewReportServiceImpl implements NewReportService {
 			Map<String, String> resMap = fetchWebReq.getData();
 			String companyId = resMap.get("companyId");
 			
-			sql.append("  SELECT 客户数量 年客户数量, " + 
+			sql.append("  SELECT 年客户数量, " + 
 					"       NVL(日客户数量, 0) 日客户数量, " + 
 					"       产品线活跃客户数量, " + 
-					"        NVL(非产品线活跃客户, 0) 非产品线活跃客户, " + 
-					"        0, " + 
-					"       客户数量 - 产品线活跃客户数量 非活跃客户数量   " + 
-					"  FROM (SELECT COUNT(DISTINCT CUSTOMER_NAME) 客户数量 " + 
-					"          FROM T_ORDER_CRM) A, " + 
-					"  (SELECT COUNT(DISTINCT CUSTOMER_NAME) 日客户数量 " + 
-					"               FROM T_ORDER_CRM " + 
-					"              WHERE SUBSTR(CREATE_TIME_ORDER, 1, 10) = " + 
-					"                    TO_CHAR(SYSDATE, 'YYYY-MM-DD')) B, " + 
-					"  (SELECT COUNT(DISTINCT CUSTOMER_NAME) 产品线活跃客户数量 " + 
-					"               FROM T_ORDER_CRM " + 
-					"              WHERE SUBSTR(CREATE_TIME_ORDER, 0, 7) >= " + 
-					"                    TO_CHAR(ADD_MONTHS(SYSDATE, -12), 'yyyy-mm') " + 
-					"                    AND TYPE = '产品线业务') C, " + 
-					"  (SELECT COUNT(CUSTOMER_NAME) 非产品线活跃客户 " + 
-					"               FROM (SELECT DISTINCT CUSTOMER_NAME " + 
-					"                       FROM T_ORDER_CRM T1 " + 
-					"                      WHERE TYPE <> '产品线业务')) D ");
+					"       NVL(非产品线活跃客户, 0) 非产品线活跃客户, " + 
+					"       0, " + 
+					"       年客户数量 - 活跃客户数量 非活跃客户数量 " + 
+					"  FROM (SELECT COUNT(DISTINCT CUSTOMER_NAME) 年客户数量 " + 
+					"          FROM VIEW_CUSTOMER_ALL) A, " + 
+					"       (SELECT COUNT(DISTINCT CUSTOMER_NAME) 活跃客户数量 FROM T_ORDER_CRM) B, " + 
+					"       (SELECT COUNT(DISTINCT CUSTOMER_NAME) 日客户数量 " + 
+					"          FROM VIEW_CUSTOMER_ALL " + 
+					"         WHERE SUBSTR(CREATE_TIME, 1, 10) = TO_CHAR(SYSDATE, 'YYYY-MM-DD')) C, " + 
+					"       (SELECT COUNT(DISTINCT CUSTOMER_NAME) 产品线活跃客户数量 " + 
+					"          FROM T_ORDER_CRM " + 
+					"         WHERE SUBSTR(CREATE_TIME_ORDER, 0, 7) >= " + 
+					"               TO_CHAR(ADD_MONTHS(SYSDATE, -12), 'yyyy-mm') " + 
+					"           AND TYPE = '产品线业务') D, " + 
+					"       (SELECT COUNT(CUSTOMER_NAME) 非产品线活跃客户 " + 
+					"          FROM (SELECT DISTINCT CUSTOMER_NAME " + 
+					"                  FROM T_ORDER_CRM T1 " + 
+					"                 WHERE TYPE <> '产品线业务')) E ");
 			System.out.println(sql.toString());
 			List<Object[]> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
 			
@@ -4293,7 +4293,7 @@ public class NewReportServiceImpl implements NewReportService {
 					"               0 as 今日完工数量, " + 
 					"               0 as 今日预测收入 " + 
 					"          from T_COMP_AMOUNT_ALL_MONTH " + 
-					"			where BUSINESS_REGION = '"+companyId+"'  " +
+					"			where BUSINESS_REGION = '"+companyId+"' and substr(data_stats_month,0,4) = to_char(sysdate,'yyyy') " +
 					"        union all " + 
 					"        select 0 as 委托单数量, " + 
 					"               0 as 委托金额, " + 

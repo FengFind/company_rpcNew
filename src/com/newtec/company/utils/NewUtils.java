@@ -165,7 +165,7 @@ public class NewUtils {
 			}
 			
 			// 委托单量
-			String wtdl = NewUtils.returnYiOrWan((BigDecimal) rdata[2], 0);
+			String wtdl = NewUtils.returnYiOrWanWtdl((BigDecimal) rdata[2], 2);
 			// 预测收入
 			String ycsr = NewUtils.returnYiOrWan((BigDecimal) rdata[3], 0);
 			// 收入总额
@@ -279,7 +279,7 @@ public class NewUtils {
 		
 		jo.put("id", "合计");
 		jo.put("name", "合计");
-		jo.put("wtdl", NewUtils.returnYiOrWan(twtdl, 0));
+		jo.put("wtdl", NewUtils.returnYiOrWanWtdl(twtdl, 2));
 		jo.put("ycsr", NewUtils.returnYiOrWan(tycsr, 0));
 		jo.put("srze", NewUtils.returnYiOrWan(tsrze, 0));
 		jo.put("zcze", NewUtils.returnYiOrWan(tzcze, 0));
@@ -377,6 +377,31 @@ public class NewUtils {
 		
 		return bd.compareTo(yi)== 1 ? 
 				NewUtils.returnStringForNumber( bd.divide(wan), ws) + "万" : NewUtils.returnStringForNumber(bd.divide(wan), 2);
+	}
+	
+	/**
+	 * 转换成亿或者万返回
+	 * @param bd 数字
+	 * @param ws 有效数字位数
+	 * @return
+	 */
+	public static String returnYiOrWanWtdl(BigDecimal bd, int ws) {
+		// 如果 ==0 或者 没带小数点 直接返回
+		if(bd == null) {
+			return "0";
+		}
+		
+		if(bd.compareTo(new BigDecimal(0)) == 0 
+				|| (bd.toString().indexOf(".") == -1 && bd.compareTo(new BigDecimal(10000)) == -1)) {
+			return bd.toString();
+		}
+		
+		BigDecimal yi = new BigDecimal(100000000);
+		BigDecimal wan = new BigDecimal(10000);
+		
+		return bd.compareTo(yi)== 1 ? 
+				Util.returnStringForNumber(bd.divide(yi), ws) + "亿" :
+					( bd.compareTo(wan)== 1 ? Util.returnStringForNumber(bd.divide(wan), ws) + "万"   : Util.returnStringForNumber(bd, ws) );
 	}
 	
 	/**
@@ -508,9 +533,9 @@ public class NewUtils {
 				}
 				
 				twtdl = twtdl.add(wtdl);
-				tycsr = twtdl.add(ycsr);
-				tsrze = twtdl.add(srze);
-				tzcze = twtdl.add(zcze);
+				tycsr = tycsr.add(ycsr);
+				tsrze = tsrze.add(srze);
+				tzcze = tzcze.add(zcze);
 			}
 		}
 		
@@ -616,7 +641,7 @@ public class NewUtils {
 		JSONObject res = new JSONObject();
 		
 		res.put("name", jobj.get("name"));
-		res.put("wtdl", NewUtils.returnYiOrWan((BigDecimal) jobj.get("wtdl"), 0));
+		res.put("wtdl", NewUtils.returnYiOrWanWtdl((BigDecimal) jobj.get("wtdl"), 2));
 		res.put("ycsr", NewUtils.returnYiOrWan((BigDecimal) jobj.get("ycsr"), 0));
 		res.put("srze", NewUtils.returnYiOrWan((BigDecimal) jobj.get("srze"), 0));
 		res.put("zcze", NewUtils.returnYiOrWan((BigDecimal) jobj.get("zcze"), 0));
@@ -1081,7 +1106,7 @@ public class NewUtils {
 		
 		hj.put("id", "合计");
 		hj.put("name", "合计");
-		hj.put("wtdl", NewUtils.returnYiOrWan(twtdl, 0));
+		hj.put("wtdl", NewUtils.returnYiOrWanWtdl(twtdl, 2));
 		hj.put("ycsr", NewUtils.returnYiOrWan(tycsr, 0));
 		hj.put("srze", NewUtils.returnYiOrWan(tsrze, 0));
 		hj.put("zcze", NewUtils.returnYiOrWan(tzcze, 0));
@@ -1112,7 +1137,7 @@ public class NewUtils {
 				tzcze = tzcze.add((BigDecimal) c.get("zcze"));
 				
 				// 设置单位
-				c.put("wtdl", NewUtils.returnYiOrWan((BigDecimal) c.get("wtdl"), 0));
+				c.put("wtdl", NewUtils.returnYiOrWanWtdl((BigDecimal) c.get("wtdl"), 2));
 				c.put("ycsr", NewUtils.returnYiOrWan((BigDecimal) c.get("ycsr"), 0));
 				c.put("srze", NewUtils.returnYiOrWan((BigDecimal) c.get("srze"), 0));
 				c.put("zcze", NewUtils.returnYiOrWan((BigDecimal) c.get("zcze"), 0));
@@ -1121,7 +1146,7 @@ public class NewUtils {
 			}
 			
 			// 设置单位
-			p.put("wtdl", NewUtils.returnYiOrWan(twtdl, 0));
+			p.put("wtdl", NewUtils.returnYiOrWanWtdl(twtdl, 2));
 			p.put("ycsr", NewUtils.returnYiOrWan(tycsr, 0));
 			p.put("srze", NewUtils.returnYiOrWan(tsrze, 0));
 			p.put("zcze", NewUtils.returnYiOrWan(tzcze, 0));

@@ -186,7 +186,7 @@ public class Util {
 	 * @return
 	 */
 	public static String returnStringForNumber(BigDecimal bd, int ws) {
-		if(ws <= 0) {
+		if(ws < 0) {
 			return null;
 		}
 		
