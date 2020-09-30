@@ -26,12 +26,16 @@ public class NewUtils {
 		
 		//JSONObject total = new JSONObject();
 		double year =  y == null ? 0d : ((BigDecimal)y).doubleValue();
+		// 正负
+		int zf = year > 0 ? 1 : -1;
+		// 绝对值
+		year = Math.abs(year);
 		// 亿 万
 		int yi = 100000000,wan = 10000;
 		
 		jo.put("word", name);
 		jo.put("unit", (year > yi ? "亿" : ( year > wan ? "万" : "" )));
-		jo.put("num", year > yi ? df.format( year/yi ) : ( year > wan ? df.format(year/wan ) : year) );
+		jo.put("num", year > yi ? df.format(zf * year/yi ) : ( year > wan ? df.format(zf * year/wan ) : zf *year) );
 		return jo;
 	}
 	
@@ -372,11 +376,23 @@ public class NewUtils {
 			return "0";
 		}
 		
+//		BigDecimal yi = new BigDecimal(100000000);
+//		BigDecimal wan = new BigDecimal(10000);
+//		
+//		return bd.compareTo(yi)== 1 ? 
+//				NewUtils.returnStringForNumber( bd.divide(wan), ws) + "万" : NewUtils.returnStringForNumber(bd.divide(wan), 2);
+		
+		if(bd.compareTo(new BigDecimal(0)) == 0 
+				|| (bd.toString().indexOf(".") == -1 && bd.compareTo(new BigDecimal(10000)) == -1)) {
+			return bd.toString();
+		}
+		
 		BigDecimal yi = new BigDecimal(100000000);
 		BigDecimal wan = new BigDecimal(10000);
 		
 		return bd.compareTo(yi)== 1 ? 
-				NewUtils.returnStringForNumber( bd.divide(wan), ws) + "万" : NewUtils.returnStringForNumber(bd.divide(wan), 2);
+				Util.returnStringForNumber(bd.divide(yi), ws) + "亿" :
+					( bd.compareTo(wan)== 1 ? Util.returnStringForNumber(bd.divide(wan), ws) + "万"   : Util.returnStringForNumber(bd, ws) );
 	}
 	
 	/**
@@ -402,6 +418,39 @@ public class NewUtils {
 		return bd.compareTo(yi)== 1 ? 
 				Util.returnStringForNumber(bd.divide(yi), ws) + "亿" :
 					( bd.compareTo(wan)== 1 ? Util.returnStringForNumber(bd.divide(wan), ws) + "万"   : Util.returnStringForNumber(bd, ws) );
+	}
+
+	/**
+	 * 转换成亿或者万返回
+	 * @param bd 数字
+	 * @param ws 有效数字位数
+	 * @return
+	 */
+	public static String returnYiOrWanWtdlInt(BigDecimal bd, int ws) {
+		// 如果 ==0 或者 没带小数点 直接返回
+		if(bd == null) {
+			return "0";
+		}
+		
+		if(bd.compareTo(new BigDecimal(0)) == 0 
+				|| (bd.toString().indexOf(".") == -1 && bd.compareTo(new BigDecimal(10000)) == -1)) {
+			return bd.toString();
+		}
+		
+		return NewUtils.returnStringForInt(bd, ws) ;
+	}
+	
+	public static String returnStringForInt(BigDecimal bd, int ws) {
+		if(bd == null) {
+			return "";
+		}
+		// 亿 万
+		int yi = 100000000, wan = 10000;
+		double day = bd.doubleValue();
+		// 四舍五入保留2位小数
+		DecimalFormat df = new DecimalFormat("#.00");
+		
+		return day > yi ? df.format(day/yi)  + "亿" :  ( day > wan ? df.format(day/wan) + "万" :  ((int)day) + "" );
 	}
 	
 	/**
@@ -642,9 +691,9 @@ public class NewUtils {
 		
 		res.put("name", jobj.get("name"));
 		res.put("wtdl", NewUtils.returnYiOrWanWtdl((BigDecimal) jobj.get("wtdl"), 2));
-		res.put("ycsr", NewUtils.returnYiOrWan((BigDecimal) jobj.get("ycsr"), 0));
-		res.put("srze", NewUtils.returnYiOrWan((BigDecimal) jobj.get("srze"), 0));
-		res.put("zcze", NewUtils.returnYiOrWan((BigDecimal) jobj.get("zcze"), 0));
+		res.put("ycsr", NewUtils.returnYiOrWan((BigDecimal) jobj.get("ycsr"), 2));
+		res.put("srze", NewUtils.returnYiOrWan((BigDecimal) jobj.get("srze"), 2));
+		res.put("zcze", NewUtils.returnYiOrWan((BigDecimal) jobj.get("zcze"), 2));
 		
 		return res;
 	}
@@ -773,11 +822,11 @@ public class NewUtils {
 			}
 			
 			// 委托金额
-			String wtje = NewUtils.returnYiOrWan((BigDecimal) rdata[2], 0);
+			String wtje = NewUtils.returnYiOrWan((BigDecimal) rdata[2], 2);
 			// 开票收入
-			String kpsr = NewUtils.returnYiOrWan((BigDecimal) rdata[3], 0);
+			String kpsr = NewUtils.returnYiOrWan((BigDecimal) rdata[3], 2);
 			// 成本总额
-			String cbze = NewUtils.returnYiOrWan((BigDecimal) rdata[4], 0);
+			String cbze = NewUtils.returnYiOrWan((BigDecimal) rdata[4], 2);
 
 			if(cur2.equals(company2) && company3.equals(gjz)) {
 				parent.put("id", company2);
@@ -902,7 +951,7 @@ public class NewUtils {
 		
 		
 		jo.put("bword",name);
-		jo.put("bnum", "+"+( day > yi ? df.format(day/yi)  + "亿" : ( day > wan ? df.format(day/wan) + "万" : day) ));
+		jo.put("bnum", "+"+( day > yi ? df.format(day/yi)  + "亿" : ( day > wan ? df.format(day/wan) + "万" : (int) day) ));
 		
 		return jo;
 	}
@@ -917,7 +966,7 @@ public class NewUtils {
 		// 支取最多5个数据
 		int len = res.size() > 5 ? 5 : res.size();
 		
-		for (int i = 0; i < len; i++) {
+		for (int i = 0; i < res.size(); i++) {
 			Object[] reso = res.get(i);
 			
 			// 名称为空 直接下一条
@@ -952,9 +1001,17 @@ public class NewUtils {
 		// 亿 万
 		int yi = 100000000, wan = 10000;
 		
+		if(name.equals("产品线毛利率")) {
+			jo.put("bnum", "");
+		}else if(name.equals("委托金额") || name.equals("预测收入") || name.equals("收入总额") || name.equals("业务成本")) {
+			jo.put("bnum", "+"+( day > yi ? df.format(day/yi)  + "亿" : ( day > wan ? df.format(day/wan) + "万" : (day == 0d ? 0 : df.format(day))  ) ) );
+		}else {
+			jo.put("bnum", "+"+( day > yi ? df.format(day/yi)  + "亿" : ( day > wan ? df.format(day/wan) + "万" : (int)day) ) );
+		}
+		
 		jo.put("word", name);
 		jo.put("bword",name1);
-		jo.put("bnum", (name.equals("产品线毛利率")?"":"+"+( day > yi ? (int)(day/yi)  + "亿" : ( day > wan ? (int)(day/wan) + "万" : day) )) );
+//		jo.put("bnum", (name.equals("产品线毛利率")?"":"+"+( day > yi ? (int)(day/yi)  + "亿" : ( day > wan ? (int)(day/wan) + "万" : (int)day) )) );
 		jo.put("unit", (year > yi ? "亿" : ( year > wan ? "万" : "" )));
 		jo.put("num", year > yi ? df.format( year/yi ) : ( year > wan ? df.format( year/wan ) : year) );
 		
@@ -990,6 +1047,41 @@ public class NewUtils {
 		
 		if(name.indexOf("毛利率") > -1) {
 			jo.put("num", jo.get("num") + "%");
+		}
+		
+		return jo;
+	}
+	
+	/**
+	 * 今年和今日 数据转换 int 类型
+	 * @param name 类型名字
+	 * @param unit 类型单位
+	 * @param y 年数据
+	 * @param d 日数据
+	 * @param df 换算单位
+	 * @return
+	 */
+	public static JSONObject returnTodayTotalDoubleMsgCpx(String name,  Object y, Object d,
+			DecimalFormat df) {
+		JSONObject jo = new JSONObject();
+		JSONObject total = new JSONObject();
+		double year =  y == null ? 0 : ((BigDecimal) y).doubleValue(), 
+			day =  d == null ? 0 : ((BigDecimal) d).doubleValue();
+		if(name ==null || name == "") {
+			return jo;
+		}
+		// 亿 万
+		int yi = 100000000, wan = 10000;
+		
+		jo.put("word", name);
+		jo.put("bword", "今日");
+		jo.put("bnum", (name.indexOf("毛利率") > -1?"":"+"+( day > yi ? df.format(day/yi)  + "亿" : ( day > wan ? df.format(day/wan) + "万" : (day == 0d ? 0 : df.format(day)) ) )) );
+		jo.put("unit", (year > yi ? "亿" : ( year > wan ? "万" : "" )));
+		jo.put("num", year > yi ? df.format( year/yi ) : ( year > wan ? df.format( year/wan ) : year) );
+		
+		if(name.indexOf("毛利率") > -1) {
+			jo.put("num", jo.get("num") + "%");
+			jo.put("bword", "");
 		}
 		
 		return jo;
@@ -1107,9 +1199,9 @@ public class NewUtils {
 		hj.put("id", "合计");
 		hj.put("name", "合计");
 		hj.put("wtdl", NewUtils.returnYiOrWanWtdl(twtdl, 2));
-		hj.put("ycsr", NewUtils.returnYiOrWan(tycsr, 0));
-		hj.put("srze", NewUtils.returnYiOrWan(tsrze, 0));
-		hj.put("zcze", NewUtils.returnYiOrWan(tzcze, 0));
+		hj.put("ycsr", NewUtils.returnYiOrWan(tycsr, 2));
+		hj.put("srze", NewUtils.returnYiOrWan(tsrze, 2));
+		hj.put("zcze", NewUtils.returnYiOrWan(tzcze, 2));
 		
 		res.add(hj);
 		
@@ -1138,18 +1230,18 @@ public class NewUtils {
 				
 				// 设置单位
 				c.put("wtdl", NewUtils.returnYiOrWanWtdl((BigDecimal) c.get("wtdl"), 2));
-				c.put("ycsr", NewUtils.returnYiOrWan((BigDecimal) c.get("ycsr"), 0));
-				c.put("srze", NewUtils.returnYiOrWan((BigDecimal) c.get("srze"), 0));
-				c.put("zcze", NewUtils.returnYiOrWan((BigDecimal) c.get("zcze"), 0));
+				c.put("ycsr", NewUtils.returnYiOrWan((BigDecimal) c.get("ycsr"), 2));
+				c.put("srze", NewUtils.returnYiOrWan((BigDecimal) c.get("srze"), 2));
+				c.put("zcze", NewUtils.returnYiOrWan((BigDecimal) c.get("zcze"), 2));
 				
 				sca.getJSONArray(i).set(j, c);
 			}
 			
 			// 设置单位
 			p.put("wtdl", NewUtils.returnYiOrWanWtdl(twtdl, 2));
-			p.put("ycsr", NewUtils.returnYiOrWan(tycsr, 0));
-			p.put("srze", NewUtils.returnYiOrWan(tsrze, 0));
-			p.put("zcze", NewUtils.returnYiOrWan(tzcze, 0));
+			p.put("ycsr", NewUtils.returnYiOrWan(tycsr, 2));
+			p.put("srze", NewUtils.returnYiOrWan(tsrze, 2));
+			p.put("zcze", NewUtils.returnYiOrWan(tzcze, 2));
 			
 			// 用于排序
 			p.put("ycsrpx", tycsr);

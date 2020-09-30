@@ -79,5 +79,6 @@
 	<classpathentry kind="con" path="org.eclipse.jst.j2ee.internal.module.container"/>
 	<classpathentry kind="lib" path="lib/rpc/sigar.jar"/>
 	<classpathentry kind="lib" path="lib/rpc/netty-all-4.1.14.Final.jar"/>
+	<classpathentry kind="lib" path="lib/private-sdk.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

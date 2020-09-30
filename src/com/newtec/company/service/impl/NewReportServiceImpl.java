@@ -381,7 +381,7 @@ public class NewReportServiceImpl implements NewReportService {
 		// TODO Auto-generated method stub
     	Map<String, String>reMap = fetchWebReq.getData();
 		String companyId = reMap.get("companyId");
-    	String sql = "select substr(month, 7, 1) as month," + 
+    	String sql = "select substr(month, 7, 1)||'月' as month," + 
     			"       sum(yysrbnlj) 今年营业收入," + 
     			"       sum(yysrsntqljje) 去年营业收入," + 
     			"       round((sum(yysrbnlj) - sum(yysrsntqljje)) / (case when  sum(yysrsntqljje)='0.00' then 1 else sum(yysrsntqljje) end ) * 100,2) as 营业收入同比" + 
@@ -1967,26 +1967,92 @@ public class NewReportServiceImpl implements NewReportService {
 		Map<String, String> resMap = fetchWebReq.getData();
 		String cpxName = resMap.get("cpxName");
 		
-		sql.append("select * from ( " + 
-				"select service_mainclass_name a, " + 
-				"       '父节点' as b, " + 
-				"       sum(sys_cur_total_amount) c, " + 
-				"       sum(ex_tax_price) d, " + 
-				"       sum(total_cost) e " + 
-				"from T_PRODUCT_SERVICE_AMOUNT " + 
-				"where PRODUCT_NAME = '"+cpxName+"' " + 
-				"group by service_mainclass_name " + 
-				"union " + 
-				"select service_mainclass_name a, " + 
-				"       service_mediumclass_name b, " + 
-				"       sum(sys_cur_total_amount) c, " + 
-				"       sum(ex_tax_price) d, " + 
-				"       sum(total_cost) e " + 
-				"from T_PRODUCT_SERVICE_AMOUNT " + 
-				"where PRODUCT_NAME = '"+cpxName+"' " + 
-				"group by service_mainclass_name, service_mediumclass_name " + 
-				") a " + 
-				"order by a.a desc, a.c desc, a.b desc");
+		sql.append("select * " + 
+				"from (select 服务技术大类 as a, " + 
+				"             '父节点' as b, " + 
+				"             sum(委托金额) as c, " + 
+				"             sum(开票金额) as d, " + 
+				"             sum(成本总额) as e " + 
+				"      from (SELECT SERVICE_MAINCLASS_NAME 服务技术大类, " + 
+				"                   SERVICE_MEDIUMCLASS_NAME 服务技术中类, " + 
+				"                   SUM(SYS_CUR_TOTAL_AMOUNT) 委托金额, " + 
+				"                   0 as 开票金额, " + 
+				"                   0 as 成本总额 " + 
+				"            FROM T_ORDER_SERVER " + 
+				"            WHERE SERVICE_MEDIUMCLASS_NAME IS NOT NULL " + 
+				"            AND DATA_STATE_ORDER <> '已删除' " + 
+				"            AND DATA_STATE_ORDER <> '草稿' " + 
+				"            AND AUDIT_STATE_ORDER <> '草稿' " + 
+				"            AND PRODUCT_LINE_NAME = '"+cpxName+"' " + 
+				"            AND SUBSTR(CREATE_TIME_ORDER, 0, 4) = TO_CHAR(SYSDATE, 'YYYY') " + 
+				"            GROUP BY SERVICE_MEDIUMCLASS_NAME, SERVICE_MAINCLASS_NAME " + 
+				"            union all " + 
+				"            SELECT SERVICE_MAINCLASS_NAME 服务技术大类, " + 
+				"                   SERVICE_MEDIUMCLASS_NAME 服务技术中类, " + 
+				"                   0 as 委托金额, " + 
+				"                   SUM(EX_TAX_PRICE) 开票金额, " + 
+				"                   0 as 成本总额 " + 
+				"            FROM T_COMP_INVOICE_ALL " + 
+				"            WHERE VOID_TIME IS NULL " + 
+				"            AND SUBSTR(INVOICE_DATE, 0, 4) = TO_CHAR(SYSDATE, 'YYYY') " + 
+				"            AND SERVICE_MAINCLASS_NAME IS NOT NULL " + 
+				"            AND PRODUCT_LINE_NAME = '"+cpxName+"' " + 
+				"            GROUP BY SERVICE_MEDIUMCLASS_NAME, SERVICE_MAINCLASS_NAME " + 
+				"            union all " + 
+				"            SELECT SERVICE_MAINCLASS_NAME 服务技术大类, " + 
+				"                   SERVICE_MEDIUMCLASS_NAME 服务技术中类, " + 
+				"                   0 as 委托金额, " + 
+				"                   0 as 开票金额, " + 
+				"                   nvl(SUM(total_cost), 0) 成本总额 " + 
+				"            FROM T_COMPANY_COST_ALL " + 
+				"            WHERE SERVICE_MAINCLASS_NAME IS NOT NULL " + 
+				"            AND PRODUCT_NAME = '"+cpxName+"' " + 
+				"            GROUP BY SERVICE_MAINCLASS_NAME, SERVICE_MEDIUMCLASS_NAME) " + 
+				"      group by 服务技术大类 " + 
+				"      union " + 
+				"      select 服务技术大类 as a, " + 
+				"             服务技术中类 as b, " + 
+				"             sum(委托金额) as c, " + 
+				"             sum(开票金额) as d, " + 
+				"             sum(成本总额) as e " + 
+				"      from (SELECT SERVICE_MAINCLASS_NAME 服务技术大类, " + 
+				"                   SERVICE_MEDIUMCLASS_NAME 服务技术中类, " + 
+				"                   SUM(SYS_CUR_TOTAL_AMOUNT) 委托金额, " + 
+				"                   0 as 开票金额, " + 
+				"                   0 as 成本总额 " + 
+				"            FROM T_ORDER_SERVER " + 
+				"            WHERE SERVICE_MEDIUMCLASS_NAME IS NOT NULL " + 
+				"            AND DATA_STATE_ORDER <> '已删除' " + 
+				"            AND DATA_STATE_ORDER <> '草稿' " + 
+				"            AND AUDIT_STATE_ORDER <> '草稿' " + 
+				"            AND PRODUCT_LINE_NAME = '"+cpxName+"' " + 
+				"            AND SUBSTR(CREATE_TIME_ORDER, 0, 4) = TO_CHAR(SYSDATE, 'YYYY') " + 
+				"            GROUP BY SERVICE_MEDIUMCLASS_NAME, SERVICE_MAINCLASS_NAME " + 
+				"            union all " + 
+				"            SELECT SERVICE_MAINCLASS_NAME 服务技术大类, " + 
+				"                   SERVICE_MEDIUMCLASS_NAME 服务技术中类, " + 
+				"                   0 as 委托金额, " + 
+				"                   SUM(EX_TAX_PRICE) 开票金额, " + 
+				"                   0 as 成本总额 " + 
+				"            FROM T_COMP_INVOICE_ALL " + 
+				"            WHERE VOID_TIME IS NULL " + 
+				"            AND SUBSTR(INVOICE_DATE, 0, 4) = TO_CHAR(SYSDATE, 'YYYY') " + 
+				"            AND SERVICE_MAINCLASS_NAME IS NOT NULL " + 
+				"            AND PRODUCT_LINE_NAME = '"+cpxName+"' " + 
+				"            GROUP BY SERVICE_MEDIUMCLASS_NAME, SERVICE_MAINCLASS_NAME " + 
+				"            union all " + 
+				"            SELECT SERVICE_MAINCLASS_NAME 服务技术大类, " + 
+				"                   SERVICE_MEDIUMCLASS_NAME 服务技术中类, " + 
+				"                   0 as 委托金额, " + 
+				"                   0 as 开票金额, " + 
+				"                   nvl(SUM(total_cost), 0) 成本总额 " + 
+				"            FROM T_COMPANY_COST_ALL " + 
+				"            WHERE SERVICE_MAINCLASS_NAME IS NOT NULL " + 
+				"            AND PRODUCT_NAME = '"+cpxName+"' " + 
+				"            GROUP BY SERVICE_MAINCLASS_NAME, SERVICE_MEDIUMCLASS_NAME) " + 
+				"      group by 服务技术大类, 服务技术中类) a " + 
+				"order by a.a desc，a.c desc, a.b desc " + 
+				"");
 		System.out.println(sql.toString());
 		List<Object[]> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
 			
@@ -2009,26 +2075,92 @@ public class NewReportServiceImpl implements NewReportService {
 		Map<String, String> resMap = fetchWebReq.getData();
 		String cpxName = resMap.get("cpxName");
 		
-		sql.append("select * from ( " + 
-				"select goods_mainclass_name a, " + 
-				"       '父节点' as b, " + 
-				"       sum(sys_cur_total_amount) c, " + 
-				"       sum(ex_tax_price) d, " + 
-				"       sum(total_cost) e " + 
-				"from T_PRODUCT_GOODS_AMOUNT " + 
-				"where PRODUCT_NAME = '"+cpxName+"' " + 
-				"group by goods_mainclass_name " + 
-				"union " + 
-				"select goods_mainclass_name a, " + 
-				"       goods_mediumclass_name b, " + 
-				"       sum(sys_cur_total_amount) c, " + 
-				"       sum(ex_tax_price) d, " + 
-				"       sum(total_cost) e " + 
-				"from T_PRODUCT_GOODS_AMOUNT " + 
-				"where PRODUCT_NAME = '"+cpxName+"' " + 
-				"group by goods_mainclass_name, goods_mediumclass_name " + 
-				") a " + 
-				"order by a.a desc, a.c desc, a.b asc");
+		sql.append("select * " + 
+				"from (select 服务对象大类 as a, " + 
+				"             '父节点' as b， sum(委托金额) as c, " + 
+				"             sum(开票金额) as d, " + 
+				"             sum(成本总额) as e " + 
+				"      from (SELECT GOODS_MAINCLASS_NAME 服务对象大类, " + 
+				"                   GOODS_MEDIUMCLASS_NAME 服务对象中类, " + 
+				"                   SUM(SYS_CUR_TOTAL_AMOUNT) 委托金额, " + 
+				"                   0 as 开票金额, " + 
+				"                   0 as 成本总额 " + 
+				"            FROM T_ORDER_SERVER " + 
+				"            WHERE GOODS_MAINCLASS_NAME IS NOT NULL " + 
+				"            AND DATA_STATE_ORDER <> '已删除' " + 
+				"            AND DATA_STATE_ORDER <> '草稿' " + 
+				"            AND AUDIT_STATE_ORDER <> '草稿' " + 
+				"            AND SUBSTR(CREATE_TIME_ORDER, 0, 4) = TO_CHAR(SYSDATE, 'YYYY') " + 
+				"            AND PRODUCT_LINE_NAME = '"+cpxName+"' " + 
+				"            GROUP BY GOODS_MAINCLASS_NAME, GOODS_MEDIUMCLASS_NAME " + 
+				"            union all " + 
+				"            SELECT GOODS_MAINCLASS_NAME 服务对象, " + 
+				"                   GOODS_MEDIUMCLASS_NAME 服务对象中类, " + 
+				"                   0 as 委托金额, " + 
+				"                   SUM(EX_TAX_PRICE) 开票金额, " + 
+				"                   0 as 成本总额 " + 
+				"            FROM T_COMP_INVOICE_ALL " + 
+				"            WHERE VOID_TIME IS NULL " + 
+				"            AND SUBSTR(INVOICE_DATE, 0, 4) = TO_CHAR(SYSDATE, 'YYYY') " + 
+				"            AND GOODS_MAINCLASS_NAME IS NOT NULL " + 
+				"            AND PRODUCT_LINE_NAME = '"+cpxName+"' " + 
+				"            GROUP BY GOODS_MAINCLASS_NAME, GOODS_MEDIUMCLASS_NAME " + 
+				"            union all " + 
+				"            SELECT GOODS_MAINCLASS_NAME 服务对象大类, " + 
+				"                   GOODS_MEDIUMCLASS_NAME 服务对象中类, " + 
+				"                   0 as 委托金额, " + 
+				"                   0 as 开票金额, " + 
+				"                   SUM(TOTAL_COST) 成本总额 " + 
+				"            FROM T_COMPANY_COST_ALL " + 
+				"            WHERE GOODS_MAINCLASS_NAME IS NOT NULL " + 
+				"            and product_name = '"+cpxName+"' " + 
+				"            AND PAY_END_DATE IS NOT NULL " + 
+				"            GROUP BY GOODS_MAINCLASS_NAME, GOODS_MEDIUMCLASS_NAME) " + 
+				"      group by 服务对象大类 " + 
+				"      union " + 
+				"      select 服务对象大类 as a, " + 
+				"             服务对象中类 as b， sum(委托金额) as c, " + 
+				"             sum(开票金额) as d, " + 
+				"             sum(成本总额) as e " + 
+				"      from (SELECT GOODS_MAINCLASS_NAME 服务对象大类, " + 
+				"                   GOODS_MEDIUMCLASS_NAME 服务对象中类, " + 
+				"                   SUM(SYS_CUR_TOTAL_AMOUNT) 委托金额, " + 
+				"                   0 as 开票金额, " + 
+				"                   0 as 成本总额 " + 
+				"            FROM T_ORDER_SERVER " + 
+				"            WHERE GOODS_MAINCLASS_NAME IS NOT NULL " + 
+				"            AND DATA_STATE_ORDER <> '已删除' " + 
+				"            AND DATA_STATE_ORDER <> '草稿' " + 
+				"            AND AUDIT_STATE_ORDER <> '草稿' " + 
+				"            AND SUBSTR(CREATE_TIME_ORDER, 0, 4) = TO_CHAR(SYSDATE, 'YYYY') " + 
+				"            AND PRODUCT_LINE_NAME = '"+cpxName+"' " + 
+				"            GROUP BY GOODS_MAINCLASS_NAME, GOODS_MEDIUMCLASS_NAME " + 
+				"            union all " + 
+				"            SELECT GOODS_MAINCLASS_NAME 服务对象, " + 
+				"                   GOODS_MEDIUMCLASS_NAME 服务对象中类, " + 
+				"                   0 as 委托金额, " + 
+				"                   SUM(EX_TAX_PRICE) 开票金额, " + 
+				"                   0 as 成本总额 " + 
+				"            FROM T_COMP_INVOICE_ALL " + 
+				"            WHERE VOID_TIME IS NULL " + 
+				"            AND SUBSTR(INVOICE_DATE, 0, 4) = TO_CHAR(SYSDATE, 'YYYY') " + 
+				"            AND GOODS_MAINCLASS_NAME IS NOT NULL " + 
+				"            AND PRODUCT_LINE_NAME = '"+cpxName+"' " + 
+				"            GROUP BY GOODS_MAINCLASS_NAME, GOODS_MEDIUMCLASS_NAME " + 
+				"            union all " + 
+				"            SELECT GOODS_MAINCLASS_NAME 服务对象大类, " + 
+				"                   GOODS_MEDIUMCLASS_NAME 服务对象中类, " + 
+				"                   0 as 委托金额, " + 
+				"                   0 as 开票金额, " + 
+				"                   SUM(TOTAL_COST) 成本总额 " + 
+				"            FROM T_COMPANY_COST_ALL " + 
+				"            WHERE GOODS_MAINCLASS_NAME IS NOT NULL " + 
+				"            and product_name = '"+cpxName+"' " + 
+				"            AND PAY_END_DATE IS NOT NULL " + 
+				"            GROUP BY GOODS_MAINCLASS_NAME, GOODS_MEDIUMCLASS_NAME) " + 
+				"      group by 服务对象大类，服务对象中类) a " + 
+				"order by a.a desc，a.c desc, a.b desc " + 
+				"");
 		System.out.println(sql.toString());
 		List<Object[]> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
 			
@@ -2051,15 +2183,58 @@ public class NewReportServiceImpl implements NewReportService {
 		String cpxName = resMap.get("cpxName");
 		String type = resMap.get("type");
 		
-		sql.append(" select * from ( ")
-			.append("       select aa.*, rownum as rm from ( ")
-			.append("             select customer_name, count(order_uuid) 委托单数, sum(order_cerc) 出证数量, sum(sys_total_amount) 委托金额, sum(system_total_amount_income) 已收金额 ")
-			.append("             from T_ORDER_CRM ")
-			.append("             where group_type='").append(type).append("' ")
-			.append("             and product_line_name='").append(cpxName).append("' ")
-			.append("             group by customer_name order by 委托金额 desc  ")
-			.append("       ) aa where rownum < 100")
-			.append(" )bb where rm > 0");
+		sql.append(" select * " + 
+				"from (select aa.*, rownum as rm " + 
+				"      from ( " + 
+				"           select 客户名, " + 
+				"                   sum(委托单数量) 委托单量, " + 
+				"                   sum(证书) 出证数量, " + 
+				"                   sum(委托金额) 委托金额, " + 
+				"                   sum(实收) 已收金额, " + 
+				"                   内外部 " + 
+				"            from (SELECT CUSTOMER_NAME 客户名, " + 
+				"                         GROUP_TYPE 内外部, " + 
+				"                         COUNT(DISTINCT(ORDER_UUID)) 委托单数量, " + 
+				"                         nvl(sum(SYS_CUR_TOTAL_AMOUNT), 0) 委托金额, " + 
+				"                         0 as 实收, " + 
+				"                         0 as 证书 " + 
+				"                  FROM T_ORDER_SERVER " + 
+				"                  WHERE PRODUCT_LINE_NAME_ST1 IS NOT NULL " + 
+				"                  AND DATA_STATE_ORDER <> '已删除' " + 
+				"                  AND DATA_STATE_ORDER <> '草稿' " + 
+				"                  AND AUDIT_STATE_ORDER <> '草稿' " + 
+				"                  AND PRODUCT_LINE_NAME = '"+cpxName+"' " + 
+				"                  AND SUBSTR(CREATE_TIME_ORDER, 0, 4) = " + 
+				"                        TO_CHAR(SYSDATE, 'yyyy') " + 
+				"                  GROUP BY CUSTOMER_NAME, GROUP_TYPE " + 
+				"                  union all " + 
+				"                  SELECT CUSTOMER_NAME 客户名, " + 
+				"                         GROUP_TYPE 内外部, " + 
+				"                         0 as 委托单数量, " + 
+				"                         0 as 委托金额, " + 
+				"                         SUM(SYSTEM_TOTAL_AMOUNT) 实收, " + 
+				"                         0 as 证书 " + 
+				"                  FROM T_SERVER_INCOME " + 
+				"                  WHERE product_line_name = '"+cpxName+"' " + 
+				"                  AND SUBSTR(match_date, 0, 4) = TO_CHAR(SYSDATE, 'yyyy') " + 
+				"                  GROUP BY CUSTOMER_NAME, group_type " + 
+				"                  union all " + 
+				"                  SELECT CUSTOMER_NAME 客户名, " + 
+				"                         group_type 内外部, " + 
+				"                         0 as 委托单数量, " + 
+				"                         0 as 委托金额, " + 
+				"                         0 as 实收, " + 
+				"                         COUNT(MID) 证书 " + 
+				"                  FROM T_ORDER_CERC " + 
+				"                  WHERE PRODUCT_LINE_NAME = '"+cpxName+"' " + 
+				"                  AND SUBSTR(FICTIONAL_DATE, 0, 4) = TO_CHAR(SYSDATE, 'yyyy') " + 
+				"                  GROUP BY CUSTOMER_NAME, group_type) " + 
+				"            group by 客户名, 内外部 ) aa " + 
+				"where rownum < 100 " + 
+				"      and aa.内外部 = '"+type+"' " + 
+				"      order by aa.委托金额 desc) bb " + 
+				"where rm > 0 " + 
+				"");
 		System.out.println(sql.toString());
 		List<Object[]> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
 			
@@ -2517,7 +2692,7 @@ public class NewReportServiceImpl implements NewReportService {
    			JSONObject ywsrObject = new JSONObject();
    			JSONObject ywcbObject = new JSONObject();
    			DecimalFormat dFormat = new DecimalFormat("#.00");
-   			ljArray = NewUtils.returnYwjiqkDoubleMsg("业务收入", "今日", o[0], o[1],dFormat);
+   			ljArray = NewUtils.returnYwjiqkDoubleMsg("收入总额", "今日", o[0], o[1],dFormat);
    			ljArray1 = NewUtils.returnYwjiqkDoubleMsg("业务成本", "今日", o[6], o[9],dFormat);
    			rArray.add(NewUtils.returnYwjiqkDoubleMsg1("产品线业务收入", o[2], dFormat));
    			rArray.add(NewUtils.returnYwjiqkDoubleMsg1("非产品线业务收入", o[3], dFormat));
@@ -2537,6 +2712,216 @@ public class NewReportServiceImpl implements NewReportService {
    		}
    		return map;
    	}
+	
+	@RpcMethod(loginValidate = false)
+   	@Override
+   	public Map<String, Object> findYyjyqkYhSrzeYear(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception {
+       	String sql1 = " SELECT SUM(EX_TAX_PRICE) as 年业务收入 " + 
+       			"       FROM T_COMP_INVOICE_ALL " + 
+       			"       WHERE VOID_TIME IS NULL " + 
+       			"       AND SUBSTR(INVOICE_DATE, 0, 4) = TO_CHAR(SYSDATE, 'YYYY') " + 
+       			"       AND SUBSTR(INVOICE_DATE, 0, 7) <= TO_CHAR(SYSDATE, 'YYYY-MM')";		
+       	System.out.println(sql1);
+   		List<BigDecimal> list = DBManager.get("kabBan").createNativeQuery(sql1).getResultList();
+   		Map<String, Object> map = new HashMap<String, Object>();
+   		if(list != null && list.size() != 0) {   			
+   			map.put("result",NewUtils.returnYiOrWanWtdl(list.get(0), 2));
+   		}
+   		return map;
+   	}
+	
+	@RpcMethod(loginValidate = false)
+	@Override
+	public Map<String, Object> findYyjyqkYhSrzeDay(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception {
+		String sql1 = " SELECT SUM(EX_TAX_PRICE) as 日开票收入 " + 
+				"            FROM T_COMP_INVOICE_ALL " + 
+				"            WHERE SUBSTR(INVOICE_DATE, 0, 10) = " + 
+				"                  TO_CHAR(SYSDATE, 'YYYY-MM-DD')";		
+		System.out.println(sql1);
+		List<BigDecimal> list = DBManager.get("kabBan").createNativeQuery(sql1).getResultList();
+		Map<String, Object> map = new HashMap<String, Object>();
+		if(list != null && list.size() != 0) {   			
+			map.put("result","+"+NewUtils.returnYiOrWanWtdl(list.get(0), 2));
+		}
+		return map;
+	}
+	
+	@RpcMethod(loginValidate = false)
+	@Override
+	public Map<String, Object> findYyjyqkYhSrzeCpxywsr(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception {
+		String sql1 = " SELECT SUM(EX_TAX_PRICE) AS 产品线业务 " + 
+				"            FROM T_COMP_INVOICE_ALL " + 
+				"            WHERE TYPE in ('产品线业务') " + 
+				"            AND VOID_TIME IS NULL " + 
+				"            AND SUBSTR(INVOICE_DATE, 0, 4) = TO_CHAR(SYSDATE, 'YYYY') " + 
+				"            AND SUBSTR(INVOICE_DATE, 0, 7) <= TO_CHAR(SYSDATE, 'YYYY-MM')";		
+		System.out.println(sql1);
+		List<BigDecimal> list = DBManager.get("kabBan").createNativeQuery(sql1).getResultList();
+		Map<String, Object> map = new HashMap<String, Object>();
+		if(list != null && list.size() != 0) {   			
+			map.put("result",NewUtils.returnYiOrWanWtdl(list.get(0), 2));
+		}
+		return map;
+	}
+	
+	@RpcMethod(loginValidate = false)
+	@Override
+	public Map<String, Object> findYyjyqkYhSrzeFcpxywsr(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception {
+		String sql1 = " SELECT SUM(EX_TAX_PRICE) AS 非产品线业务 " + 
+				"            FROM T_COMP_INVOICE_ALL " + 
+				"            WHERE TYPE = '非产品线业务' " + 
+				"            AND VOID_TIME IS NULL " + 
+				"            AND SUBSTR(INVOICE_DATE, 0, 4) = TO_CHAR(SYSDATE, 'YYYY') " + 
+				"            AND SUBSTR(INVOICE_DATE, 0, 7) <= TO_CHAR(SYSDATE, 'YYYY-MM')";		
+		System.out.println(sql1);
+		List<BigDecimal> list = DBManager.get("kabBan").createNativeQuery(sql1).getResultList();
+		Map<String, Object> map = new HashMap<String, Object>();
+		if(list != null && list.size() != 0) {   			
+			map.put("result",NewUtils.returnYiOrWanWtdl(list.get(0), 2));
+		}
+		return map;
+	}
+	
+	@RpcMethod(loginValidate = false)
+	@Override
+	public Map<String, Object> findYyjyqkYhSrzeDflywsr(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception {
+		String sql1 = " SELECT SUM(EX_TAX_PRICE) AS 待分类业务 " + 
+				"            FROM T_COMP_INVOICE_ALL " + 
+				"            WHERE TYPE = '待分类业务' " + 
+				"            AND VOID_TIME IS NULL " + 
+				"            AND SUBSTR(INVOICE_DATE, 0, 4) = TO_CHAR(SYSDATE, 'YYYY') " + 
+				"            AND SUBSTR(INVOICE_DATE, 0, 7) <= TO_CHAR(SYSDATE, 'YYYY-MM')";		
+		System.out.println(sql1);
+		List<BigDecimal> list = DBManager.get("kabBan").createNativeQuery(sql1).getResultList();
+		Map<String, Object> map = new HashMap<String, Object>();
+		if(list != null && list.size() != 0) {   			
+			map.put("result",NewUtils.returnYiOrWanWtdl(list.get(0), 2));
+		}
+		return map;
+	}
+	
+	@RpcMethod(loginValidate = false)
+	@Override
+	public Map<String, Object> findYyjyqkYhSrzeQtywsr(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception {
+		String sql1 = " SELECT SUM(EX_TAX_PRICE) AS 其他业务 " + 
+				"            FROM T_COMP_INVOICE_ALL " + 
+				"            WHERE TYPE = '其他业务' " + 
+				"            AND VOID_TIME IS NULL " + 
+				"            AND SUBSTR(INVOICE_DATE, 0, 4) = TO_CHAR(SYSDATE, 'YYYY') " + 
+				"            AND SUBSTR(INVOICE_DATE, 0, 7) <= TO_CHAR(SYSDATE, 'YYYY-MM')";		
+		System.out.println(sql1);
+		List<BigDecimal> list = DBManager.get("kabBan").createNativeQuery(sql1).getResultList();
+		Map<String, Object> map = new HashMap<String, Object>();
+		if(list != null && list.size() != 0) {   			
+			map.put("result",NewUtils.returnYiOrWanWtdl(list.get(0), 2));
+		}
+		return map;
+	}
+	
+	@RpcMethod(loginValidate = false)
+	@Override
+	public Map<String, Object> findYyjyqkYhYwcbYear(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception {
+		String sql1 = " SELECT SUM(业务成本) 业务成本 " + 
+				"            FROM (SELECT SUM(APPORT_PAY_AMOUNT + DIRECT_COST) 业务成本 " + 
+				"                  FROM T_COMPANY_COST_ALL " + 
+				"                  GROUP BY COMPANY_BUSI_ORG_ID, SORG_LEVEL3, BUSINESS_REGION)";		
+		System.out.println(sql1);
+		List<BigDecimal> list = DBManager.get("kabBan").createNativeQuery(sql1).getResultList();
+		Map<String, Object> map = new HashMap<String, Object>();
+		if(list != null && list.size() != 0) {   			
+			map.put("result",NewUtils.returnYiOrWanWtdl(list.get(0), 2));
+		}
+		return map;
+	}
+
+	@RpcMethod(loginValidate = false)
+	@Override
+	public Map<String, Object> findYyjyqkYhYwcbDay(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception {
+		String sql1 = " SELECT SUM(今日业务成本) 今日业务成本 " + 
+				"            FROM ( " + 
+				"            SELECT SUM(APPORT_PAY_AMOUNT + DIRECT_COST) 今日业务成本 " + 
+				"                  FROM T_COMPANY_COST_ALL " + 
+				"                  WHERE SUBSTR(PAY_END_DATE, 1, 10) = " + 
+				"                        TO_CHAR(SYSDATE, 'YYYY-MM-DD') " + 
+				"                  GROUP BY COMPANY_BUSI_ORG_ID, SORG_LEVEL3, BUSINESS_REGION)";		
+		System.out.println(sql1);
+		List<BigDecimal> list = DBManager.get("kabBan").createNativeQuery(sql1).getResultList();
+		Map<String, Object> map = new HashMap<String, Object>();
+		if(list != null && list.size() != 0) {   			
+			map.put("result","+"+NewUtils.returnYiOrWanWtdl(list.get(0), 2));
+		}
+		return map;
+	}
+	
+	@RpcMethod(loginValidate = false)
+	@Override
+	public Map<String, Object> findYyjyqkYhYwcbZjcb(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception {
+		String sql1 = " SELECT SUM(直接成本) 直接成本 " + 
+				"            FROM (SELECT SUM(PAYMENT_AMOUNT + I_PAYMENT_AMOUNT + " + 
+				"                             CONTINU_PAYMENT_AMOUNT) 直接成本 " + 
+				"                  FROM T_COMPANY_COST_ALL " + 
+				"                  GROUP BY COMPANY_BUSI_ORG_ID, SORG_LEVEL3, BUSINESS_REGION)";		
+		System.out.println(sql1);
+		List<BigDecimal> list = DBManager.get("kabBan").createNativeQuery(sql1).getResultList();
+		Map<String, Object> map = new HashMap<String, Object>();
+		if(list != null && list.size() != 0) {   			
+			map.put("result",NewUtils.returnYiOrWanWtdl(list.get(0), 2));
+		}
+		return map;
+	}
+	
+	@RpcMethod(loginValidate = false)
+	@Override
+	public Map<String, Object> findYyjyqkYhYwcbJjcb(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception {
+		String sql1 = " SELECT SUM(间接成本) 间接成本 " + 
+				"            FROM (SELECT SUM(APPORT_PAY_AMOUNT) 间接成本 " + 
+				"                  FROM T_COMPANY_COST_ALL " + 
+				"                  GROUP BY COMPANY_BUSI_ORG_ID, SORG_LEVEL3, BUSINESS_REGION)";		
+		System.out.println(sql1);
+		List<BigDecimal> list = DBManager.get("kabBan").createNativeQuery(sql1).getResultList();
+		Map<String, Object> map = new HashMap<String, Object>();
+		if(list != null && list.size() != 0) {   			
+			map.put("result",NewUtils.returnYiOrWanWtdl(list.get(0), 2));
+		}
+		return map;
+	}
+	
+	@RpcMethod(loginValidate = false)
+	@Override
+	public Map<String, Object> findYyjyqkYhYwcbZjcbDay(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception {
+		String sql1 = " SELECT SUM(今日直接成本) 今日直接成本 " + 
+				"            FROM (SELECT SUM(PAYMENT_AMOUNT + I_PAYMENT_AMOUNT + " + 
+				"                             CONTINU_PAYMENT_AMOUNT) 今日直接成本 " + 
+				"                  FROM T_COMPANY_COST_ALL " + 
+				"                  WHERE SUBSTR(PAY_END_DATE, 1, 10) = " + 
+				"                        TO_CHAR(SYSDATE, 'YYYY-MM-DD') " + 
+				"                  GROUP BY COMPANY_BUSI_ORG_ID, SORG_LEVEL3, BUSINESS_REGION)";		
+		System.out.println(sql1);
+		List<BigDecimal> list = DBManager.get("kabBan").createNativeQuery(sql1).getResultList();
+		Map<String, Object> map = new HashMap<String, Object>();
+		if(list != null && list.size() != 0) {   			
+			map.put("result","+"+NewUtils.returnYiOrWanWtdl(list.get(0), 2));
+		}
+		return map;
+	}
+
+	@RpcMethod(loginValidate = false)
+	@Override
+	public Map<String, Object> findYyjyqkYhYwcbJjcbDay(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception {
+		String sql1 = " SELECT SUM(今日间接成本) 今日间接成本 " + 
+				"            FROM (SELECT SUM(APPORT_PAY_AMOUNT) 今日间接成本 " + 
+				"                  FROM T_COMPANY_COST_ALL " + 
+				"                  WHERE SUBSTR(PAY_END_DATE, 1, 10) = " + 
+				"                        TO_CHAR(SYSDATE, 'YYYY-MM-DD') " + 
+				"                  GROUP BY COMPANY_BUSI_ORG_ID, SORG_LEVEL3, BUSINESS_REGION)";		
+		System.out.println(sql1);
+		List<BigDecimal> list = DBManager.get("kabBan").createNativeQuery(sql1).getResultList();
+		Map<String, Object> map = new HashMap<String, Object>();
+		if(list != null && list.size() != 0) {   			
+			map.put("result","+"+NewUtils.returnYiOrWanWtdl(list.get(0), 2));
+		}
+		return map;
+	}
 	
 	@RpcMethod(loginValidate = false)
 	@Override
@@ -2640,7 +3025,7 @@ public class NewReportServiceImpl implements NewReportService {
 			JSONObject ywsrObject = new JSONObject();
 			JSONObject ywcbObject = new JSONObject();
 			DecimalFormat dFormat = new DecimalFormat("#.00");
-			ljArray = NewUtils.returnYwjiqkDoubleMsg("业务收入", "今日", o[0], o[1],dFormat);
+			ljArray = NewUtils.returnYwjiqkDoubleMsg("收入总额", "今日", o[0], o[1],dFormat);
 			ljArray1 = NewUtils.returnYwjiqkDoubleMsg("业务成本", "今日", o[6], o[9],dFormat);
 			rArray.add(NewUtils.returnYwjiqkDoubleMsg1("产品线业务收入", o[2], dFormat));
 			rArray.add(NewUtils.returnYwjiqkDoubleMsg1("非产品线业务收入", o[3], dFormat));
@@ -2657,6 +3042,265 @@ public class NewReportServiceImpl implements NewReportService {
 			ywcbObject.put("right",rArray1);
 			map.put("ywsr",ywsrObject);
 			map.put("ywcb",ywcbObject);
+		}
+		return map;
+	}
+
+	@RpcMethod(loginValidate = false)
+   	@Override
+   	public Map<String, Object> findYyjyqkJtgsYhSrzeYear(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception {
+		Map<String, String>reMap = fetchWebReq.getData();
+		String companyId = reMap.get("companyId");
+		
+       	String sql1 = " SELECT SUM(EX_TAX_PRICE) as 年业务收入 " + 
+       			"        FROM T_COMP_INVOICE_ALL " + 
+       			"        WHERE VOID_TIME IS NULL " + 
+       			"        AND SUBSTR(INVOICE_DATE, 0, 4) = TO_CHAR(SYSDATE, 'YYYY') " + 
+       			"        AND SUBSTR(INVOICE_DATE, 0, 7) <= TO_CHAR(SYSDATE, 'YYYY-MM') " + 
+       			"        AND SORG_LEVEL3 = '"+companyId+"'";		
+       	System.out.println(sql1);
+   		List<BigDecimal> list = DBManager.get("kabBan").createNativeQuery(sql1).getResultList();
+   		Map<String, Object> map = new HashMap<String, Object>();
+   		if(list != null && list.size() != 0) {   			
+   			map.put("result",NewUtils.returnYiOrWanWtdl(list.get(0), 2));
+   		}
+   		return map;
+   	}
+	
+	@RpcMethod(loginValidate = false)
+	@Override
+	public Map<String, Object> findYyjyqkJtgsYhSrzeDay(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception {
+		Map<String, String>reMap = fetchWebReq.getData();
+		String companyId = reMap.get("companyId");
+		
+		String sql1 = " SELECT SUM(EX_TAX_PRICE) as 日开票收入 " + 
+				"             FROM T_COMP_INVOICE_ALL " + 
+				"             WHERE SUBSTR(INVOICE_DATE, 0, 10) = " + 
+				"                   TO_CHAR(SYSDATE, 'YYYY-MM-DD') " + 
+				"             AND SORG_LEVEL3 = '"+companyId+"'";		
+		System.out.println(sql1);
+		List<BigDecimal> list = DBManager.get("kabBan").createNativeQuery(sql1).getResultList();
+		Map<String, Object> map = new HashMap<String, Object>();
+		if(list != null && list.size() != 0) {   			
+			map.put("result","+"+NewUtils.returnYiOrWanWtdl(list.get(0), 2));
+		}
+		return map;
+	}
+	
+	@RpcMethod(loginValidate = false)
+	@Override
+	public Map<String, Object> findYyjyqkJtgsYhSrzeCpxywsr(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception {
+		Map<String, String>reMap = fetchWebReq.getData();
+		String companyId = reMap.get("companyId");
+		
+		String sql1 = " SELECT SUM(EX_TAX_PRICE) AS 产品线业务 " + 
+				"             FROM T_COMP_INVOICE_ALL " + 
+				"             WHERE TYPE in ('产品线业务') " + 
+				"             AND VOID_TIME IS NULL " + 
+				"             AND SUBSTR(INVOICE_DATE, 0, 4) = TO_CHAR(SYSDATE, 'YYYY') " + 
+				"             AND SUBSTR(INVOICE_DATE, 0, 7) <= TO_CHAR(SYSDATE, 'YYYY-MM') " + 
+				"             AND SORG_LEVEL3 = '"+companyId+"'";		
+		System.out.println(sql1);
+		List<BigDecimal> list = DBManager.get("kabBan").createNativeQuery(sql1).getResultList();
+		Map<String, Object> map = new HashMap<String, Object>();
+		if(list != null && list.size() != 0) {   			
+			map.put("result",NewUtils.returnYiOrWanWtdl(list.get(0), 2));
+		}
+		return map;
+	}
+	
+	@RpcMethod(loginValidate = false)
+	@Override
+	public Map<String, Object> findYyjyqkJtgsYhSrzeFcpxywsr(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception {
+		Map<String, String>reMap = fetchWebReq.getData();
+		String companyId = reMap.get("companyId");
+		
+		String sql1 = " SELECT SUM(EX_TAX_PRICE) AS 非产品线业务 " + 
+				"             FROM T_COMP_INVOICE_ALL " + 
+				"             WHERE TYPE = '非产品线业务' " + 
+				"             AND VOID_TIME IS NULL " + 
+				"             AND SUBSTR(INVOICE_DATE, 0, 4) = TO_CHAR(SYSDATE, 'YYYY') " + 
+				"             AND SUBSTR(INVOICE_DATE, 0, 7) <= TO_CHAR(SYSDATE, 'YYYY-MM') " + 
+				"             AND SORG_LEVEL3 = '"+companyId+"'";		
+		System.out.println(sql1);
+		List<BigDecimal> list = DBManager.get("kabBan").createNativeQuery(sql1).getResultList();
+		Map<String, Object> map = new HashMap<String, Object>();
+		if(list != null && list.size() != 0) {   			
+			map.put("result",NewUtils.returnYiOrWanWtdl(list.get(0), 2));
+		}
+		return map;
+	}
+	
+	@RpcMethod(loginValidate = false)
+	@Override
+	public Map<String, Object> findYyjyqkJtgsYhSrzeDflywsr(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception {
+		Map<String, String>reMap = fetchWebReq.getData();
+		String companyId = reMap.get("companyId");
+		
+		String sql1 = " SELECT SUM(EX_TAX_PRICE) AS 待分类业务 " + 
+				"             FROM T_COMP_INVOICE_ALL " + 
+				"             WHERE TYPE = '待分类业务' " + 
+				"             AND VOID_TIME IS NULL " + 
+				"             AND SUBSTR(INVOICE_DATE, 0, 4) = TO_CHAR(SYSDATE, 'YYYY') " + 
+				"             AND SUBSTR(INVOICE_DATE, 0, 7) <= TO_CHAR(SYSDATE, 'YYYY-MM') " + 
+				"             AND SORG_LEVEL3 = '"+companyId+"'";		
+		System.out.println(sql1);
+		List<BigDecimal> list = DBManager.get("kabBan").createNativeQuery(sql1).getResultList();
+		Map<String, Object> map = new HashMap<String, Object>();
+		if(list != null && list.size() != 0) {   			
+			map.put("result",NewUtils.returnYiOrWanWtdl(list.get(0), 2));
+		}
+		return map;
+	}
+	
+	@RpcMethod(loginValidate = false)
+	@Override
+	public Map<String, Object> findYyjyqkJtgsYhSrzeQtywsr(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception {
+		Map<String, String>reMap = fetchWebReq.getData();
+		String companyId = reMap.get("companyId");
+		
+		String sql1 = " SELECT SUM(EX_TAX_PRICE) AS 其他业务 " + 
+				"             FROM T_COMP_INVOICE_ALL " + 
+				"             WHERE TYPE = '其他业务' " + 
+				"             AND VOID_TIME IS NULL " + 
+				"             AND SUBSTR(INVOICE_DATE, 0, 4) = TO_CHAR(SYSDATE, 'YYYY') " + 
+				"             AND SUBSTR(INVOICE_DATE, 0, 7) <= TO_CHAR(SYSDATE, 'YYYY-MM') " + 
+				"             AND SORG_LEVEL3 = '"+companyId+"'";		
+		System.out.println(sql1);
+		List<BigDecimal> list = DBManager.get("kabBan").createNativeQuery(sql1).getResultList();
+		Map<String, Object> map = new HashMap<String, Object>();
+		if(list != null && list.size() != 0) {   			
+			map.put("result",NewUtils.returnYiOrWanWtdl(list.get(0), 2));
+		}
+		return map;
+	}
+	
+	@RpcMethod(loginValidate = false)
+	@Override
+	public Map<String, Object> findYyjyqkJtgsYhYwcbYear(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception {
+		Map<String, String>reMap = fetchWebReq.getData();
+		String companyId = reMap.get("companyId");
+		
+		String sql1 = " SELECT SUM(业务成本) 业务成本 " + 
+				"             FROM (SELECT SUM(APPORT_PAY_AMOUNT + DIRECT_COST) 业务成本 " + 
+				"                   FROM T_COMPANY_COST_ALL " + 
+				"                   where SORG_LEVEL3 = '"+companyId+"' " + 
+				"                   GROUP BY COMPANY_BUSI_ORG_ID, SORG_LEVEL3, BUSINESS_REGION)";		
+		System.out.println(sql1);
+		List<BigDecimal> list = DBManager.get("kabBan").createNativeQuery(sql1).getResultList();
+		Map<String, Object> map = new HashMap<String, Object>();
+		if(list != null && list.size() != 0) {   			
+			map.put("result",NewUtils.returnYiOrWanWtdl(list.get(0), 2));
+		}
+		return map;
+	}
+
+	@RpcMethod(loginValidate = false)
+	@Override
+	public Map<String, Object> findYyjyqkJtgsYhYwcbDay(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception {
+		Map<String, String>reMap = fetchWebReq.getData();
+		String companyId = reMap.get("companyId");
+		
+		String sql1 = " SELECT SUM(今日业务成本) 今日业务成本 " + 
+				"             FROM (SELECT SUM(APPORT_PAY_AMOUNT + DIRECT_COST) 今日业务成本 " + 
+				"                   FROM T_COMPANY_COST_ALL " + 
+				"                   WHERE SUBSTR(PAY_END_DATE, 1, 10) = " + 
+				"                         TO_CHAR(SYSDATE, 'YYYY-MM-DD') " + 
+				"                   AND SORG_LEVEL3 = '"+companyId+"' " + 
+				"                   GROUP BY COMPANY_BUSI_ORG_ID, SORG_LEVEL3, BUSINESS_REGION)";		
+		System.out.println(sql1);
+		List<BigDecimal> list = DBManager.get("kabBan").createNativeQuery(sql1).getResultList();
+		Map<String, Object> map = new HashMap<String, Object>();
+		if(list != null && list.size() != 0) {   			
+			map.put("result","+"+NewUtils.returnYiOrWanWtdl(list.get(0), 2));
+		}
+		return map;
+	}
+	
+	@RpcMethod(loginValidate = false)
+	@Override
+	public Map<String, Object> findYyjyqkJtgsYhYwcbZjcb(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception {
+		Map<String, String>reMap = fetchWebReq.getData();
+		String companyId = reMap.get("companyId");
+		
+		String sql1 = " SELECT SUM(直接成本) 直接成本 " + 
+				"             FROM (SELECT SUM(PAYMENT_AMOUNT + I_PAYMENT_AMOUNT + " + 
+				"                              CONTINU_PAYMENT_AMOUNT) 直接成本 " + 
+				"                   FROM T_COMPANY_COST_ALL " + 
+				"                   where SORG_LEVEL3 = '"+companyId+"' " + 
+				"                   GROUP BY COMPANY_BUSI_ORG_ID, SORG_LEVEL3, BUSINESS_REGION " + 
+				"                   )";		
+		System.out.println(sql1);
+		List<BigDecimal> list = DBManager.get("kabBan").createNativeQuery(sql1).getResultList();
+		Map<String, Object> map = new HashMap<String, Object>();
+		if(list != null && list.size() != 0) {   			
+			map.put("result",NewUtils.returnYiOrWanWtdl(list.get(0), 2));
+		}
+		return map;
+	}
+	
+	@RpcMethod(loginValidate = false)
+	@Override
+	public Map<String, Object> findYyjyqkJtgsYhYwcbJjcb(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception {
+		Map<String, String>reMap = fetchWebReq.getData();
+		String companyId = reMap.get("companyId");
+		
+		String sql1 = " SELECT SUM(间接成本) 间接成本 " + 
+				"             FROM (SELECT SUM(APPORT_PAY_AMOUNT) 间接成本 " + 
+				"                   FROM T_COMPANY_COST_ALL " + 
+				"                   where SORG_LEVEL3 = '"+companyId+"' " + 
+				"                   GROUP BY COMPANY_BUSI_ORG_ID, SORG_LEVEL3, BUSINESS_REGION " + 
+				"                   )";		
+		System.out.println(sql1);
+		List<BigDecimal> list = DBManager.get("kabBan").createNativeQuery(sql1).getResultList();
+		Map<String, Object> map = new HashMap<String, Object>();
+		if(list != null && list.size() != 0) {   			
+			map.put("result",NewUtils.returnYiOrWanWtdl(list.get(0), 2));
+		}
+		return map;
+	}
+	
+	@RpcMethod(loginValidate = false)
+	@Override
+	public Map<String, Object> findYyjyqkJtgsYhYwcbZjcbDay(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception {
+		Map<String, String>reMap = fetchWebReq.getData();
+		String companyId = reMap.get("companyId");
+		
+		String sql1 = " SELECT SUM(今日直接成本) 今日直接成本 " + 
+				"             FROM (SELECT SUM(PAYMENT_AMOUNT + I_PAYMENT_AMOUNT + " + 
+				"                              CONTINU_PAYMENT_AMOUNT) 今日直接成本 " + 
+				"                   FROM T_COMPANY_COST_ALL " + 
+				"                   WHERE SUBSTR(PAY_END_DATE, 1, 10) = " + 
+				"                         TO_CHAR(SYSDATE, 'YYYY-MM-DD') " + 
+				"                   AND SORG_LEVEL3 = '"+companyId+"' " + 
+				"                   GROUP BY COMPANY_BUSI_ORG_ID, SORG_LEVEL3, BUSINESS_REGION)";		
+		System.out.println(sql1);
+		List<BigDecimal> list = DBManager.get("kabBan").createNativeQuery(sql1).getResultList();
+		Map<String, Object> map = new HashMap<String, Object>();
+		if(list != null && list.size() != 0) {   			
+			map.put("result","+"+NewUtils.returnYiOrWanWtdl(list.get(0), 2));
+		}
+		return map;
+	}
+
+	@RpcMethod(loginValidate = false)
+	@Override
+	public Map<String, Object> findYyjyqkJtgsYhYwcbJjcbDay(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception {
+		Map<String, String>reMap = fetchWebReq.getData();
+		String companyId = reMap.get("companyId");
+		
+		String sql1 = " SELECT SUM(今日间接成本) 今日间接成本 " + 
+				"             FROM (SELECT SUM(APPORT_PAY_AMOUNT) 今日间接成本 " + 
+				"                   FROM T_COMPANY_COST_ALL " + 
+				"                   WHERE SUBSTR(PAY_END_DATE, 1, 10) = " + 
+				"                         TO_CHAR(SYSDATE, 'YYYY-MM-DD') " + 
+				"                   AND SORG_LEVEL3 = '"+companyId+"' " + 
+				"                   GROUP BY COMPANY_BUSI_ORG_ID, SORG_LEVEL3, BUSINESS_REGION)";		
+		System.out.println(sql1);
+		List<BigDecimal> list = DBManager.get("kabBan").createNativeQuery(sql1).getResultList();
+		Map<String, Object> map = new HashMap<String, Object>();
+		if(list != null && list.size() != 0) {   			
+			map.put("result","+"+NewUtils.returnYiOrWanWtdl(list.get(0), 2));
 		}
 		return map;
 	}
@@ -2762,7 +3406,7 @@ public class NewReportServiceImpl implements NewReportService {
 			JSONObject ywsrObject = new JSONObject();
 			JSONObject ywcbObject = new JSONObject();
 			DecimalFormat dFormat = new DecimalFormat("#.00");
-			ljArray = NewUtils.returnYwjiqkDoubleMsg("业务收入", "今日", o[0], o[1],dFormat);
+			ljArray = NewUtils.returnYwjiqkDoubleMsg("收入总额", "今日", o[0], o[1],dFormat);
 			ljArray1 = NewUtils.returnYwjiqkDoubleMsg("业务成本", "今日", o[6], o[9],dFormat);
 			rArray.add(NewUtils.returnYwjiqkDoubleMsg1("产品线业务收入", o[2], dFormat));
 			rArray.add(NewUtils.returnYwjiqkDoubleMsg1("非产品线业务收入", o[3], dFormat));
@@ -2779,6 +3423,272 @@ public class NewReportServiceImpl implements NewReportService {
 			ywcbObject.put("right",rArray1);
 			map.put("ywsr",ywsrObject);
 			map.put("ywcb",ywcbObject);
+		}
+		return map;
+	}
+
+	@RpcMethod(loginValidate = false)
+   	@Override
+   	public Map<String, Object> findYyjyqkJtgsQuyuYhSrzeYear(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception {
+		Map<String, String>reMap = fetchWebReq.getData();
+		String companyId = reMap.get("companyId");
+		
+       	String sql1 = " SELECT SUM(EX_TAX_PRICE) as 年业务收入 " + 
+       			"         FROM T_COMP_INVOICE_ALL " + 
+       			"         WHERE VOID_TIME IS NULL " + 
+       			"         AND SUBSTR(INVOICE_DATE, 0, 4) = TO_CHAR(SYSDATE, 'YYYY') " + 
+       			"         AND SUBSTR(INVOICE_DATE, 0, 7) <= TO_CHAR(SYSDATE, 'YYYY-MM') " + 
+       			"         AND BUSINESS_REGION = '"+companyId+"' ";		
+       	System.out.println(sql1);
+   		List<BigDecimal> list = DBManager.get("kabBan").createNativeQuery(sql1).getResultList();
+   		Map<String, Object> map = new HashMap<String, Object>();
+   		if(list != null && list.size() != 0) {   			
+   			map.put("result",NewUtils.returnYiOrWanWtdl(list.get(0), 2));
+   		}
+   		return map;
+   	}
+	
+	@RpcMethod(loginValidate = false)
+	@Override
+	public Map<String, Object> findYyjyqkJtgsQuyuYhSrzeDay(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception {
+		Map<String, String>reMap = fetchWebReq.getData();
+		String companyId = reMap.get("companyId");
+		
+		String sql1 = " SELECT SUM(EX_TAX_PRICE) as 日开票收入 " + 
+				"              FROM T_COMP_INVOICE_ALL " + 
+				"              WHERE SUBSTR(INVOICE_DATE, 0, 10) = " + 
+				"                    TO_CHAR(SYSDATE, 'YYYY-MM-DD') " + 
+				"              AND BUSINESS_REGION = '"+companyId+"' ";		
+		System.out.println(sql1);
+		List<BigDecimal> list = DBManager.get("kabBan").createNativeQuery(sql1).getResultList();
+		Map<String, Object> map = new HashMap<String, Object>();
+		if(list != null && list.size() != 0) {   			
+			map.put("result","+"+NewUtils.returnYiOrWanWtdl(list.get(0), 2));
+		}
+		return map;
+	}
+	
+	@RpcMethod(loginValidate = false)
+	@Override
+	public Map<String, Object> findYyjyqkJtgsQuyuYhSrzeCpxywsr(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception {
+		Map<String, String>reMap = fetchWebReq.getData();
+		String companyId = reMap.get("companyId");
+		
+		String sql1 = " SELECT SUM(EX_TAX_PRICE) AS 产品线业务 " + 
+				"              FROM T_COMP_INVOICE_ALL " + 
+				"              WHERE TYPE in ('产品线业务') " + 
+				"              AND VOID_TIME IS NULL " + 
+				"              AND SUBSTR(INVOICE_DATE, 0, 4) = TO_CHAR(SYSDATE, 'YYYY') " + 
+				"              AND SUBSTR(INVOICE_DATE, 0, 7) <= TO_CHAR(SYSDATE, 'YYYY-MM') " + 
+				"              AND BUSINESS_REGION = '"+companyId+"' ";		
+		System.out.println(sql1);
+		List<BigDecimal> list = DBManager.get("kabBan").createNativeQuery(sql1).getResultList();
+		Map<String, Object> map = new HashMap<String, Object>();
+		if(list != null && list.size() != 0) {   			
+			map.put("result",NewUtils.returnYiOrWanWtdl(list.get(0), 2));
+		}
+		return map;
+	}
+	
+	@RpcMethod(loginValidate = false)
+	@Override
+	public Map<String, Object> findYyjyqkJtgsQuyuYhSrzeFcpxywsr(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception {
+		Map<String, String>reMap = fetchWebReq.getData();
+		String companyId = reMap.get("companyId");
+		
+		String sql1 = " SELECT SUM(EX_TAX_PRICE) AS 非产品线业务 " + 
+				"              FROM T_COMP_INVOICE_ALL " + 
+				"              WHERE TYPE = '非产品线业务' " + 
+				"              AND VOID_TIME IS NULL " + 
+				"              AND SUBSTR(INVOICE_DATE, 0, 4) = TO_CHAR(SYSDATE, 'YYYY') " + 
+				"              AND SUBSTR(INVOICE_DATE, 0, 7) <= TO_CHAR(SYSDATE, 'YYYY-MM') " + 
+				"              AND BUSINESS_REGION = '"+companyId+"' ";		
+		System.out.println(sql1);
+		List<BigDecimal> list = DBManager.get("kabBan").createNativeQuery(sql1).getResultList();
+		Map<String, Object> map = new HashMap<String, Object>();
+		if(list != null && list.size() != 0) {   			
+			map.put("result",NewUtils.returnYiOrWanWtdl(list.get(0), 2));
+		}
+		return map;
+	}
+	
+	@RpcMethod(loginValidate = false)
+	@Override
+	public Map<String, Object> findYyjyqkJtgsQuyuYhSrzeDflywsr(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception {
+		Map<String, String>reMap = fetchWebReq.getData();
+		String companyId = reMap.get("companyId");
+		
+		String sql1 = " SELECT SUM(EX_TAX_PRICE) AS 待分类业务 " + 
+				"              FROM T_COMP_INVOICE_ALL " + 
+				"              WHERE TYPE = '待分类业务' " + 
+				"              AND VOID_TIME IS NULL " + 
+				"              AND SUBSTR(INVOICE_DATE, 0, 4) = TO_CHAR(SYSDATE, 'YYYY') " + 
+				"              AND SUBSTR(INVOICE_DATE, 0, 7) <= TO_CHAR(SYSDATE, 'YYYY-MM') " + 
+				"              AND BUSINESS_REGION = '"+companyId+"' ";		
+		System.out.println(sql1);
+		List<BigDecimal> list = DBManager.get("kabBan").createNativeQuery(sql1).getResultList();
+		Map<String, Object> map = new HashMap<String, Object>();
+		if(list != null && list.size() != 0) {   			
+			map.put("result",NewUtils.returnYiOrWanWtdl(list.get(0), 2));
+		}
+		return map;
+	}
+	
+	@RpcMethod(loginValidate = false)
+	@Override
+	public Map<String, Object> findYyjyqkJtgsQuyuYhSrzeQtywsr(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception {
+		Map<String, String>reMap = fetchWebReq.getData();
+		String companyId = reMap.get("companyId");
+		
+		String sql1 = " SELECT SUM(EX_TAX_PRICE) AS 其他业务 " + 
+				"              FROM T_COMP_INVOICE_ALL " + 
+				"              WHERE TYPE = '其他业务' " + 
+				"              AND VOID_TIME IS NULL " + 
+				"              AND SUBSTR(INVOICE_DATE, 0, 4) = TO_CHAR(SYSDATE, 'YYYY') " + 
+				"              AND SUBSTR(INVOICE_DATE, 0, 7) <= TO_CHAR(SYSDATE, 'YYYY-MM') " + 
+				"              AND BUSINESS_REGION = '"+companyId+"' ";		
+		System.out.println(sql1);
+		List<BigDecimal> list = DBManager.get("kabBan").createNativeQuery(sql1).getResultList();
+		Map<String, Object> map = new HashMap<String, Object>();
+		if(list != null && list.size() != 0) {   			
+			map.put("result",NewUtils.returnYiOrWanWtdl(list.get(0), 2));
+		}
+		return map;
+	}
+	
+	@RpcMethod(loginValidate = false)
+	@Override
+	public Map<String, Object> findYyjyqkJtgsQuyuYhYwcbYear(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception {
+		Map<String, String>reMap = fetchWebReq.getData();
+		String companyId = reMap.get("companyId");
+		
+		String sql1 = " SELECT SUM(业务成本) 业务成本 " + 
+				"              FROM (SELECT SUM(APPORT_PAY_AMOUNT + DIRECT_COST) 业务成本 " + 
+				"                    FROM T_COMPANY_COST_ALL " + 
+				"                    where BUSINESS_REGION = '"+companyId+"' " + 
+				"                    GROUP BY COMPANY_BUSI_ORG_ID, " + 
+				"                             SORG_LEVEL3, " + 
+				"                             BUSINESS_REGION)";		
+		System.out.println(sql1);
+		List<BigDecimal> list = DBManager.get("kabBan").createNativeQuery(sql1).getResultList();
+		Map<String, Object> map = new HashMap<String, Object>();
+		if(list != null && list.size() != 0) {   			
+			map.put("result",NewUtils.returnYiOrWanWtdl(list.get(0), 2));
+		}
+		return map;
+	}
+
+	@RpcMethod(loginValidate = false)
+	@Override
+	public Map<String, Object> findYyjyqkJtgsQuyuYhYwcbDay(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception {
+		Map<String, String>reMap = fetchWebReq.getData();
+		String companyId = reMap.get("companyId");
+		
+		String sql1 = " SELECT SUM(今日业务成本) 今日业务成本 " + 
+				"              FROM (SELECT SUM(APPORT_PAY_AMOUNT + DIRECT_COST) 今日业务成本 " + 
+				"                    FROM T_COMPANY_COST_ALL " + 
+				"                    WHERE SUBSTR(PAY_END_DATE, 1, 10) = " + 
+				"                          TO_CHAR(SYSDATE, 'YYYY-MM-DD') " + 
+				"                    AND BUSINESS_REGION = '"+companyId+"' " + 
+				"                    GROUP BY COMPANY_BUSI_ORG_ID, " + 
+				"                             SORG_LEVEL3, " + 
+				"                             BUSINESS_REGION)";		
+		System.out.println(sql1);
+		List<BigDecimal> list = DBManager.get("kabBan").createNativeQuery(sql1).getResultList();
+		Map<String, Object> map = new HashMap<String, Object>();
+		if(list != null && list.size() != 0) {   			
+			map.put("result","+"+NewUtils.returnYiOrWanWtdl(list.get(0), 2));
+		}
+		return map;
+	}
+	
+	@RpcMethod(loginValidate = false)
+	@Override
+	public Map<String, Object> findYyjyqkJtgsQuyuYhYwcbZjcb(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception {
+		Map<String, String>reMap = fetchWebReq.getData();
+		String companyId = reMap.get("companyId");
+		
+		String sql1 = " SELECT SUM(直接成本) 直接成本 " + 
+				"              FROM (SELECT SUM(PAYMENT_AMOUNT + I_PAYMENT_AMOUNT + " + 
+				"                               CONTINU_PAYMENT_AMOUNT) 直接成本 " + 
+				"                    FROM T_COMPANY_COST_ALL " + 
+				"                    where BUSINESS_REGION = '"+companyId+"' " + 
+				"                    GROUP BY COMPANY_BUSI_ORG_ID, " + 
+				"                             SORG_LEVEL3, " + 
+				"                             BUSINESS_REGION)";		
+		System.out.println(sql1);
+		List<BigDecimal> list = DBManager.get("kabBan").createNativeQuery(sql1).getResultList();
+		Map<String, Object> map = new HashMap<String, Object>();
+		if(list != null && list.size() != 0) {   			
+			map.put("result",NewUtils.returnYiOrWanWtdl(list.get(0), 2));
+		}
+		return map;
+	}
+	
+	@RpcMethod(loginValidate = false)
+	@Override
+	public Map<String, Object> findYyjyqkJtgsQuyuYhYwcbJjcb(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception {
+		Map<String, String>reMap = fetchWebReq.getData();
+		String companyId = reMap.get("companyId");
+		
+		String sql1 = " SELECT SUM(间接成本) 间接成本 " + 
+				"              FROM (SELECT SUM(APPORT_PAY_AMOUNT) 间接成本 " + 
+				"                    FROM T_COMPANY_COST_ALL " + 
+				"                    where BUSINESS_REGION = '"+companyId+"' " + 
+				"                    GROUP BY COMPANY_BUSI_ORG_ID, " + 
+				"                             SORG_LEVEL3, " + 
+				"                             BUSINESS_REGION)";		
+		System.out.println(sql1);
+		List<BigDecimal> list = DBManager.get("kabBan").createNativeQuery(sql1).getResultList();
+		Map<String, Object> map = new HashMap<String, Object>();
+		if(list != null && list.size() != 0) {   			
+			map.put("result",NewUtils.returnYiOrWanWtdl(list.get(0), 2));
+		}
+		return map;
+	}
+	
+	@RpcMethod(loginValidate = false)
+	@Override
+	public Map<String, Object> findYyjyqkJtgsQuyuYhYwcbZjcbDay(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception {
+		Map<String, String>reMap = fetchWebReq.getData();
+		String companyId = reMap.get("companyId");
+		
+		String sql1 = " SELECT SUM(今日直接成本) 今日直接成本 " + 
+				"              FROM (SELECT SUM(PAYMENT_AMOUNT + I_PAYMENT_AMOUNT + CONTINU_PAYMENT_AMOUNT) 今日直接成本 " + 
+				"                    FROM T_COMPANY_COST_ALL " + 
+				"                    WHERE SUBSTR(PAY_END_DATE, 1, 10) = " + 
+				"                          TO_CHAR(SYSDATE, 'YYYY-MM-DD') " + 
+				"                    AND BUSINESS_REGION = '"+companyId+"' " + 
+				"                    GROUP BY COMPANY_BUSI_ORG_ID,SORG_LEVEL3,BUSINESS_REGION)";		
+		System.out.println(sql1);
+		List<BigDecimal> list = DBManager.get("kabBan").createNativeQuery(sql1).getResultList();
+		Map<String, Object> map = new HashMap<String, Object>();
+		if(list != null && list.size() != 0) {   			
+			map.put("result","+"+NewUtils.returnYiOrWanWtdl(list.get(0), 2));
+		}
+		return map;
+	}
+
+	@RpcMethod(loginValidate = false)
+	@Override
+	public Map<String, Object> findYyjyqkJtgsQuyuYhYwcbJjcbDay(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception {
+		Map<String, String>reMap = fetchWebReq.getData();
+		String companyId = reMap.get("companyId");
+		
+		String sql1 = " SELECT SUM(今日间接成本) 今日间接成本 " + 
+				"              FROM (SELECT SUM(APPORT_PAY_AMOUNT) 今日间接成本 " + 
+				"                    FROM T_COMPANY_COST_ALL " + 
+				"                    WHERE SUBSTR(PAY_END_DATE, 1, 10) = " + 
+				"                          TO_CHAR(SYSDATE, 'YYYY-MM-DD') " + 
+				"                    AND BUSINESS_REGION = '"+companyId+"' " + 
+				"                    GROUP BY COMPANY_BUSI_ORG_ID, " + 
+				"                             SORG_LEVEL3, " + 
+				"                             BUSINESS_REGION)";		
+		System.out.println(sql1);
+		List<BigDecimal> list = DBManager.get("kabBan").createNativeQuery(sql1).getResultList();
+		Map<String, Object> map = new HashMap<String, Object>();
+		if(list != null && list.size() != 0) {   			
+			map.put("result","+"+NewUtils.returnYiOrWanWtdl(list.get(0), 2));
 		}
 		return map;
 	}
@@ -3239,7 +4149,7 @@ public class NewReportServiceImpl implements NewReportService {
 			
 			ja.add(NewUtils.returnTodayTotalDoubleMsg("预测收入",  res[4], res[5], df));
 			
-			ja.add(NewUtils.returnTodayTotalDoubleMsg("业务收入",  res[6], res[7], df));
+			ja.add(NewUtils.returnTodayTotalDoubleMsg("收入总额",  res[6], res[7], df));
 			
 			ja.add(NewUtils.returnTodayTotalDoubleMsg("业务成本",  res[8], res[9], df));
 			
@@ -3284,7 +4194,7 @@ public class NewReportServiceImpl implements NewReportService {
 			// 四舍五入保留2位小数
 			DecimalFormat df = new DecimalFormat("#.00");
 			
-			map.put("result", NewUtils.returnTodayTotalDoubleMsg("委托金额",  res[0], res[1], df));
+			map.put("result", NewUtils.returnTodayTotalDoubleMsgCpx("委托金额",  res[0], res[1], df));
 		}
 		
 		return map;
@@ -3321,7 +4231,7 @@ public class NewReportServiceImpl implements NewReportService {
 			// 四舍五入保留2位小数
 			DecimalFormat df = new DecimalFormat("#.00");
 			
-			map.put("result", NewUtils.returnTodayTotalDoubleMsg("开工金额",  res[0], res[1], df));
+			map.put("result", NewUtils.returnTodayTotalDoubleMsgCpx("开工金额",  res[0], res[1], df));
 		}
 		
 		return map;
@@ -3355,7 +4265,7 @@ public class NewReportServiceImpl implements NewReportService {
 			// 四舍五入保留2位小数
 			DecimalFormat df = new DecimalFormat("#.00");
 			
-			map.put("result", NewUtils.returnTodayTotalDoubleMsg("预测收入",  res[0], res[1], df));
+			map.put("result", NewUtils.returnTodayTotalDoubleMsgCpx("预测收入",  res[0], res[1], df));
 		}
 		
 		return map;
@@ -3391,7 +4301,7 @@ public class NewReportServiceImpl implements NewReportService {
 			// 四舍五入保留2位小数
 			DecimalFormat df = new DecimalFormat("#.00");
 			
-			map.put("result", NewUtils.returnTodayTotalDoubleMsg("业务收入",  res[0], res[1], df));
+			map.put("result", NewUtils.returnTodayTotalDoubleMsgCpx("收入总额",  res[0], res[1], df));
 		}
 		
 		return map;
@@ -3427,7 +4337,7 @@ public class NewReportServiceImpl implements NewReportService {
 			// 四舍五入保留2位小数
 			DecimalFormat df = new DecimalFormat("#.00");
 			
-			map.put("result", NewUtils.returnTodayTotalDoubleMsg("业务成本",  res[0], res[1], df));
+			map.put("result", NewUtils.returnTodayTotalDoubleMsgCpx("业务成本",  res[0], res[1], df));
 		}
 		
 		return map;
@@ -3461,7 +4371,7 @@ public class NewReportServiceImpl implements NewReportService {
 			// 四舍五入保留2位小数
 			DecimalFormat df = new DecimalFormat("#.00");
 			
-			map.put("result", NewUtils.returnTodayTotalDoubleMsg("毛利率",  res, null, df));
+			map.put("result", NewUtils.returnTodayTotalDoubleMsgCpx("毛利率",  res, null, df));
 		}
 		
 		return map;
@@ -3588,29 +4498,29 @@ public class NewReportServiceImpl implements NewReportService {
 			// TODO Auto-generated method stub
 	    	Map<String, String> resMap = fetchWebReq.getData();
 			String companyId = resMap.get("companyId");
-			String sql = "SELECT *" + 
-					"  FROM (SELECT SERVICE_MEDIUMCLASS_NAME 服务技术中类," + 
-					"               NVL(SUM(EX_TAX_PRICE), 0) 开票收入" + 
-					"          FROM T_COMP_INVOICE_ALL" + 
-					"         WHERE VOID_TIME IS NULL" + 
-					"           AND SUBSTR(INVOICE_DATE, 0, 4) = TO_CHAR(SYSDATE, 'yyyy')" + 
-					"           AND SERVICE_MEDIUMCLASS_NAME IS NOT NULL" + 
-					"           AND PRODUCT_LINE_NAME = '"+companyId+"'" + 
-					"         GROUP BY SERVICE_MEDIUMCLASS_NAME" + 
-					"         ORDER BY SUM(EX_TAX_PRICE) DESC)" + 
-					" WHERE ROWNUM <= 5" + 
-					" UNION ALL" + 
-					" SELECT '其他' AS 服务技术中类, NVL(SUM(开票收入), 0) 开票收入" + 
-					"  FROM (SELECT A.*, ROWNUM RN" + 
-					"          FROM (SELECT SERVICE_MEDIUMCLASS_NAME 服务技术中类," + 
-					"                       SUM(EX_TAX_PRICE) 开票收入" + 
-					"                  FROM T_COMP_INVOICE_ALL" + 
-					"                 WHERE VOID_TIME IS NULL" + 
-					"                   AND SUBSTR(INVOICE_DATE, 0, 4) = TO_CHAR(SYSDATE, 'yyyy')" + 
-					"                   AND PRODUCT_LINE_NAME = '"+companyId+"'" + 
-					"                 GROUP BY SERVICE_MEDIUMCLASS_NAME" + 
-					"                 ORDER BY 开票收入 DESC) A) B" + 
-					" WHERE RN > 5";
+			String sql = "SELECT * " + 
+					"  FROM (SELECT SERVICE_MEDIUMCLASS_NAME 服务技术中类, " + 
+					"               NVL(SUM(EX_TAX_PRICE), 0) 开票收入 " + 
+					"          FROM T_COMP_INVOICE_ALL " + 
+					"         WHERE VOID_TIME IS NULL " + 
+					"           AND SUBSTR(INVOICE_DATE, 0, 4) = TO_CHAR(SYSDATE, 'yyyy') " + 
+					"           AND SERVICE_MEDIUMCLASS_NAME IS NOT NULL " + 
+					"        AND PRODUCT_LINE_NAME = '"+companyId+"' " + 
+					"         GROUP BY SERVICE_MEDIUMCLASS_NAME " + 
+					"         ORDER BY SUM(SYSTEM_TAX_PRICE) DESC) " + 
+					" WHERE ROWNUM <= 5 " + 
+					"UNION ALL " + 
+					"SELECT '其他' AS 服务技术中类, NVL(SUM(开票收入), 0) 开票收入 " + 
+					"  FROM (SELECT A.*, ROWNUM RN " + 
+					"          FROM (SELECT SERVICE_MEDIUMCLASS_NAME 服务技术中类, " + 
+					"                       SUM(EX_TAX_PRICE) 开票收入 " + 
+					"                  FROM T_COMP_INVOICE_ALL " + 
+					"                 WHERE VOID_TIME IS NULL " + 
+					"                   AND SUBSTR(INVOICE_DATE, 0, 4) = TO_CHAR(SYSDATE, 'yyyy') " + 
+					"                AND PRODUCT_LINE_NAME = '"+companyId+"' " + 
+					"                 GROUP BY SERVICE_MEDIUMCLASS_NAME " + 
+					"                 ORDER BY 开票收入 DESC) A) B " + 
+					" WHERE RN > 5 ";
 			System.out.println(sql.toString());
 			List<Object[]> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
 
@@ -3744,18 +4654,23 @@ public class NewReportServiceImpl implements NewReportService {
 			Map<String, String> resMap = fetchWebReq.getData();
 			String companyId = resMap.get("companyId");
 			
-			sql.append(" SELECT round((年业务收入 - 业务成本) / 年业务收入*100,2) 产品线毛利率 " + 
-					"            FROM (SELECT  nvl(SUM(EX_TAX_PRICE),0) 年业务收入 " + 
-					"                    FROM T_COMP_INVOICE_ALL " + 
-					"                   WHERE VOID_TIME IS NULL and SORG_LEVEL3 ='"+companyId+"' " + 
-					"                     AND TYPE = '产品线业务' " + 
-					"                     AND SUBSTR(INVOICE_DATE, 0, 4) = TO_CHAR(SYSDATE, 'YYYY') " + 
-					"                     AND SUBSTR(INVOICE_DATE, 0, 7) <= TO_CHAR(SYSDATE, 'YYYY-MM') " + 
-					"                   ) A, " + 
-					"           (SELECT SUM(TOTAL_COST) AS 业务成本 " + 
-					"              FROM T_COMPANY_COST_ALL " + 
-					"          WHERE SUBSTR(PAY_END_DATE, 0, 4) = TO_CHAR(SYSDATE, 'yyyy') and SORG_LEVEL3 ='"+companyId+"' " + 
-					"          )B ");
+			sql.append("  SELECT  " + 
+					"  case " + 
+					"    when 年业务收入 is null or 年业务收入=0 then 0 " + 
+					"    else round((年业务收入 - 业务成本) / 年业务收入 * 100, 2)    " + 
+					"  end 产品线毛利率 " + 
+					" FROM (SELECT nvl(SUM(EX_TAX_PRICE), 0) 年业务收入 " + 
+					"       FROM T_COMP_INVOICE_ALL " + 
+					"       WHERE VOID_TIME IS NULL " + 
+					"       and SORG_LEVEL3 = '"+companyId+"' " + 
+					"       AND TYPE = '产品线业务' " + 
+					"       AND SUBSTR(INVOICE_DATE, 0, 4) = TO_CHAR(SYSDATE, 'YYYY') " + 
+					"       AND SUBSTR(INVOICE_DATE, 0, 7) <= TO_CHAR(SYSDATE, 'YYYY-MM')) A, " + 
+					"      (SELECT SUM(TOTAL_COST) AS 业务成本 " + 
+					"       FROM T_COMPANY_COST_ALL " + 
+					"       WHERE SUBSTR(PAY_END_DATE, 0, 4) = TO_CHAR(SYSDATE, 'yyyy') " + 
+					"       and SORG_LEVEL3 = '"+companyId+"') B " + 
+					" ");
 			System.out.println(sql.toString());
 			List<BigDecimal> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
 			
@@ -3777,58 +4692,30 @@ public class NewReportServiceImpl implements NewReportService {
 			Map<String, String> resMap = fetchWebReq.getData();
 			String companyId = resMap.get("companyId");
 			
-			sql.append(" SELECT SUM(NVL(年客户数量, 0)) AS 年客户数量, " + 
-					"       SUM(NVL(日客户数量, 0)) AS 日客户数量, " + 
-					"       SUM(NVL(产品线活跃客户数量, 0)) 产品线活跃客户数量, " + 
+			sql.append(" SELECT SUM(年客户数量) 年客户数量, " + 
+					"       SUM(NVL(日客户数量, 0)) 日客户数量, " + 
+					"       SUM(年客户数量 - NVL(非产品线活跃客户, 0)) 产品线活跃客户数量, " + 
 					"       SUM(NVL(非产品线活跃客户, 0)) 非产品线活跃客户, " + 
-					"       SUM(NVL(活跃客户数量, 0)) 活跃客户数量, " + 
+					"       SUM(NVL(年客户数量, 0)) 活跃客户数量, " + 
 					"       A.SORG_LEVEL3 " + 
-					"  FROM (SELECT COUNT(DISTINCT CUSTOMER_NAME) 年客户数量, " + 
-					"               SORG_LEVEL3, " + 
-					"               COMPANY_BUSI_ORG_ID " + 
+					"  FROM (SELECT SORG_LEVEL3, COUNT(DISTINCT CUSTOMER_NAME) 年客户数量 " + 
 					"          FROM T_ORDER_CRM " + 
-					"         GROUP BY SORG_LEVEL3, COMPANY_BUSI_ORG_ID) A " + 
-					"  LEFT JOIN (SELECT COUNT(DISTINCT CUSTOMER_ID) 日客户数量, " + 
-					"                    SORG_LEVEL3, " + 
-					"                    COMPANY_BUSI_ORG_ID " + 
+					"         WHERE SUBSTR(CREATE_TIME_ORDER, 0, 7) >= " + 
+					"               TO_CHAR(ADD_MONTHS(SYSDATE, -12), 'yyyy-mm') " + 
+					"           AND SORG_LEVEL3 IS NOT NULL " + 
+					"         GROUP BY SORG_LEVEL3) A " + 
+					"  LEFT JOIN (SELECT SORG_LEVEL3, COUNT(DISTINCT CUSTOMER_NAME) 日客户数量 " + 
 					"               FROM T_ORDER_CRM " + 
 					"              WHERE SUBSTR(CREATE_TIME_ORDER, 1, 10) = " + 
 					"                    TO_CHAR(SYSDATE, 'YYYY-MM-DD') " + 
-					"              GROUP BY SORG_LEVEL3, COMPANY_BUSI_ORG_ID) B " + 
-					"    ON A.COMPANY_BUSI_ORG_ID = B.COMPANY_BUSI_ORG_ID " + 
-					"  LEFT JOIN (SELECT COUNT(DISTINCT CUSTOMER_NAME) 活跃客户数量, " + 
-					"                    SORG_LEVEL3, " + 
-					"                    COMPANY_BUSI_ORG_ID " + 
-					"               FROM T_ORDER_CRM " + 
-					"              WHERE SUBSTR(CREATE_TIME_ORDER, 1, 7) > " + 
-					"                    TO_CHAR(ADD_MONTHS(TRUNC(SYSDATE), -12), 'yyyy-mm') " + 
-					"                AND SUBSTR(CREATE_TIME_ORDER, 1, 7) <= " + 
-					"                    TO_CHAR(TRUNC(SYSDATE), 'yyyy-mm') " + 
-					"                AND SORG_LEVEL3 IS NOT NULL " + 
-					"              GROUP BY SORG_LEVEL3, COMPANY_BUSI_ORG_ID) C " + 
-					"    ON A.COMPANY_BUSI_ORG_ID = C.COMPANY_BUSI_ORG_ID " + 
-					"  LEFT JOIN (SELECT COUNT(CUSTOMER_ID) 非产品线活跃客户, " + 
-					"                    SORG_LEVEL3, " + 
-					"                    COMPANY_BUSI_ORG_ID " + 
-					"               FROM (SELECT DISTINCT CUSTOMER_ID, " + 
-					"                                     CUSTOMER_NAME, " + 
-					"                                     COMPANY_BUSI_ORG_ID, " + 
-					"                                     SORG_LEVEL3 " + 
-					"                       FROM T_ORDER_CRM " + 
-					"                      WHERE TYPE = '非产品线业务') " + 
-					"              GROUP BY COMPANY_BUSI_ORG_ID, SORG_LEVEL3) D " + 
-					"    ON A.COMPANY_BUSI_ORG_ID = D.COMPANY_BUSI_ORG_ID " + 
-					"  LEFT JOIN (SELECT COUNT(CUSTOMER_ID) 产品线活跃客户数量, " + 
-					"                    SORG_LEVEL3, " + 
-					"                    COMPANY_BUSI_ORG_ID " + 
-					"               FROM (SELECT DISTINCT CUSTOMER_ID, " + 
-					"                                     CUSTOMER_NAME, " + 
-					"                                     COMPANY_BUSI_ORG_ID, " + 
-					"                                     SORG_LEVEL3 " + 
-					"                       FROM T_ORDER_CRM " + 
-					"                      WHERE TYPE <> '非产品线业务') " + 
-					"              GROUP BY COMPANY_BUSI_ORG_ID, SORG_LEVEL3) E " + 
-					"    ON A.COMPANY_BUSI_ORG_ID = D.COMPANY_BUSI_ORG_ID  " + 
+					"              GROUP BY SORG_LEVEL3) B " + 
+					"    ON A.SORG_LEVEL3 = B.SORG_LEVEL3 " + 
+					"  LEFT JOIN (SELECT COUNT(CUSTOMER_NAME) 非产品线活跃客户, SORG_LEVEL3 " + 
+					"               FROM (SELECT DISTINCT CUSTOMER_NAME, SORG_LEVEL3 " + 
+					"                       FROM T_ORDER_CRM T1 " + 
+					"                      WHERE TYPE <> '产品线业务') " + 
+					"              GROUP BY SORG_LEVEL3) D " + 
+					"    ON A.SORG_LEVEL3 = D.SORG_LEVEL3 " + 
 					" WHERE A.SORG_LEVEL3 = '"+companyId+"' " + 
 					" GROUP BY A.SORG_LEVEL3 ");
 			System.out.println(sql.toString());
@@ -3983,6 +4870,54 @@ public class NewReportServiceImpl implements NewReportService {
 
 		@RpcMethod(loginValidate = false)
 		@Override
+		public Map<String, Object> findYwskMsgSql1JtWtdlYear(FetchWebRequest<Map<String, String>> fetchWebReq)
+				throws Exception {
+			StringBuffer sql = new StringBuffer();
+			
+			sql.append("  SELECT COUNT(年委托单量) 年委托单量 " + 
+					"              FROM (SELECT COUNT(*) 年委托单量 " + 
+					"                    FROM T_ORDER_SERVER " + 
+					"                    WHERE SUBSTR(CREATE_TIME_ORDER, 1, 4) = " + 
+					"                          TO_CHAR(SYSDATE, 'YYYY') " + 
+					"                    GROUP BY ORDER_UUID) ");
+			System.out.println(sql.toString());
+			List<BigDecimal> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
+			
+			Map<String,Object> map = new HashMap<String,Object>();
+			
+			if(resultList != null && resultList.size() > 0) {
+				map.put("result",NewUtils.returnYiOrWanWtdlInt(resultList.get(0), 2));
+			}
+			
+			return map;
+		}
+
+		@RpcMethod(loginValidate = false)
+		@Override
+		public Map<String, Object> findYwskMsgSql1JtWtdlDay(FetchWebRequest<Map<String, String>> fetchWebReq)
+				throws Exception {
+			StringBuffer sql = new StringBuffer();
+			
+			sql.append("  SELECT COUNT(日委托单量) 日委托单量" + 
+					"        FROM (SELECT COUNT(1) 日委托单量" + 
+					"              FROM T_ORDER_SERVER" + 
+					"              WHERE SUBSTR(CREATE_TIME_ORDER, 1, 10) =" + 
+					"                    TO_CHAR(SYSDATE, 'YYYY-MM-DD')" + 
+					"              GROUP BY ORDER_UUID) ");
+			System.out.println(sql.toString());
+			List<BigDecimal> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
+			
+			Map<String,Object> map = new HashMap<String,Object>();
+			
+			if(resultList != null && resultList.size() > 0) {
+				map.put("result","+"+NewUtils.returnYiOrWanWtdlInt(resultList.get(0), 0));
+			}
+			
+			return map;
+		}
+		
+		@RpcMethod(loginValidate = false)
+		@Override
 		public Map<String, Object> findYwskMsgSql1JtKgdl(FetchWebRequest<Map<String, String>> fetchWebReq)
 				throws Exception {
 			StringBuffer sql = new StringBuffer();
@@ -4010,6 +4945,56 @@ public class NewReportServiceImpl implements NewReportService {
 			if(resultList != null && resultList.size() > 0) {
 				JSONObject ja = NewUtils.returnYwskMsgSql1Jt(resultList, "开工单量");
 				map.put("result", ja);
+			}
+			
+			return map;
+		}
+		
+		@RpcMethod(loginValidate = false)
+		@Override
+		public Map<String, Object> findYwskMsgSql1JtKgdlYear(FetchWebRequest<Map<String, String>> fetchWebReq)
+				throws Exception {
+			StringBuffer sql = new StringBuffer();
+			
+			sql.append(" SELECT COUNT(年开工单量) 年开工单量 " + 
+					"       FROM (SELECT ORDER_UUID 年开工单量 " + 
+					"             FROM T_ORDER_SERVER " + 
+					"             WHERE SUBSTR(JOB_START_TIME_ORDER, 1, 4) = " + 
+					"                   TO_CHAR(SYSDATE, 'YYYY') " + 
+					"             AND JOB_START_TIME_ORDER IS NOT NULL " + 
+					"             GROUP BY ORDER_UUID) ");
+			System.out.println(sql.toString());
+			List<BigDecimal> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
+			
+			Map<String,Object> map = new HashMap<String,Object>();
+			
+			if(resultList != null && resultList.size() > 0) {
+				map.put("result",NewUtils.returnYiOrWanWtdlInt(resultList.get(0), 2));
+			}
+			
+			return map;
+		}
+
+		@RpcMethod(loginValidate = false)
+		@Override
+		public Map<String, Object> findYwskMsgSql1JtKgdlDay(FetchWebRequest<Map<String, String>> fetchWebReq)
+				throws Exception {
+			StringBuffer sql = new StringBuffer();
+			
+			sql.append(" SELECT COUNT(日开工单量) 日开工单量 " + 
+					"       FROM (SELECT ORDER_UUID 日开工单量 " + 
+					"             FROM T_ORDER_SERVER " + 
+					"             WHERE SUBSTR(JOB_START_TIME_ORDER, 1, 10) = " + 
+					"                   TO_CHAR(SYSDATE, 'YYYY-MM-DD') " + 
+					"             AND JOB_START_TIME_ORDER IS NOT NULL " + 
+					"             GROUP BY ORDER_UUID) ");
+			System.out.println(sql.toString());
+			List<BigDecimal> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
+			
+			Map<String,Object> map = new HashMap<String,Object>();
+			
+			if(resultList != null && resultList.size() > 0) {
+				map.put("result","+"+NewUtils.returnYiOrWanWtdlInt(resultList.get(0), 0));
 			}
 			
 			return map;
@@ -4050,19 +5035,67 @@ public class NewReportServiceImpl implements NewReportService {
 
 		@RpcMethod(loginValidate = false)
 		@Override
+		public Map<String, Object> findYwskMsgSql1JtWgdlYear(FetchWebRequest<Map<String, String>> fetchWebReq)
+				throws Exception {
+			StringBuffer sql = new StringBuffer();
+			
+			sql.append(" SELECT COUNT(年完工单量) 年完工单量 " + 
+					"       FROM (SELECT ORDER_UUID 年完工单量 " + 
+					"             FROM T_ORDER_SERVER " + 
+					"             WHERE SUBSTR(JOB_END_TIME_ORDER, 1, 4) = " + 
+					"                   TO_CHAR(SYSDATE, 'YYYY') " + 
+					"             GROUP BY ORDER_UUID) ");
+			System.out.println(sql.toString());
+			List<BigDecimal> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
+			
+			Map<String,Object> map = new HashMap<String,Object>();
+			
+			if(resultList != null && resultList.size() > 0) {
+				map.put("result",NewUtils.returnYiOrWanWtdlInt(resultList.get(0), 0));
+			}
+			
+			return map;
+		}
+
+		@RpcMethod(loginValidate = false)
+		@Override
+		public Map<String, Object> findYwskMsgSql1JtWgdlDay(FetchWebRequest<Map<String, String>> fetchWebReq)
+				throws Exception {
+			StringBuffer sql = new StringBuffer();
+			
+			sql.append(" SELECT COUNT(日完工单量) 日完工单量 " + 
+					"       FROM (SELECT ORDER_UUID 日完工单量 " + 
+					"             FROM T_ORDER_SERVER " + 
+					"             WHERE SUBSTR(JOB_END_TIME_ORDER, 1, 10) = " + 
+					"                   TO_CHAR(SYSDATE, 'YYYY-MM-DD') " + 
+					"             AND JOB_END_TIME_ORDER IS NOT NULL " + 
+					"             GROUP BY ORDER_UUID) ");
+			System.out.println(sql.toString());
+			List<BigDecimal> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
+			
+			Map<String,Object> map = new HashMap<String,Object>();
+			
+			if(resultList != null && resultList.size() > 0) {
+				map.put("result","+"+NewUtils.returnYiOrWanWtdlInt(resultList.get(0), 0));
+			}
+			
+			return map;
+		}
+
+		@RpcMethod(loginValidate = false)
+		@Override
 		public Map<String, Object> findYwskMsgSql1JtWtje(FetchWebRequest<Map<String, String>> fetchWebReq)
 				throws Exception {
 			StringBuffer sql = new StringBuffer();
 			
-			sql.append(" SELECT 年委托金额, 日委托金额 " + 
-					"           FROM (SELECT SUM(SYS_CUR_TOTAL_AMOUNT) 年委托金额 " + 
-					"                 FROM T_ORDER_SERVER " + 
-					"                 WHERE SUBSTR(CREATE_TIME_ORDER, 1, 4) = " + 
-					"                       TO_CHAR(SYSDATE, 'YYYY')) A, " + 
-					"                (SELECT SUM(SYS_CUR_TOTAL_AMOUNT) 日委托金额 " + 
-					"                 FROM VIEW_ORDER_SERVER_TAB " + 
-					"                 WHERE SUBSTR(CREATE_TIME_ORDER, 1, 10) = " + 
-					"                       TO_CHAR(SYSDATE, 'YYYY-mm-dd')) B ");
+			sql.append(" SELECT 年委托金额, NVL(日委托金额, 0) 日委托金额  " + 
+					"  FROM (SELECT SUM(SYS_CUR_TOTAL_AMOUNT) 年委托金额 " + 
+					"          FROM T_ORDER_SERVER " + 
+					"         WHERE SUBSTR(CREATE_TIME_ORDER, 1, 4) = TO_CHAR(SYSDATE, 'YYYY')) A, " + 
+					"       (SELECT SUM(SYS_CUR_TOTAL_AMOUNT) 日委托金额 " + 
+					"          FROM T_ORDER_SERVER " + 
+					"         WHERE SUBSTR(CREATE_TIME_ORDER, 1, 10) = " + 
+					"               TO_CHAR(SYSDATE, 'YYYY-mm-dd')) B");
 			System.out.println(sql.toString());
 			List<Object[]> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
 			
@@ -4071,6 +5104,49 @@ public class NewReportServiceImpl implements NewReportService {
 			if(resultList != null && resultList.size() > 0) {
 				JSONObject ja = NewUtils.returnYwskMsgSql1Jt(resultList, "委托金额");
 				map.put("result", ja);
+			}
+			
+			return map;
+		}
+		
+		@RpcMethod(loginValidate = false)
+		@Override
+		public Map<String, Object> findYwskMsgSql1JtWtjeYear(FetchWebRequest<Map<String, String>> fetchWebReq)
+				throws Exception {
+			StringBuffer sql = new StringBuffer();
+			
+			sql.append(" SELECT SUM(SYS_CUR_TOTAL_AMOUNT) 年委托金额 " + 
+					"       FROM T_ORDER_SERVER " + 
+					"       WHERE SUBSTR(CREATE_TIME_ORDER, 1, 4) = TO_CHAR(SYSDATE, 'YYYY')");
+			System.out.println(sql.toString());
+			List<BigDecimal> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
+			
+			Map<String,Object> map = new HashMap<String,Object>();
+			
+			if(resultList != null && resultList.size() > 0) {
+				map.put("result",NewUtils.returnYiOrWanWtdlInt(resultList.get(0), 0));
+			}
+			
+			return map;
+		}
+		
+		@RpcMethod(loginValidate = false)
+		@Override
+		public Map<String, Object> findYwskMsgSql1JtWtjeDay(FetchWebRequest<Map<String, String>> fetchWebReq)
+				throws Exception {
+			StringBuffer sql = new StringBuffer();
+			
+			sql.append(" SELECT SUM(SYS_CUR_TOTAL_AMOUNT) 日委托金额 " + 
+					"       FROM T_ORDER_SERVER " + 
+					"       WHERE SUBSTR(CREATE_TIME_ORDER, 1, 10) = " + 
+					"             TO_CHAR(SYSDATE, 'YYYY-mm-dd') ");
+			System.out.println(sql.toString());
+			List<BigDecimal> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
+			
+			Map<String,Object> map = new HashMap<String,Object>();
+			
+			if(resultList != null && resultList.size() > 0) {
+				map.put("result","+"+NewUtils.returnYiOrWanWtdlInt(resultList.get(0), 0));
 			}
 			
 			return map;
@@ -4106,20 +5182,68 @@ public class NewReportServiceImpl implements NewReportService {
 		
 		@RpcMethod(loginValidate = false)
 		@Override
+		public Map<String, Object> findYwskMsgSql1JtYcsrYear(FetchWebRequest<Map<String, String>> fetchWebReq)
+				throws Exception {
+			StringBuffer sql = new StringBuffer();
+			
+			sql.append(" SELECT SUM(SYS_CUR_TOTAL_AMOUNT) 年预测收入 " + 
+					"       FROM T_ORDER_SERVER " + 
+					"       WHERE SUBSTR(WORK_FINISH_TIME, 1, 4) = TO_CHAR(SYSDATE, 'YYYY') ");
+			System.out.println(sql.toString());
+			List<BigDecimal> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
+			
+			Map<String,Object> map = new HashMap<String,Object>();
+			
+			if(resultList != null && resultList.size() > 0) {
+				map.put("result",NewUtils.returnYiOrWanWtdlInt(resultList.get(0), 0));
+			}
+			
+			return map;
+		}
+		
+		@RpcMethod(loginValidate = false)
+		@Override
+		public Map<String, Object> findYwskMsgSql1JtYcsrDay(FetchWebRequest<Map<String, String>> fetchWebReq)
+				throws Exception {
+			StringBuffer sql = new StringBuffer();
+			
+			sql.append(" SELECT SUM(SYS_CUR_TOTAL_AMOUNT) 日预测收入 " + 
+					"       FROM T_ORDER_SERVER " + 
+					"       WHERE SUBSTR(WORK_FINISH_TIME, 1, 10) = " + 
+					"             TO_CHAR(SYSDATE, 'YYYY-mm-dd') ");
+			System.out.println(sql.toString());
+			List<BigDecimal> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
+			
+			Map<String,Object> map = new HashMap<String,Object>();
+			
+			if(resultList != null && resultList.size() > 0) {
+				map.put("result",NewUtils.returnYiOrWanWtdlInt(resultList.get(0), 0));
+			}
+			
+			return map;
+		}
+		
+		@RpcMethod(loginValidate = false)
+		@Override
 		public Map<String, Object> findYwskMsgSql2Jt(FetchWebRequest<Map<String, String>> fetchWebReq)
 				throws Exception {
 			StringBuffer sql = new StringBuffer();
 			
-			sql.append(" SELECT round((年业务收入 - 业务成本) / 年业务收入 * 100, 2) 产品线毛利率 " + 
-					"           FROM (SELECT nvl(SUM(EX_TAX_PRICE), 0) 年业务收入 " + 
-					"                 FROM T_COMP_INVOICE_ALL " + 
-					"                 WHERE VOID_TIME IS NULL " + 
-					"                 AND TYPE = '产品线业务' " + 
-					"                 AND SUBSTR(INVOICE_DATE, 0, 4) = TO_CHAR(SYSDATE, 'YYYY') " + 
-					"                 AND SUBSTR(INVOICE_DATE, 0, 7) <= TO_CHAR(SYSDATE, 'YYYY-MM')) A, " + 
-					"                (SELECT SUM(TOTAL_COST) AS 业务成本 " + 
-					"                 FROM T_COMPANY_COST_ALL " + 
-					"                 WHERE SUBSTR(PAY_END_DATE, 0, 4) = TO_CHAR(SYSDATE, 'yyyy')) B ");
+			sql.append("  SELECT  " + 
+					"  case " + 
+					"    when 年业务收入 is null or 年业务收入 = 0 then 0 " + 
+					"    else round((年业务收入 - 业务成本) / 年业务收入 * 100, 2)   " + 
+					"  end 产品线毛利率  " + 
+					" FROM (SELECT nvl(SUM(EX_TAX_PRICE), 0) 年业务收入 " + 
+					"       FROM T_COMP_INVOICE_ALL " + 
+					"       WHERE VOID_TIME IS NULL " + 
+					"       AND TYPE = '产品线业务' " + 
+					"       AND SUBSTR(INVOICE_DATE, 0, 4) = TO_CHAR(SYSDATE, 'YYYY') " + 
+					"       AND SUBSTR(INVOICE_DATE, 0, 7) <= TO_CHAR(SYSDATE, 'YYYY-MM')) A, " + 
+					"      (SELECT SUM(TOTAL_COST) AS 业务成本 " + 
+					"       FROM T_COMPANY_COST_ALL " + 
+					"       WHERE SUBSTR(PAY_END_DATE, 0, 4) = TO_CHAR(SYSDATE, 'yyyy')) B " + 
+					" ");
 			System.out.println(sql.toString());
 			List<BigDecimal> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
 			
@@ -4170,6 +5294,114 @@ public class NewReportServiceImpl implements NewReportService {
 			if(resultList != null && resultList.size() > 0) {
 				JSONObject ja = NewUtils.returnYwskMsgSql3(resultList,0);
 				map.put("result", ja);
+			}
+			
+			return map;
+		}
+		
+		@RpcMethod(loginValidate = false)
+		@Override
+		public Map<String, Object> findYwskMsgSql3JtKhslYear(FetchWebRequest<Map<String, String>> fetchWebReq)
+				throws Exception {
+			StringBuffer sql = new StringBuffer();
+			
+			sql.append("  SELECT COUNT(DISTINCT CUSTOMER_NAME) 年客户数量 " + 
+					"        FROM VIEW_CUSTOMER_ALL ");
+			System.out.println(sql.toString());
+			List<BigDecimal> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
+			
+			Map<String,Object> map = new HashMap<String,Object>();
+			
+			if(resultList != null && resultList.size() > 0) {
+				map.put("result",NewUtils.returnYiOrWanWtdlInt(resultList.get(0), 0));
+			}
+			
+			return map;
+		}
+		
+		@RpcMethod(loginValidate = false)
+		@Override
+		public Map<String, Object> findYwskMsgSql3JtKhslDay(FetchWebRequest<Map<String, String>> fetchWebReq)
+				throws Exception {
+			StringBuffer sql = new StringBuffer();
+			
+			sql.append("  SELECT COUNT(DISTINCT CUSTOMER_NAME) 日客户数量 " + 
+					"        FROM VIEW_CUSTOMER_ALL " + 
+					"        WHERE SUBSTR(CREATE_TIME, 1, 10) = TO_CHAR(SYSDATE, 'YYYY-MM-DD') ");
+			System.out.println(sql.toString());
+			List<BigDecimal> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
+			
+			Map<String,Object> map = new HashMap<String,Object>();
+			
+			if(resultList != null && resultList.size() > 0) {
+				map.put("result",NewUtils.returnYiOrWanWtdlInt(resultList.get(0), 0));
+			}
+			
+			return map;
+		}
+		
+		@RpcMethod(loginValidate = false)
+		@Override
+		public Map<String, Object> findYwskMsgSql3JtKhslCpxhy(FetchWebRequest<Map<String, String>> fetchWebReq)
+				throws Exception {
+			StringBuffer sql = new StringBuffer();
+			
+			sql.append("  SELECT COUNT(DISTINCT CUSTOMER_NAME) 产品线活跃客户数量 " + 
+					"        FROM T_ORDER_CRM " + 
+					"        WHERE SUBSTR(CREATE_TIME_ORDER, 0, 7) >= " + 
+					"              TO_CHAR(ADD_MONTHS(SYSDATE, -12), 'yyyy-mm') " + 
+					"        AND TYPE = '产品线业务' ");
+			System.out.println(sql.toString());
+			List<BigDecimal> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
+			
+			Map<String,Object> map = new HashMap<String,Object>();
+			
+			if(resultList != null && resultList.size() > 0) {
+				map.put("result",NewUtils.returnYiOrWanWtdlInt(resultList.get(0), 0));
+			}
+			
+			return map;
+		}
+		
+		@RpcMethod(loginValidate = false)
+		@Override
+		public Map<String, Object> findYwskMsgSql3JtKhslFcpxhy(FetchWebRequest<Map<String, String>> fetchWebReq)
+				throws Exception {
+			StringBuffer sql = new StringBuffer();
+			
+			sql.append("  SELECT COUNT(CUSTOMER_NAME) 非产品线活跃客户 " + 
+					"        FROM (SELECT DISTINCT CUSTOMER_NAME " + 
+					"              FROM T_ORDER_CRM T1 " + 
+					"              WHERE TYPE <> '产品线业务') ");
+			System.out.println(sql.toString());
+			List<BigDecimal> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
+			
+			Map<String,Object> map = new HashMap<String,Object>();
+			
+			if(resultList != null && resultList.size() > 0) {
+				map.put("result",NewUtils.returnYiOrWanWtdlInt(resultList.get(0), 0));
+			}
+			
+			return map;
+		}
+		
+		@RpcMethod(loginValidate = false)
+		@Override
+		public Map<String, Object> findYwskMsgSql3JtKhslFhy(FetchWebRequest<Map<String, String>> fetchWebReq)
+				throws Exception {
+			StringBuffer sql = new StringBuffer();
+			
+			sql.append("    SELECT 年客户数量 - 活跃客户数量 非活跃客户数量 " + 
+					"  FROM (SELECT COUNT(DISTINCT CUSTOMER_NAME) 年客户数量 " + 
+					"        FROM VIEW_CUSTOMER_ALL) A, " + 
+					"       (SELECT COUNT(DISTINCT CUSTOMER_NAME) 活跃客户数量 FROM T_ORDER_CRM) B");
+			System.out.println(sql.toString());
+			List<BigDecimal> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
+			
+			Map<String,Object> map = new HashMap<String,Object>();
+			
+			if(resultList != null && resultList.size() > 0) {
+				map.put("result",NewUtils.returnYwjiqkIntMsg1("非产品线活跃客户数量", resultList.get(0), new DecimalFormat("#.00")));
 			}
 			
 			return map;
@@ -4263,6 +5495,106 @@ public class NewReportServiceImpl implements NewReportService {
 			
 			return map;
 		}
+
+		@RpcMethod(loginValidate = false)
+		@Override
+		public Map<String, Object> findYwskMsgSql5JtCzslYear(FetchWebRequest<Map<String, String>> fetchWebReq)
+				throws Exception {
+			StringBuffer sql = new StringBuffer();
+			
+			sql.append(" SELECT COUNT(MID) AS 年出证数量 " + 
+					"       FROM T_ORDER_CERC " + 
+					"       WHERE SUBSTR(FICTIONAL_DATE, 1, 4) = to_char(SYSDATE, 'YYYY') ");
+			System.out.println(sql.toString());
+			List<BigDecimal> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
+			
+			Map<String,Object> map = new HashMap<String,Object>();
+			
+			if(resultList != null && resultList.size() > 0) {
+				map.put("result",NewUtils.returnYiOrWanWtdlInt(resultList.get(0), 0));
+			}
+			
+			return map;
+		}
+		
+		@RpcMethod(loginValidate = false)
+		@Override
+		public Map<String, Object> findYwskMsgSql5JtCzslDay(FetchWebRequest<Map<String, String>> fetchWebReq)
+				throws Exception {
+			StringBuffer sql = new StringBuffer();
+			
+			sql.append(" SELECT COUNT(MID) AS 今日出证数量 " + 
+					"       FROM T_ORDER_CERC " + 
+					"       WHERE SUBSTR(FICTIONAL_DATE, 1, 10) = TO_CHAR(SYSDATE, 'YYYY-MM-DD') ");
+			System.out.println(sql.toString());
+			List<BigDecimal> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
+			
+			Map<String,Object> map = new HashMap<String,Object>();
+			
+			if(resultList != null && resultList.size() > 0) {
+				map.put("result","+"+NewUtils.returnYiOrWanWtdlInt(resultList.get(0), 0));
+			}
+			
+			return map;
+		}
+		
+		@RpcMethod(loginValidate = false)
+		@Override
+		public Map<String, Object> findYwskMsgSql5JtCzslZssl(FetchWebRequest<Map<String, String>> fetchWebReq)
+				throws Exception {
+			StringBuffer sql = new StringBuffer();
+			
+			sql.append(" SELECT SUM(CASE " + 
+					"                    WHEN CERTTYPE IN ('纸质报告', '纸质证书') THEN " + 
+					"                     1 " + 
+					"                    ELSE " + 
+					"                     0 " + 
+					"                  END) + " + 
+					"              SUM(CASE " + 
+					"                    WHEN CERTTYPE IN ('电子报告', '电子证书') THEN " + 
+					"                     1 " + 
+					"                    ELSE " + 
+					"                     0 " + 
+					"                  END) AS \"出证数量\" " + 
+					"       FROM T_ORDER_CERC " + 
+					"       WHERE SUBSTR(FICTIONAL_DATE, 1, 4) = to_char(SYSDATE, 'YYYY') ");
+			System.out.println(sql.toString());
+			List<BigDecimal> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
+			
+			Map<String,Object> map = new HashMap<String,Object>();
+			
+			if(resultList != null && resultList.size() > 0) {
+				map.put("result",NewUtils.returnYiOrWanWtdlInt(resultList.get(0), 0));
+			}
+			
+			return map;
+		}
+		
+		@RpcMethod(loginValidate = false)
+		@Override
+		public Map<String, Object> findYwskMsgSql5JtCzslQtcgw(FetchWebRequest<Map<String, String>> fetchWebReq)
+				throws Exception {
+			StringBuffer sql = new StringBuffer();
+			
+			sql.append(" SELECT SUM(CASE " + 
+					"                    WHEN CERTTYPE = '其他工作成果物' THEN " + 
+					"                     1 " + 
+					"                    ELSE " + 
+					"                     0 " + 
+					"                  END) AS \"其他工作成果物\" " + 
+					"       FROM T_ORDER_CERC " + 
+					"       WHERE SUBSTR(FICTIONAL_DATE, 1, 4) = to_char(SYSDATE, 'YYYY') ");
+			System.out.println(sql.toString());
+			List<BigDecimal> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
+			
+			Map<String,Object> map = new HashMap<String,Object>();
+			
+			if(resultList != null && resultList.size() > 0) {
+				map.put("result",NewUtils.returnYiOrWanWtdlInt(resultList.get(0), 0));
+			}
+			
+			return map;
+		}
 		
 		@RpcMethod(loginValidate = false)
 		@Override
@@ -4328,7 +5660,7 @@ public class NewReportServiceImpl implements NewReportService {
 			Map<String, String> resMap = fetchWebReq.getData();
 			String companyId = resMap.get("companyId");
 			
-			sql.append(" SELECT round((年业务收入 - 业务成本) / 年业务收入*100,2) 产品线毛利率 " + 
+			sql.append(" SELECT case when 年业务收入 is null or 年业务收入=0 then 0 else round((年业务收入 - 业务成本) / 年业务收入*100,2) end 产品线毛利率 " + 
 					"            FROM (SELECT  nvl(SUM(EX_TAX_PRICE),0) 年业务收入 " + 
 					"                    FROM T_COMP_INVOICE_ALL " + 
 					"                   WHERE VOID_TIME IS NULL and BUSINESS_REGION ='"+companyId+"' " + 
@@ -4500,6 +5832,52 @@ public class NewReportServiceImpl implements NewReportService {
 			if(resultList != null && resultList.size() > 0) {
 				JSONObject ja = NewUtils.returnYwskMsgSql5(resultList);
 				map.put("result", ja);
+			}
+			
+			return map;
+		}
+		
+		@RpcMethod(loginValidate = false)
+		@Override
+		public Map<String, Object> findJtgsSrbar(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception {
+			StringBuffer sql = new StringBuffer();
+			// 获取当前公司id
+			Map<String, String> resMap = fetchWebReq.getData();
+			String companyId = resMap.get("companyId");
+			sql.append(" select * " + 
+					"  from (select GOODS_MEDIUMCLASS_NAME 服务对象中类, " + 
+					"               sum(EX_tax_price) 开票收入 " + 
+					"          from T_COMP_INVOICE_ALL " + 
+					"         where VOID_TIME IS NULL " + 
+					"           AND substr(invoice_date,0,4)=to_char(sysdate,'yyyy') " + 
+					"           and GOODS_MEDIUMCLASS_NAME is not null " + 
+					"           and PRODUCT_LINE_NAME='"+companyId+"' " + 
+					"         group by GOODS_MEDIUMCLASS_NAME " + 
+					"         order by sum(EX_tax_price) desc) " + 
+					" where rownum <= 5 " + 
+					"       order by 开票收入 desc");
+			System.out.println(sql.toString());
+			List<Object[]> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
+				
+			Map<String,Object> map = new HashMap<String,Object>();
+			
+			if(resultList != null && resultList.size() > 0) {
+				JSONObject ja = Util.returnJtgsSrbarOption(resultList);
+				
+				map.put("srbarOption", ja);
+			}else {
+				JSONObject jo = new JSONObject();
+				JSONObject xAxis = new JSONObject();
+				
+				xAxis.put("min", 0);
+				xAxis.put("max", 0);
+				
+				jo.put("xAxis", xAxis);
+				jo.put("yData", new JSONArray());
+				
+				jo.put("sdata", new JSONArray());
+				
+				map.put("srbarOption", jo);
 			}
 			
 			return map;

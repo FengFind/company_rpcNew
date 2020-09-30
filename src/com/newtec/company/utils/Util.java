@@ -200,7 +200,13 @@ public class Util {
 		// 四舍五入保留2位小数
 		DecimalFormat df = new DecimalFormat(gs.toString());
 		
-		return df.format(bd);
+		if(bd.doubleValue() > 0 && bd.doubleValue() < 1) {
+			return "0"+df.format(bd);
+		}else if(bd.doubleValue() > -1 && bd.doubleValue() < 0) {
+			return "-0"+df.format(Math.abs(bd.doubleValue()));
+		}else {
+			return df.format(bd);
+		}
 	}
 	
 	/**

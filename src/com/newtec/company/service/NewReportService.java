@@ -72,6 +72,30 @@ public interface NewReportService {
     
     public Map<String, Object> findYyjyqk(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
     
+    public Map<String, Object> findYyjyqkYhSrzeYear(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+
+    public Map<String, Object> findYyjyqkYhSrzeDay(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+
+    public Map<String, Object> findYyjyqkYhSrzeCpxywsr(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+
+    public Map<String, Object> findYyjyqkYhSrzeFcpxywsr(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+
+    public Map<String, Object> findYyjyqkYhSrzeDflywsr(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+
+    public Map<String, Object> findYyjyqkYhSrzeQtywsr(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+
+    public Map<String, Object> findYyjyqkYhYwcbYear(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+
+    public Map<String, Object> findYyjyqkYhYwcbDay(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+
+    public Map<String, Object> findYyjyqkYhYwcbZjcb(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+
+    public Map<String, Object> findYyjyqkYhYwcbJjcb(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+
+    public Map<String, Object> findYyjyqkYhYwcbZjcbDay(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+
+    public Map<String, Object> findYyjyqkYhYwcbJjcbDay(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+    
     public Map<String, Object> findYwskByCpx(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
     
     public Map<String, Object> findYwskByCpxYhWtdl(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
@@ -127,22 +151,60 @@ public interface NewReportService {
     public Map<String, Object> findYwskMsgSql5(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;    
 
     public Map<String, Object> findYwskMsgSql1JtWtdl(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+
+    public Map<String, Object> findYwskMsgSql1JtWtdlYear(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+
+    public Map<String, Object> findYwskMsgSql1JtWtdlDay(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
     
     public Map<String, Object> findYwskMsgSql1JtKgdl(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
     
+    public Map<String, Object> findYwskMsgSql1JtKgdlYear(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+    
+    public Map<String, Object> findYwskMsgSql1JtKgdlDay(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+    
     public Map<String, Object> findYwskMsgSql1JtWgdl(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+    
+    public Map<String, Object> findYwskMsgSql1JtWgdlYear(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+    
+    public Map<String, Object> findYwskMsgSql1JtWgdlDay(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
     
     public Map<String, Object> findYwskMsgSql1JtWtje(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
     
+    public Map<String, Object> findYwskMsgSql1JtWtjeYear(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+    
+    public Map<String, Object> findYwskMsgSql1JtWtjeDay(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+    
     public Map<String, Object> findYwskMsgSql1JtYcsr(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+    
+    public Map<String, Object> findYwskMsgSql1JtYcsrYear(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+    
+    public Map<String, Object> findYwskMsgSql1JtYcsrDay(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
         
     public Map<String, Object> findYwskMsgSql2Jt(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
     
     public Map<String, Object> findYwskMsgSql3Jt(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
     
+    public Map<String, Object> findYwskMsgSql3JtKhslYear(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+    
+    public Map<String, Object> findYwskMsgSql3JtKhslDay(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+    
+    public Map<String, Object> findYwskMsgSql3JtKhslCpxhy(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+    
+    public Map<String, Object> findYwskMsgSql3JtKhslFcpxhy(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+    
+    public Map<String, Object> findYwskMsgSql3JtKhslFhy(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+    
     public Map<String, Object> findYwskMsgSql4Jt(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
     
     public Map<String, Object> findYwskMsgSql5Jt(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+    
+    public Map<String, Object> findYwskMsgSql5JtCzslYear(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+    
+    public Map<String, Object> findYwskMsgSql5JtCzslDay(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+    
+    public Map<String, Object> findYwskMsgSql5JtCzslZssl(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+    
+    public Map<String, Object> findYwskMsgSql5JtCzslQtcgw(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
     
     public Map<String, Object> findYwskMsgSql1Quyu(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
     
@@ -156,5 +218,55 @@ public interface NewReportService {
     
     public Map<String, Object> findYyjyqkJtgs(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
     
+    public Map<String, Object> findYyjyqkJtgsYhSrzeYear(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+
+    public Map<String, Object> findYyjyqkJtgsYhSrzeDay(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+
+    public Map<String, Object> findYyjyqkJtgsYhSrzeCpxywsr(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+
+    public Map<String, Object> findYyjyqkJtgsYhSrzeFcpxywsr(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+
+    public Map<String, Object> findYyjyqkJtgsYhSrzeDflywsr(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+
+    public Map<String, Object> findYyjyqkJtgsYhSrzeQtywsr(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+
+    public Map<String, Object> findYyjyqkJtgsYhYwcbYear(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+
+    public Map<String, Object> findYyjyqkJtgsYhYwcbDay(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+
+    public Map<String, Object> findYyjyqkJtgsYhYwcbZjcb(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+
+    public Map<String, Object> findYyjyqkJtgsYhYwcbJjcb(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+
+    public Map<String, Object> findYyjyqkJtgsYhYwcbZjcbDay(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+
+    public Map<String, Object> findYyjyqkJtgsYhYwcbJjcbDay(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+    
     public Map<String, Object> findYyjyqkJtgsQuyu(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+
+    public Map<String, Object> findYyjyqkJtgsQuyuYhSrzeYear(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+
+    public Map<String, Object> findYyjyqkJtgsQuyuYhSrzeDay(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+
+    public Map<String, Object> findYyjyqkJtgsQuyuYhSrzeCpxywsr(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+
+    public Map<String, Object> findYyjyqkJtgsQuyuYhSrzeFcpxywsr(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+
+    public Map<String, Object> findYyjyqkJtgsQuyuYhSrzeDflywsr(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+
+    public Map<String, Object> findYyjyqkJtgsQuyuYhSrzeQtywsr(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+
+    public Map<String, Object> findYyjyqkJtgsQuyuYhYwcbYear(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+
+    public Map<String, Object> findYyjyqkJtgsQuyuYhYwcbDay(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+
+    public Map<String, Object> findYyjyqkJtgsQuyuYhYwcbZjcb(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+
+    public Map<String, Object> findYyjyqkJtgsQuyuYhYwcbJjcb(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+
+    public Map<String, Object> findYyjyqkJtgsQuyuYhYwcbZjcbDay(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+
+    public Map<String, Object> findYyjyqkJtgsQuyuYhYwcbJjcbDay(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+    
+    public Map<String, Object> findJtgsSrbar(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
 }
