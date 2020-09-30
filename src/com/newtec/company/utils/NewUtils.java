@@ -1,6 +1,7 @@
 package com.newtec.company.utils;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.List;
 
@@ -913,7 +914,7 @@ public class NewUtils {
 		}
 		// 亿 万
 		int yi = 100000000, wan = 10000;
-		
+		df.setRoundingMode(RoundingMode.HALF_UP);
 		jo.put("word", name);
 		jo.put("unit", (year > yi ? "亿" : ( year > wan ? "万" : "" )));
 		jo.put("num", year > yi ? df.format( (float)year/yi ) : ( year > wan ? df.format((float) year/wan ) : year) );

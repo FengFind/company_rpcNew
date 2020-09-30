@@ -5401,7 +5401,7 @@ public class NewReportServiceImpl implements NewReportService {
 			Map<String,Object> map = new HashMap<String,Object>();
 			
 			if(resultList != null && resultList.size() > 0) {
-				map.put("result",NewUtils.returnYwjiqkIntMsg1("非产品线活跃客户数量", resultList.get(0), new DecimalFormat("#.00")));
+				map.put("result",NewUtils.returnYwjiqkIntMsg1("非活跃客户数量", resultList.get(0), new DecimalFormat("#.00")));
 			}
 			
 			return map;
