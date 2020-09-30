@@ -4348,7 +4348,7 @@ public class NewReportServiceImpl implements NewReportService {
 		// TODO Auto-generated method stub
     	Map<String, String>reMap = fetchWebReq.getData();
 		String companyId = reMap.get("companyId");
-		String sql = " SELECT  (round((业务收入 - 业务成本) / 业务收入 * 100, 2)) 毛利率" + 
+		String sql = " SELECT  case when 业务收入 is null or 业务收入=0 then 0 else (round((业务收入 - 业务成本) / 业务收入 * 100, 2)) end 毛利率 " + 
 				"           FROM (SELECT nvl(SUM(EX_TAX_PRICE), 0) 业务收入" + 
 				"                 FROM T_COMP_INVOICE_ALL" + 
 				"                 WHERE VOID_TIME IS NULL" + 
