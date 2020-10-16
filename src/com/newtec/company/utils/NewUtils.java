@@ -766,6 +766,8 @@ public class NewUtils {
 			
 			// 公司名称
 			String gsname = reso[0].toString();
+			// 公司id
+			String orgId = reso.length > 5 ? (reso[5] == null ? "" : reso[5].toString()) : "";
 			// 委托单量
 			BigDecimal wtdl = (BigDecimal) reso[1];
 			// 预测收入
@@ -775,7 +777,11 @@ public class NewUtils {
 			// 支出总额
 			BigDecimal zcze = (BigDecimal) reso[4];
 			
-			ja.add(setValueToJobjFinal( setValueToJobj(gsname, wtdl, ycsr, srze, zcze) ));
+			JSONObject resobj = setValueToJobjFinal( setValueToJobj(gsname, wtdl, ycsr, srze, zcze));
+			
+			resobj.put("orgId", orgId);
+			
+			ja.add(resobj);
 			
 			twtdl = twtdl.add(wtdl == null ? new BigDecimal(0) : wtdl);
 			tycsr = tycsr.add(ycsr == null ? new BigDecimal(0) : ycsr);
@@ -1116,6 +1122,8 @@ public class NewUtils {
 			String pname = (String) obj[0];
 			// 子节点名称 -- 三级公司名
 			String cname = (String) obj[1];
+			// 公司对应id
+			String cid = obj.length > 6 ? (obj[6] == null ? null : (String) obj[6])  : "";
 			// 委托单量
 			BigDecimal wtdl = (BigDecimal) obj[2];
 			// 预测收入
@@ -1130,6 +1138,7 @@ public class NewUtils {
 				
 				p.put("id", pname);
 				p.put("name", pname);
+				p.put("orgId", cid);
 				
 				parent.add(p);
 				
@@ -1138,6 +1147,7 @@ public class NewUtils {
 				
 				c.put("id", cname);
 				c.put("name", cname);
+				c.put("orgId", cid);
 				c.put("wtdl", wtdl);
 				c.put("ycsr", ycsr);
 				c.put("srze", srze);
@@ -1154,6 +1164,7 @@ public class NewUtils {
 						
 						c.put("id", cname);
 						c.put("name", cname);
+						c.put("orgId", cid);
 						c.put("wtdl", wtdl);
 						c.put("ycsr", ycsr);
 						c.put("srze", srze);
@@ -1170,6 +1181,7 @@ public class NewUtils {
 					
 					p.put("id", pname);
 					p.put("name", pname);
+					p.put("orgId", cid);
 					
 					parent.add(p);
 					
@@ -1178,6 +1190,7 @@ public class NewUtils {
 					
 					c.put("id", cname);
 					c.put("name", cname);
+					c.put("orgId", cid);
 					c.put("wtdl", wtdl);
 					c.put("ycsr", ycsr);
 					c.put("srze", srze);
@@ -1199,6 +1212,7 @@ public class NewUtils {
 		
 		hj.put("id", "合计");
 		hj.put("name", "合计");
+		hj.put("orgId", "");
 		hj.put("wtdl", NewUtils.returnYiOrWanWtdl(twtdl, 2));
 		hj.put("ycsr", NewUtils.returnYiOrWan(tycsr, 2));
 		hj.put("srze", NewUtils.returnYiOrWan(tsrze, 2));

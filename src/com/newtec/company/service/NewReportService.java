@@ -269,4 +269,6 @@ public interface NewReportService {
     public Map<String, Object> findYyjyqkJtgsQuyuYhYwcbJjcbDay(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
     
     public Map<String, Object> findJtgsSrbar(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
+    
+    public Map<String, Object> findKhmcByOrgId(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception ;
 }

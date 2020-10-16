@@ -1609,11 +1609,13 @@ public class NewReportServiceImpl implements NewReportService {
 		
 		sql.append("select SORG_LEVEL2, " + 
 				"       SORG_LEVEL3, " + 
-				"       nvl(sum(委托单量),0) 委托单量, " + 
-				"       nvl(sum(年预测收入),0) 年预测收入, " + 
-				"       nvl(sum(收入总额),0) 收入总额, " + 
-				"       nvl(sum(业务成本),0) 业务成本 " + 
+				"       nvl(sum(委托单量), 0) 委托单量, " + 
+				"       nvl(sum(年预测收入), 0) 年预测收入, " + 
+				"       nvl(sum(收入总额), 0) 收入总额, " + 
+				"       nvl(sum(业务成本), 0) 业务成本, " + 
+				"       sorg_level3_id " + 
 				"  from (select SORG_LEVEL2, " + 
+				"               sorg_level3_id, " + 
 				"               SORG_LEVEL3, " + 
 				"               sum(ORDER_CREATE_COUNT) 委托单量, " + 
 				"               sum(server_end_amount) 年预测收入, " + 
@@ -1622,9 +1624,10 @@ public class NewReportServiceImpl implements NewReportService {
 				"          from T_COMP_AMOUNT_ALL_MONTH " + 
 				"         where SORG_LEVEL2 not like '%参股%' " + 
 				"           and substr(data_stats_month, 0, 4) = to_char(sysdate, 'YYYY') " + 
-				"         group by SORG_LEVEL2, SORG_LEVEL3 " + 
+				"         group by SORG_LEVEL2, sorg_level3_id,SORG_LEVEL3 " + 
 				"        union all " + 
 				"        SELECT SORG_LEVEL2, " + 
+				"               sorg_level3_id, " + 
 				"               SORG_LEVEL3, " + 
 				"               0 委托单量, " + 
 				"               0 年预测收入, " + 
@@ -1633,19 +1636,21 @@ public class NewReportServiceImpl implements NewReportService {
 				"          FROM T_COMP_INVOICE_ALL_MONTH " + 
 				"         WHERE SUBSTR(invoice_date_month, 0, 4) = TO_CHAR(SYSDATE, 'YYYY') " + 
 				"           AND SUBSTR(invoice_date_month, 0, 7) <= " + 
-				"               TO_CHAR(SYSDATE, 'YYYY-MM')  AND SORG_LEVEL2 not like '%参股%' " + 
-				"         GROUP BY SORG_LEVEL2, SORG_LEVEL3 " + 
+				"               TO_CHAR(SYSDATE, 'YYYY-MM') " + 
+				"           AND SORG_LEVEL2 not like '%参股%' " + 
+				"         GROUP BY SORG_LEVEL2,sorg_level3_id, SORG_LEVEL3 " + 
 				"        union all " + 
 				"        SELECT SORG_LEVEL2, " + 
+				"               sorg_level3_id, " + 
 				"               SORG_LEVEL3, " + 
 				"               0 委托单量, " + 
 				"               0 年预测收入, " + 
 				"               0 as 收入总额, " + 
 				"               SUM(total_cost) 业务成本 " + 
 				"          FROM T_COMPANY_COST_ALL " + 
-				"			where SORG_LEVEL2 not like '%参股%' " +
-				"         GROUP BY SORG_LEVEL2, SORG_LEVEL3) " + 
-				" group by SORG_LEVEL2, SORG_LEVEL3 " + 
+				"         where SORG_LEVEL2 not like '%参股%' " + 
+				"         GROUP BY SORG_LEVEL2,sorg_level3_id, SORG_LEVEL3) " + 
+				" group by SORG_LEVEL2, sorg_level3_id, SORG_LEVEL3 " + 
 				" order by 年预测收入 desc");
 		System.out.println(sql.toString());
 		List<Object[]> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
@@ -1758,8 +1763,10 @@ public class NewReportServiceImpl implements NewReportService {
 				"       SUM(委托单量) 委托单量, " + 
 				"       SUM(预测收入) 预测收入, " + 
 				"       SUM(年业务收入) 年业务收入, " + 
-				"       SUM(业务成本) 业务成本 " + 
+				"       SUM(业务成本) 业务成本, " + 
+				"       sorg_level3_id " + 
 				"  FROM (SELECT BUSINESS_REGION, " + 
+				"               sorg_level3_id, " + 
 				"               SORG_LEVEL3, " + 
 				"               COUNT(DISTINCT(ORDER_UUID)) 委托单量, " + 
 				"               0 AS 年业务收入, " + 
@@ -1768,9 +1775,10 @@ public class NewReportServiceImpl implements NewReportService {
 				"          FROM T_ORDER_SERVER " + 
 				"         WHERE SUBSTR(CREATE_TIME_ORDER, 0, 4) = TO_CHAR(SYSDATE, 'YYYY') " + 
 				"           AND BUSINESS_REGION IS NOT NULL " + 
-				"         GROUP BY BUSINESS_REGION, SORG_LEVEL3 " + 
+				"         GROUP BY BUSINESS_REGION, sorg_level3_id, SORG_LEVEL3 " + 
 				"        UNION ALL " + 
 				"        SELECT BUSINESS_REGION, " + 
+				"               sorg_level3_id, " + 
 				"               SORG_LEVEL3, " + 
 				"               0 AS 委托单量, " + 
 				"               SUM(EX_TAX_PRICE) 年业务收入, " + 
@@ -1781,9 +1789,10 @@ public class NewReportServiceImpl implements NewReportService {
 				"           AND BUSINESS_REGION IS NOT NULL " + 
 				"           AND SUBSTR(INVOICE_DATE, 0, 4) = TO_CHAR(SYSDATE, 'YYYY') " + 
 				"           AND SUBSTR(INVOICE_DATE, 0, 7) <= TO_CHAR(SYSDATE, 'YYYY-MM') " + 
-				"         GROUP BY BUSINESS_REGION, SORG_LEVEL3         " + 
+				"         GROUP BY BUSINESS_REGION, sorg_level3_id, SORG_LEVEL3 " + 
 				"        UNION ALL " + 
 				"        SELECT BUSINESS_REGION, " + 
+				"               sorg_level3_id, " + 
 				"               SORG_LEVEL3, " + 
 				"               0 AS 委托单量, " + 
 				"               0 AS 年业务收入, " + 
@@ -1792,18 +1801,19 @@ public class NewReportServiceImpl implements NewReportService {
 				"          FROM T_ORDER_SERVER " + 
 				"         WHERE SUBSTR(WORK_FINISH_TIME, 1, 4) = TO_CHAR(SYSDATE, 'YYYY') " + 
 				"           AND BUSINESS_REGION IS NOT NULL " + 
-				"         GROUP BY BUSINESS_REGION, SORG_LEVEL3 " + 
+				"         GROUP BY BUSINESS_REGION, sorg_level3_id, SORG_LEVEL3 " + 
 				"        UNION ALL " + 
 				"        SELECT BUSINESS_REGION, " + 
+				"               sorg_level3_id, " + 
 				"               SORG_LEVEL3, " + 
 				"               0 AS 委托单量, " + 
 				"               0 AS 年业务收入, " + 
 				"               0 AS 预测收入, " + 
 				"               SUM(APPORT_PAY_AMOUNT + DIRECT_COST) 业务成本 " + 
 				"          FROM T_COMPANY_COST_ALL " + 
-				"         WHERE  BUSINESS_REGION IS NOT NULL " + 
-				"         GROUP BY BUSINESS_REGION, SORG_LEVEL3) " + 
-				" GROUP BY BUSINESS_REGION, SORG_LEVEL3 " + 
+				"         WHERE BUSINESS_REGION IS NOT NULL " + 
+				"         GROUP BY BUSINESS_REGION,sorg_level3_id, SORG_LEVEL3) " + 
+				" GROUP BY BUSINESS_REGION, sorg_level3_id, SORG_LEVEL3 " + 
 				" order by 预测收入 desc");
 		System.out.println(sql.toString());
 		List<Object[]> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
@@ -1904,46 +1914,50 @@ public class NewReportServiceImpl implements NewReportService {
 		String cpxName = resMap.get("cpxName");
 		
 		sql.append("select SORG_LEVEL3, " + 
-				"       nvl(sum(委托单量),0) 委托单量, " + 
-				"       nvl(sum(年预测收入),0) 年预测收入, " + 
-				"       nvl(sum(收入总额),0) 收入总额, " + 
-				"       nvl(sum(业务成本),0) 业务成本 " + 
-				"  from (select SORG_LEVEL2, " + 
-				"               SORG_LEVEL3, " + 
-				"               sum(ORDER_CREATE_COUNT) 委托单量, " + 
-				"               sum(server_end_amount) 年预测收入, " + 
-				"               0 as 收入总额, " + 
-				"               0 as 业务成本 " + 
-				"          from T_COMP_AMOUNT_ALL_MONTH " + 
-				"         where SORG_LEVEL2 not like '%参股%' " + 
-				"           and product_line_name ='"+cpxName+"' " + 
-				"           and substr(data_stats_month, 0, 4) = to_char(sysdate, 'YYYY') " + 
-				"         group by SORG_LEVEL2, SORG_LEVEL3 " + 
-				"        union all " + 
-				"        SELECT SORG_LEVEL2, " + 
-				"               SORG_LEVEL3, " + 
-				"               0 委托单量, " + 
-				"               0 年预测收入, " + 
-				"               SUM(invoice_all_ex_tax_price) 收入总额, " + 
-				"               0 业务成本 " + 
-				"          FROM T_COMP_INVOICE_ALL_MONTH " + 
-				"         WHERE SUBSTR(invoice_date_month, 0, 4) = TO_CHAR(SYSDATE, 'YYYY') " + 
-				"           and product_line_name ='"+cpxName+"' " + 
-				"           AND SUBSTR(invoice_date_month, 0, 7) <= " + 
-				"               TO_CHAR(SYSDATE, 'YYYY-MM') " + 
-				"         GROUP BY SORG_LEVEL2, SORG_LEVEL3 " + 
-				"        union all " + 
-				"        SELECT SORG_LEVEL2, " + 
-				"               SORG_LEVEL3, " + 
-				"               0 委托单量, " + 
-				"               0 年预测收入, " + 
-				"               0 as 收入总额, " + 
-				"               SUM(total_cost) 业务成本 " + 
-				"          FROM T_COMPANY_COST_ALL " + 
-				"          where product_name ='"+cpxName+"' " + 
-				"         GROUP BY SORG_LEVEL2, SORG_LEVEL3) " + 
-				" group by SORG_LEVEL3 " + 
-				" order by 年预测收入 desc");
+				"       nvl(sum(委托单量), 0) 委托单量, " + 
+				"       nvl(sum(年预测收入), 0) 年预测收入, " + 
+				"       nvl(sum(收入总额), 0) 收入总额, " + 
+				"       nvl(sum(业务成本), 0) 业务成本, " + 
+				"       company_busi_org_id " + 
+				"from (select company_busi_org_id, " + 
+				"             SORG_LEVEL2, " + 
+				"             SORG_LEVEL3, " + 
+				"             sum(ORDER_CREATE_COUNT) 委托单量, " + 
+				"             sum(server_end_amount) 年预测收入, " + 
+				"             0 as 收入总额, " + 
+				"             0 as 业务成本 " + 
+				"      from T_COMP_AMOUNT_ALL_MONTH " + 
+				"      where SORG_LEVEL2 not like '%参股%' " + 
+				"      and product_line_name = '"+cpxName+"' " + 
+				"      and substr(data_stats_month, 0, 4) = to_char(sysdate, 'YYYY') " + 
+				"      group by company_busi_org_id, SORG_LEVEL2, SORG_LEVEL3 " + 
+				"      union all " + 
+				"      SELECT company_busi_org_id, " + 
+				"             SORG_LEVEL2, " + 
+				"             SORG_LEVEL3, " + 
+				"             0 委托单量, " + 
+				"             0 年预测收入, " + 
+				"             SUM(invoice_all_ex_tax_price) 收入总额, " + 
+				"             0 业务成本 " + 
+				"      FROM T_COMP_INVOICE_ALL_MONTH " + 
+				"      WHERE SUBSTR(invoice_date_month, 0, 4) = TO_CHAR(SYSDATE, 'YYYY') " + 
+				"      and product_line_name = '"+cpxName+"' " + 
+				"      AND SUBSTR(invoice_date_month, 0, 7) <= TO_CHAR(SYSDATE, 'YYYY-MM') " + 
+				"      GROUP BY company_busi_org_id, SORG_LEVEL2, SORG_LEVEL3 " + 
+				"      union all " + 
+				"      SELECT company_busi_org_id, " + 
+				"             SORG_LEVEL2, " + 
+				"             SORG_LEVEL3, " + 
+				"             0 委托单量, " + 
+				"             0 年预测收入, " + 
+				"             0 as 收入总额, " + 
+				"             SUM(total_cost) 业务成本 " + 
+				"      FROM T_COMPANY_COST_ALL " + 
+				"      where product_name = '"+cpxName+"' " + 
+				"      GROUP BY company_busi_org_id, SORG_LEVEL2, SORG_LEVEL3) " + 
+				"group by company_busi_org_id, SORG_LEVEL3 " + 
+				"order by 年预测收入 desc " + 
+				"");
 		System.out.println(sql.toString());
 		List<Object[]> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
 			
@@ -2321,49 +2335,63 @@ public class NewReportServiceImpl implements NewReportService {
 		Map<String, String> resMap = fetchWebReq.getData();
 		String gsName = resMap.get("gsName");
 		
-		sql.append(" select company_busi_org_name, " + 
-				"       nvl(sum(委托单量),0) 委托单量, " + 
-				"       nvl(sum(年预测收入),0) 年预测收入, " + 
-				"       nvl(sum(收入总额),0) 收入总额, " + 
-				"       nvl(sum(业务成本),0) 业务成本 " + 
-				"  from (select SORG_LEVEL2, " + 
-				"               SORG_LEVEL3, " + 
-				"               company_busi_org_name , " + 
-				"               sum(ORDER_CREATE_COUNT) 委托单量, " + 
-				"               sum(server_end_amount) 年预测收入, " + 
-				"               0 as 收入总额, " + 
-				"               0 as 业务成本 " + 
-				"          from T_COMP_AMOUNT_ALL_MONTH " + 
-				"         where SORG_LEVEL2 not like '%参股%' " + 
-				"           and SORG_LEVEL3 ='"+gsName+"' " + 
-				"           and substr(data_stats_month, 0, 4) = to_char(sysdate, 'YYYY') " + 
-				"         group by SORG_LEVEL2, SORG_LEVEL3,company_busi_org_name  " + 
-				"        union all " + 
-				"        SELECT SORG_LEVEL2, " + 
-				"               SORG_LEVEL3, " + 
-				"               company_busi_org_name , " + 
-				"               0 委托单量, " + 
-				"               0 年预测收入, " + 
-				"               SUM(invoice_all_ex_tax_price) 收入总额, " + 
-				"               0 业务成本 " + 
-				"          FROM T_COMP_INVOICE_ALL_MONTH " + 
-				"         WHERE SUBSTR(invoice_date_month, 0, 4) = TO_CHAR(SYSDATE, 'YYYY') " + 
-				"           and SORG_LEVEL3 ='"+gsName+"' " + 
-				"           AND SUBSTR(invoice_date_month, 0, 7) <= " + 
-				"               TO_CHAR(SYSDATE, 'YYYY-MM') " + 
-				"         GROUP BY SORG_LEVEL2, SORG_LEVEL3,company_busi_org_name  " + 
-				"        union all " + 
-				"        SELECT SORG_LEVEL2, " + 
-				"               SORG_LEVEL3, " + 
-				"               company_busi_org_name ,  " + 
-				"               0 委托单量, " + 
-				"               0 年预测收入, " + 
-				"               0 as 收入总额, " + 
-				"               SUM(total_cost) 业务成本 " + 
-				"          FROM T_COMPANY_COST_ALL " + 
-				"          where SORG_LEVEL3 ='"+gsName+"' " + 
-				"         GROUP BY SORG_LEVEL2, SORG_LEVEL3,company_busi_org_name) " + 
-				" group by company_busi_org_name order by 年预测收入 desc ");
+		sql.append("  select company_busi_org_name, " + 
+				"        nvl(sum(委托单量), 0) 委托单量, " + 
+				"        nvl(sum(年预测收入), 0) 年预测收入, " + 
+				"        nvl(sum(收入总额), 0) 收入总额, " + 
+				"        nvl(sum(业务成本), 0) 业务成本, " + 
+				"        company_busi_org_id " + 
+				" from (select company_busi_org_id, " + 
+				"              SORG_LEVEL2, " + 
+				"              SORG_LEVEL3, " + 
+				"              company_busi_org_name, " + 
+				"              sum(ORDER_CREATE_COUNT) 委托单量, " + 
+				"              sum(server_end_amount) 年预测收入, " + 
+				"              0 as 收入总额, " + 
+				"              0 as 业务成本 " + 
+				"       from T_COMP_AMOUNT_ALL_MONTH " + 
+				"       where SORG_LEVEL2 not like '%参股%' " + 
+				"       and SORG_LEVEL3 = '"+gsName+"' " + 
+				"       and substr(data_stats_month, 0, 4) = to_char(sysdate, 'YYYY') " + 
+				"       group by company_busi_org_id, " + 
+				"                SORG_LEVEL2, " + 
+				"                SORG_LEVEL3, " + 
+				"                company_busi_org_name " + 
+				"       union all " + 
+				"       SELECT company_busi_org_id, " + 
+				"              SORG_LEVEL2, " + 
+				"              SORG_LEVEL3, " + 
+				"              company_busi_org_name, " + 
+				"              0 委托单量, " + 
+				"              0 年预测收入, " + 
+				"              SUM(invoice_all_ex_tax_price) 收入总额, " + 
+				"              0 业务成本 " + 
+				"       FROM T_COMP_INVOICE_ALL_MONTH " + 
+				"       WHERE SUBSTR(invoice_date_month, 0, 4) = TO_CHAR(SYSDATE, 'YYYY') " + 
+				"       and SORG_LEVEL3 = '"+gsName+"' " + 
+				"       AND SUBSTR(invoice_date_month, 0, 7) <= TO_CHAR(SYSDATE, 'YYYY-MM') " + 
+				"       GROUP BY company_busi_org_id, " + 
+				"                SORG_LEVEL2, " + 
+				"                SORG_LEVEL3, " + 
+				"                company_busi_org_name " + 
+				"       union all " + 
+				"       SELECT company_busi_org_id, " + 
+				"              SORG_LEVEL2, " + 
+				"              SORG_LEVEL3, " + 
+				"              company_busi_org_name, " + 
+				"              0 委托单量, " + 
+				"              0 年预测收入, " + 
+				"              0 as 收入总额, " + 
+				"              SUM(total_cost) 业务成本 " + 
+				"       FROM T_COMPANY_COST_ALL " + 
+				"       where SORG_LEVEL3 = '"+gsName+"' " + 
+				"       GROUP BY company_busi_org_id, " + 
+				"                SORG_LEVEL2, " + 
+				"                SORG_LEVEL3, " + 
+				"                company_busi_org_name) " + 
+				" group by company_busi_org_id, company_busi_org_name " + 
+				" order by 年预测收入 desc " + 
+				" ");
 		System.out.println(sql.toString());
 		List<Object[]> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
 		
@@ -2388,48 +2416,62 @@ public class NewReportServiceImpl implements NewReportService {
 		String gsName = resMap.get("gsName");
 		
 		sql.append(" select company_busi_org_name, " + 
-				"       nvl(sum(委托单量),0) 委托单量, " + 
-				"       nvl(sum(年预测收入),0) 年预测收入, " + 
-				"       nvl(sum(收入总额),0) 收入总额, " + 
-				"       nvl(sum(业务成本),0) 业务成本 " + 
+				"       nvl(sum(委托单量), 0) 委托单量, " + 
+				"       nvl(sum(年预测收入), 0) 年预测收入, " + 
+				"       nvl(sum(收入总额), 0) 收入总额, " + 
+				"       nvl(sum(业务成本), 0) 业务成本, " + 
+				"       company_busi_org_id " + 
 				"  from (select SORG_LEVEL2, " + 
 				"               SORG_LEVEL3, " + 
-				"               company_busi_org_name , " + 
+				"               company_busi_org_id, " + 
+				"               company_busi_org_name, " + 
 				"               sum(ORDER_CREATE_COUNT) 委托单量, " + 
 				"               sum(server_end_amount) 年预测收入, " + 
 				"               0 as 收入总额, " + 
 				"               0 as 业务成本 " + 
 				"          from T_COMP_AMOUNT_ALL_MONTH " + 
 				"         where SORG_LEVEL2 not like '%参股%' " + 
-				"           and BUSINESS_REGION ='"+gsName+"' " + 
+				"           and BUSINESS_REGION = '"+gsName+"' " + 
 				"           and substr(data_stats_month, 0, 4) = to_char(sysdate, 'YYYY') " + 
-				"         group by SORG_LEVEL2, SORG_LEVEL3,company_busi_org_name  " + 
+				"         group by SORG_LEVEL2, " + 
+				"                  SORG_LEVEL3, " + 
+				"                  company_busi_org_id, " + 
+				"                  company_busi_org_name " + 
 				"        union all " + 
 				"        SELECT SORG_LEVEL2, " + 
 				"               SORG_LEVEL3, " + 
-				"               company_busi_org_name , " + 
+				"               company_busi_org_id, " + 
+				"               company_busi_org_name, " + 
 				"               0 委托单量, " + 
 				"               0 年预测收入, " + 
 				"               SUM(invoice_all_ex_tax_price) 收入总额, " + 
 				"               0 业务成本 " + 
 				"          FROM T_COMP_INVOICE_ALL_MONTH " + 
 				"         WHERE SUBSTR(invoice_date_month, 0, 4) = TO_CHAR(SYSDATE, 'YYYY') " + 
-				"           and BUSINESS_REGION ='"+gsName+"' " + 
+				"           and BUSINESS_REGION = '"+gsName+"' " + 
 				"           AND SUBSTR(invoice_date_month, 0, 7) <= " + 
 				"               TO_CHAR(SYSDATE, 'YYYY-MM') " + 
-				"         GROUP BY SORG_LEVEL2, SORG_LEVEL3,company_busi_org_name  " + 
+				"         GROUP BY SORG_LEVEL2, " + 
+				"                  SORG_LEVEL3, " + 
+				"                  company_busi_org_id, " + 
+				"                  company_busi_org_name " + 
 				"        union all " + 
 				"        SELECT SORG_LEVEL2, " + 
 				"               SORG_LEVEL3, " + 
-				"               company_busi_org_name ,  " + 
+				"               company_busi_org_id, " + 
+				"               company_busi_org_name, " + 
 				"               0 委托单量, " + 
 				"               0 年预测收入, " + 
 				"               0 as 收入总额, " + 
 				"               SUM(total_cost) 业务成本 " + 
 				"          FROM T_COMPANY_COST_ALL " + 
-				"          where BUSINESS_REGION ='"+gsName+"' " + 
-				"         GROUP BY SORG_LEVEL2, SORG_LEVEL3,company_busi_org_name) " + 
-				" group by company_busi_org_name order by 年预测收入 desc ");
+				"         where BUSINESS_REGION = '"+gsName+"' " + 
+				"         GROUP BY SORG_LEVEL2, " + 
+				"                  SORG_LEVEL3, " + 
+				"                  company_busi_org_id, " + 
+				"                  company_busi_org_name) " + 
+				" group by company_busi_org_id,company_busi_org_name " + 
+				" order by 年预测收入 desc ");
 		System.out.println(sql.toString());
 		List<Object[]> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
 		
@@ -5878,6 +5920,28 @@ public class NewReportServiceImpl implements NewReportService {
 				jo.put("sdata", new JSONArray());
 				
 				map.put("srbarOption", jo);
+			}
+			
+			return map;
+		}
+		
+		@RpcMethod(loginValidate = false)
+		@Override
+		public Map<String, Object> findKhmcByOrgId(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception {
+			StringBuffer sql = new StringBuffer();
+			// 获取当前公司id
+			Map<String, String> resMap = fetchWebReq.getData();
+			String companyId = resMap.get("companyId");
+			sql.append(" select sorg_fullname from T_ORG_TREE where x_unifycode = '"+companyId+"'");
+			System.out.println(sql.toString());
+			List<String> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
+			
+			Map<String,Object> map = new HashMap<String,Object>();
+			
+			if(resultList != null && resultList.size() > 0) {
+				map.put("khmc", resultList.get(0));
+			}else {
+				map.put("khmc", "");
 			}
 			
 			return map;
