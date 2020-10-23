@@ -2,6 +2,7 @@ package com.newtec.company.utils;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -9,9 +10,22 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.commons.codec.binary.Base64;
+
+import com.lowagie.text.Document;
+import com.lowagie.text.pdf.PdfContentByte;
+import com.lowagie.text.pdf.PdfCopy;
+import com.lowagie.text.pdf.PdfImportedPage;
+import com.lowagie.text.pdf.PdfReader;
+import com.lowagie.text.pdf.PdfWriter;
+
 import sun.misc.BASE64Decoder;
 import sun.misc.BASE64Encoder;
 
@@ -25,17 +39,108 @@ public class PDFBinaryConvert {
 
 	public static void main(String[] args) {
 		// 将PDF格式文件转成base64编码
-		String path = "F:/hgcsbw/OutBox/#367-4 报告.pdf";
-		String base64String = getPDFBinary(new File(path));
+//		String path = "F:/hgcsbw/OutBox/#367-4 报告.pdf";
+//		String base64String = getPDFBinary(new File(path));
 //		System.out.println(base64String);
 		// 将base64的编码转成PDF格式文件
-		String dest = "F:/hgcsbw/OutBox/tttt.pdf";
-		base64StringToPDF(base64String, dest);
+//		String dest = "F:/hgcsbw/OutBox/tttt.pdf";
+//		base64StringToPDF(base64String, dest);
 		// 将 编码写入txt
-		String txt = "F:/hgcsbw/OutBox/tttt.txt";
-		writeContentToTxt(txt, base64String);
+//		String txt = "F:/hgcsbw/OutBox/tttt.txt";
+//		writeContentToTxt(txt, base64String);
+		
+		PDFBinaryConvert.convertPdfToManyByPages("F:/hgcsbw/#367-4 报告.pdf", "F:/hgcsbw/fgpdf");
+	}
+	
+	/**
+	 * 将base64编码分割
+	 */
+	public static void fengeBase64() {
+		String dest = "F:/hgcsbw/newttt.pdf";
+		
+		String base64 = PDFBinaryConvert.findStringFromTxt("F:/hgcsbw/pdf.txt");
+		
+		// 将base64进行分组 按3M 一组 
+		// 1个字符1个字节 3M = 3 * 1024 *1024 
+		int m3 = 3 * 1024 *1024 ;
+		// 存放 分开的字符串
+		List<String> strList = new ArrayList<String>();
+		
+		for (int i = 0; i < base64.length(); i+=m3) {
+			strList.add(base64.substring(i, (i+m3) > base64.length() ? base64.length() : (i+m3) ));
+		}
+		
+		System.out.println( "  strList  的 长度 " + strList.size() );
+		
+		String new64 = "";
+		
+		for (int j = 0; j < strList.size(); j++) {
+			new64 += strList.get(j);
+			// 将 字符串写入txt
+			writeContentToTxt("F:/hgcsbw/txt/"+j+".txt", strList.get(j));
+		}
+		
+		base64StringToPDF(new64, dest);
 	}
 
+	/**
+	 * pdf 按页转换成多个pdf
+	 * @param source 源文件地址
+	 * @param dest 目标文件夹地址
+	 */
+	public static void convertPdfToManyByPages(String source, String dest) {
+		try {
+			PdfReader reader = new PdfReader(new FileInputStream(new File(source)));
+			int n = reader.getNumberOfPages();
+			for (int i = 0; i < n; i++) {
+				File dir = new File(dest);
+				
+				if(!dir.exists()) {
+					dir.mkdirs();
+				}
+				
+				File file = new File(dest+File.separator+source.substring(source.lastIndexOf("/")+1, source.lastIndexOf("."))+"_"+i+".pdf");
+				
+				if(!file.exists()) {
+					file.createNewFile();
+				}
+				
+				Document document = new Document();
+				PdfWriter writer = PdfWriter.getInstance(document, new FileOutputStream(dest+File.separator+source.substring(source.lastIndexOf("/")+1, source.lastIndexOf("."))+"_"+i+".pdf"));
+				
+				document.open();
+				PdfContentByte cb = writer.getDirectContent();
+				document.newPage();
+				PdfImportedPage page = writer.getImportedPage(reader, i+1);
+				cb.addTemplate(page, 0, 0);
+				document.close();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		} 
+	}
+	
+	/**
+	 * 从txt中读取内容转换为字符串
+	 * @param path
+	 * @return
+	 */
+	public static String findStringFromTxt(String path) {
+		StringBuffer buffer = new StringBuffer();
+		
+		try {
+			BufferedReader bf= new BufferedReader(new FileReader(path));
+			String s = null;
+			while((s = bf.readLine())!=null){//使用readLine方法，一次读一行
+			    buffer.append(s.trim());
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return buffer.toString();
+	}
+	
 	/**
 	 * 将PDF转换成base64编码 1.使用BufferedInputStream和FileInputStream从File指定的文件中读取内容；
 	 * 2.然后建立写入到ByteArrayOutputStream底层输出流对象的缓冲输出流BufferedOutputStream

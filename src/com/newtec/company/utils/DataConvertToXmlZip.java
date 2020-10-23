@@ -27,6 +27,7 @@ import com.alibaba.fastjson.JSONArray;
 public class DataConvertToXmlZip {
 
 	// 通过数据库查询出 要导出的数据 生成xml 并打包成zip
+	// 生成附件 对应xml 并打包
 	public static void dataToZip(String source, String dest) {
 		try {
 			SimpleDateFormat  sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -53,10 +54,25 @@ public class DataConvertToXmlZip {
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
 		// 计数 
 		int js = 0;
+		
+		// 网络中断之后添加的代码
+//		String idddd = "2751361106952589813";
+//		boolean idf = false;
+		
 		// 安装海运传输的xml格式模拟数据
 		for (int i = 0; i < db.size(); i++) {
 			// 数据库查出来的一条数据
 			JSONArray dbi = db.get(i);
+			
+//			//网络中断之后添加的代码
+//			if(dbi.getString(0).equals(idddd)) {
+//				idf = true;
+//			}
+//			
+//			if(!idf) {
+//				System.out.println(" idddd =  " + dbi.getString(0));
+//				continue;
+//			}
 			
 			// 下载文件的地址
 			String url = path+dbi.getString(0);

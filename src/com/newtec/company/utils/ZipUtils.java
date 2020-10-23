@@ -2,10 +2,13 @@ package com.newtec.company.utils;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -155,15 +158,65 @@ public class ZipUtils {
 		}
 	}
 
+	public static void dirFilesToZip(String dirPath, String desPath) {
+		// 循环压缩文件
+		int size = 100;
+		// 存放file
+		List<File> fileList = new ArrayList<>();
+		// 文件夹对象
+		File dir = new File(dirPath);
+		// 文件夹内文件 列表
+		File[] dirFiles = dir.listFiles();
+		
+		// 循环 每隔100个 压缩一次
+		int i = 0;
+		for (; i < dirFiles.length; i++) {
+			if(fileList.size() == 0) {
+				fileList.add(dirFiles[i]);
+				continue;
+			}
+			
+			if(fileList.size() == 100) {
+				// 压缩
+				try {
+					FileOutputStream fos2 = new FileOutputStream(new File(desPath+File.separator+System.currentTimeMillis()+"_"+i+".zip"));
+					SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+					System.out.println("第"+(i/100)+"个文件 压缩开始 -------- "+sdf.format(new Date()));
+					ZipUtils.toZip(fileList, fos2);
+					System.out.println("第"+(i/100)+"个文件 压缩结束 -------- "+sdf.format(new Date()));
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				
+				fileList = new ArrayList<>();
+			}
+			
+			fileList.add(dirFiles[i]);
+		}
+		
+		// 压缩
+		try {
+			FileOutputStream fos2 = new FileOutputStream(new File(desPath+File.separator+System.currentTimeMillis()+"_"+i+".zip"));
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+			System.out.println("第"+(i/100)+"个文件 压缩开始 -------- "+sdf.format(new Date()));
+			ZipUtils.toZip(fileList, fos2);
+			System.out.println("第"+(i/100)+"个文件 压缩结束 -------- "+sdf.format(new Date()));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
 	public static void main(String[] args) throws Exception {
 		/** 测试压缩方法1 */
-		FileOutputStream fos1 = new FileOutputStream(new File("c:/mytest01.zip"));
-		ZipUtils.toZip(new File("D:/log"), fos1, true);
+//		FileOutputStream fos1 = new FileOutputStream(new File("c:/mytest01.zip"));
+//		ZipUtils.toZip(new File("D:/log"), fos1, true);
 		/** 测试压缩方法2 */
-		List<File> fileList = new ArrayList<>();
-		fileList.add(new File("D:/Java/jdk1.7.0_45_64bit/bin/jar.exe"));
-		fileList.add(new File("D:/Java/jdk1.7.0_45_64bit/bin/java.exe"));
-		FileOutputStream fos2 = new FileOutputStream(new File("c:/mytest02.zip"));
-		ZipUtils.toZip(fileList, fos2);
+//		List<File> fileList = new ArrayList<>();
+//		fileList.add(new File("D:/Java/jdk1.7.0_45_64bit/bin/jar.exe"));
+//		fileList.add(new File("D:/Java/jdk1.7.0_45_64bit/bin/java.exe"));
+//		FileOutputStream fos2 = new FileOutputStream(new File("c:/mytest02.zip"));
+//		ZipUtils.toZip(fileList, fos2);
+		
+		dirFilesToZip("F:/hgcsbw/1603189489646_附件信息/OutBox",  "F:/hgcsbw/1603189489646_附件信息");
 	}
 }

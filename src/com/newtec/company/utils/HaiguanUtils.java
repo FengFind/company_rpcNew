@@ -69,6 +69,7 @@ public class HaiguanUtils {
 				ja.add(rs.getString(4));
 				ja.add(rs.getString(5));
 				ja.add(rs.getString(6));
+				ja.add(rs.getString(7));
 
 				result.add(ja);
 			}
@@ -105,8 +106,8 @@ public class HaiguanUtils {
 
 	public static List<JSONArray> findFileData() {
 		// 查询 T_FILE
-//		String sqlFile = "select a.*, rownum from( " + "select * from T_FILE  " + ") a " + "where rownum < 100";
-		String sqlFile = "select a.*, rownum from( " + "select * from T_FILE  " + ") a ";
+		String sqlFile = "select a.*, rownum from( " + "select * from T_FILE  " + ") a " + "where rownum < 101";
+//		String sqlFile = "select a.*, rownum from( " + "select * from T_FILE  " + ") a ";
 		return findData(sqlFile);
 	}
 
@@ -232,7 +233,7 @@ public class HaiguanUtils {
 		
 		// 保存文件的路径
 		String dest = "F:/hgcsbw";
-		String id = "2709945542562722407";
+		String id = "2690131562391773505";
 		
 		try {
 			System.out.println(HaiguanUtils.downLoadByUrl(urlStr+id, dest));
