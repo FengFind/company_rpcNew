@@ -16,6 +16,7 @@ import org.dom4j.io.OutputFormat;
 import org.dom4j.io.SAXReader;
 
 import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 
 /**
  * 通过数据库查询出 要导出的数据
@@ -61,6 +62,7 @@ public class DataConvertToXmlZip {
 		
 		// 安装海运传输的xml格式模拟数据
 		for (int i = 0; i < db.size(); i++) {
+			System.out.println("  ----------  "+i+" ------------ ");
 			// 数据库查出来的一条数据
 			JSONArray dbi = db.get(i);
 			
@@ -74,13 +76,34 @@ public class DataConvertToXmlZip {
 //				continue;
 //			}
 			
-			// 下载文件的地址
-			String url = path+dbi.getString(0);
-			// 保存后的文件名称
-			String fileName = HaiguanUtils.downLoadByUrl(url, dest);
+			// 存在的文件名称
+			String fileName;
+			// base64编码
+			String ecode;
+			// 获取 已经存在的 pdf文件名称和base64
+			String exist = "F:/hgcsbw/loaded/txt";
+			// 存放信息的jsonobject
+			JSONObject ejo = XmlBase64ToFile.isExistPdf(exist, dbi.getString(0));
+			System.out.println(ejo.getString("FileName"));
+			if(ejo.getString("FileName") != null && !ejo.getString("FileName").equals("")) {
+				fileName = ejo.getString("FileName");
+				ecode = ejo.getString("base64");
+				
+				// 判断ecode 是否大于3M 剩余1M 用来存放其他字符
+				if(ecode.length() > 3 * 1024 * 1024) {
+					continue;
+				}
+			}else {
+				// 下载文件的地址
+				String url = path+dbi.getString(0);
+				// 保存后的文件名称
+				fileName = HaiguanUtils.downLoadByUrl(url, dest);				
+				// 将文件转换成base64编码 并添加到jsoaarray
+				ecode = PDFBinaryConvert.getPDFBinary(new File(dest+ File.separator + fileName));
+			}
 			
-			// 将文件转换成base64编码 并添加到jsoaarray
-			String ecode = PDFBinaryConvert.getPDFBinary(new File(dest+ File.separator + fileName));
+			// 正在进行
+			System.out.println(dbi.getString(0) + "  正在生成第"+i+"个xml --------- ");
 			
 			// 需要组装成xml中对应的格式
 			List<Object> rut = new ArrayList<Object>();

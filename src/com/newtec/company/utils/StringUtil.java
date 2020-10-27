@@ -6,7 +6,8 @@ public class StringUtil {
 
 	public static void main(String[] args) {
 		try {
-			System.out.println(StringUtil.MD5("123456"));
+			String str = StringUtil.MD5("123456");
+			System.out.println(str.length()); 
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

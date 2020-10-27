@@ -14,16 +14,19 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.codec.binary.Base64;
 
 import com.lowagie.text.Document;
+import com.lowagie.text.DocumentException;
 import com.lowagie.text.pdf.PdfContentByte;
 import com.lowagie.text.pdf.PdfCopy;
 import com.lowagie.text.pdf.PdfImportedPage;
 import com.lowagie.text.pdf.PdfReader;
+import com.lowagie.text.pdf.PdfStamper;
 import com.lowagie.text.pdf.PdfWriter;
 
 import sun.misc.BASE64Decoder;
@@ -49,7 +52,12 @@ public class PDFBinaryConvert {
 //		String txt = "F:/hgcsbw/OutBox/tttt.txt";
 //		writeContentToTxt(txt, base64String);
 		
-		PDFBinaryConvert.convertPdfToManyByPages("F:/hgcsbw/#367-4 报告.pdf", "F:/hgcsbw/fgpdf");
+//		PDFBinaryConvert.convertPdfToManyByPages("F:/hgcsbw/#367-4 报告.pdf", "F:/hgcsbw/fgpdf");
+		
+		PDFBinaryConvert.yasuoPdf("F:/hgcsbw/loaded/testpdf/#367-4 报告.pdf", "F:/hgcsbw/loaded/yasuo/yasuo.pdf");
+		
+//		writeContentToTxt("F:/hgcsbw/loaded/test/8FA816653EBD188657F202FE5C1E99AF.xml", PDFBinaryConvert.findStringFromTxt("F:/hgcsbw/loaded/test/8FA816653EBD188657F202FE5C1E99AF.xml").replace("standalone=\"true\"", ""));
+//		System.out.println(PDFBinaryConvert.findStringFromTxt("F:/hgcsbw/loaded/test/8FA816653EBD188657F202FE5C1E99AF.xml"));
 	}
 	
 	/**
@@ -83,6 +91,23 @@ public class PDFBinaryConvert {
 		base64StringToPDF(new64, dest);
 	}
 
+	public static void yasuoPdf(String source, String dest) {
+		try {
+			PdfReader reader = new PdfReader(new FileInputStream(source));
+			
+			PdfStamper stamper = new PdfStamper(reader, new FileOutputStream(dest));
+			int total = reader.getNumberOfPages() + 1;
+			for ( int i=1; i<total; i++) {
+			   reader.setPageContent(i + 1, reader.getPageContent(i + 1));			   
+			}
+			
+			stamper.setFullCompression();
+			stamper.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
 	/**
 	 * pdf 按页转换成多个pdf
 	 * @param source 源文件地址
@@ -112,6 +137,7 @@ public class PDFBinaryConvert {
 				PdfContentByte cb = writer.getDirectContent();
 				document.newPage();
 				PdfImportedPage page = writer.getImportedPage(reader, i+1);
+				
 				cb.addTemplate(page, 0, 0);
 				document.close();
 			}
@@ -272,6 +298,38 @@ public class PDFBinaryConvert {
 		} catch (IOException e) {
 			e.printStackTrace();
 			return false;
+		}
+	}
+
+	/**
+	 * 复制文件
+	 * @param source
+	 * @param dest
+	 * @throws IOException
+	 */
+	@SuppressWarnings({ "resource"})
+	public static void copyFileUsingFileChannels(File source, File dest) {
+		FileChannel inputChannel = null;
+		FileChannel outputChannel = null;
+		
+		try {
+			// 如果dest 不存在则新建
+			if(!dest.exists()) {
+				dest.createNewFile();
+			}
+			
+			inputChannel = new FileInputStream(source).getChannel();
+			outputChannel = new FileOutputStream(dest).getChannel();
+			outputChannel.transferFrom(inputChannel, 0, inputChannel.size());
+		} catch(Exception e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				inputChannel.close();
+				outputChannel.close();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 	}
 }
