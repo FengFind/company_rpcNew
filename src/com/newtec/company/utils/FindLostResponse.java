@@ -7,11 +7,12 @@ import com.alibaba.fastjson.JSONObject;
 public class FindLostResponse {
 
 	public static void main(String[] args) {
-//		FindLostResponse.findLostFileNames("F:/hgcsbw/fujian/SentBox/2020-10-26", "F:/hgcsbw/fujian/InBox", "F:/工作内容/海关数据对接/缺少回执的文件");
-//		FindLostResponse.findFailedSourceFile("F:/hgcsbw/zhengshu/InBox", "F:/hgcsbw/zhengshu/SentBox/2020-10-26", "F:/工作内容/海关数据对接/证书fail对应文件");
+//		FindLostResponse.findLostFileNames("F:/hgcsbw/fujian/SentBox/2020-10-28", "F:/hgcsbw/fujian/InBox", "F:/工作内容/海关数据对接/20201028没有回执文件的附件报文");
+//		FindLostResponse.findFailedSourceFile("F:/hgcsbw/fujian/InBox", "F:/hgcsbw/fujian/SentBox/2020-10-28", "F:/工作内容/海关数据对接/20201028没有回执文件的附件报文");
 //		System.out.println("SI_ZHIQIANG 18JAN2020 BUD WAW - globalairgood@gmail.com - Gmail(1).pdf".getBytes().length);
 //		FindLostResponse.findFileByEdocID("1620150200400013-003", "F:/hgcsbw/fujian/SentBox/2020-10-26", "F:/工作内容/海关数据对接/证书信息failed对应的附件报文");
-		FindLostResponse.findFjFileByFailedZsinfo("F:/hgcsbw/zhengshu/InBox", "F:/hgcsbw/fujian/SentBox/2020-10-26", "F:/工作内容/海关数据对接/证书信息failed对应的附件报文");
+//		FindLostResponse.findFjFileByFailedZsinfo("F:/hgcsbw/zhengshu/InBox", "F:/hgcsbw/fujian/SentBox/2020-10-26", "F:/工作内容/海关数据对接/证书信息failed对应的附件报文");
+		System.out.println("WAW - globalairgood@gmail.com - Gmail(1).pdf".getBytes().length);
 	}
 	
 	/**

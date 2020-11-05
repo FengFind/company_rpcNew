@@ -13,4 +13,10 @@ public interface CollectService {
 	public Map<String, Object> getCollectBySql(FetchWebRequest<Map<String, String>> fetchWebReq);
 	
 	public Map<String, Object> checkSql(FetchWebRequest<Map<String, String>> fetchWebReq);
+	
+	public Map<String, Object> dealCollectQuartz(FetchWebRequest<Map<String, String>> fetchWebReq);
+	
+	public Map<String, Object> stopCollectQuartz(FetchWebRequest<Map<String, String>> fetchWebReq);
+	
+	public Map<String, Object> startCollectQuartz(FetchWebRequest<Map<String, String>> fetchWebReq);
 }

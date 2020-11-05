@@ -54,11 +54,14 @@ public class DataConvertToXmlZip {
 		// 日期格式
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
 		// 计数 
-		int js = 0;
+		int js = 0, jfs = 0;
 		
 		// 网络中断之后添加的代码
 //		String idddd = "2751361106952589813";
 //		boolean idf = false;
+		
+		// 用于存ids
+		StringBuffer sb = new StringBuffer();
 		
 		// 安装海运传输的xml格式模拟数据
 		for (int i = 0; i < db.size(); i++) {
@@ -87,12 +90,7 @@ public class DataConvertToXmlZip {
 			System.out.println(ejo.getString("FileName"));
 			if(ejo.getString("FileName") != null && !ejo.getString("FileName").equals("")) {
 				fileName = ejo.getString("FileName");
-				ecode = ejo.getString("base64");
-				
-				// 判断ecode 是否大于3M 剩余1M 用来存放其他字符
-				if(ecode.length() > 3 * 1024 * 1024) {
-					continue;
-				}
+				ecode = ejo.getString("base64");				
 			}else {
 				// 下载文件的地址
 				String url = path+dbi.getString(0);
@@ -101,16 +99,25 @@ public class DataConvertToXmlZip {
 				// 将文件转换成base64编码 并添加到jsoaarray
 				ecode = PDFBinaryConvert.getPDFBinary(new File(dest+ File.separator + fileName));
 			}
+
+			// 判断ecode 是否大于3M 剩余1M 用来存放其他字符
+			if(ecode.length() > 3 * 1024 * 1024) {
+				continue;
+			}
+			
+			sb.append(dbi.get(0)+"@@");
 			
 			// 正在进行
-			System.out.println(dbi.getString(0) + "  正在生成第"+i+"个xml --------- ");
+			System.out.println(dbi.getString(0) + "  正在生成第"+(++jfs)+"个xml --------- ");
 			
 			// 需要组装成xml中对应的格式
 			List<Object> rut = new ArrayList<Object>();
 			
 			// 测试数据			
 			rut.add("PSIUMEEDOC");
-			rut.add(dbi.get(4).toString());
+			rut.add(dbi.get(4).toString().length() > 64 ? dbi.get(4).toString().substring(0, 64) : dbi.get(4).toString() );
+			// 判断文件名称是否超过64位
+			fileName = fileName.substring(0, 64 - fileName.substring(fileName.lastIndexOf(".")).length())+fileName.substring(fileName.lastIndexOf("."));
 			rut.add(fileName);
 			rut.add("");
 			rut.add("");
@@ -120,7 +127,7 @@ public class DataConvertToXmlZip {
 			rut.add("中检集团证书中心");
 			rut.add("");
 			rut.add(ecode);
-			rut.add(dbi.get(0));
+			rut.add(dbi.get(0).toString().length() > 40 ? dbi.get(0).toString().substring(0, 40) : dbi.get(0).toString() );
 			rut.add("");
 			rut.add("");
 			rut.add("");
@@ -146,6 +153,9 @@ public class DataConvertToXmlZip {
 		convertXmlsToZip(dest);
 		// 转换成功之后将xml文件删除
 		ZipUtils.delDirFiles(dest);
+		
+		// 向txt写入id
+		PDFBinaryConvert.writeContentToTxt("F:/hgcsbw/ids.txt", sb.toString());
 		
 		return null;
 	}

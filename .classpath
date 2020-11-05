@@ -75,10 +75,17 @@
 	<classpathentry kind="lib" path="lib/xml/xmlpull-1.1.3.1.jar"/>
 	<classpathentry kind="lib" path="lib/xml/xpp3_min-1.1.4c.jar"/>
 	<classpathentry kind="lib" path="lib/xml/xstream-1.4.9.jar"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="con" path="org.eclipse.jst.j2ee.internal.module.container"/>
 	<classpathentry kind="lib" path="lib/rpc/sigar.jar"/>
 	<classpathentry kind="lib" path="lib/rpc/netty-all-4.1.14.Final.jar"/>
 	<classpathentry kind="lib" path="lib/private-sdk.jar"/>
+	<classpathentry kind="lib" path="lib/itext-2.1.7.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="lib/log4j-1.2.17.jar"/>
+	<classpathentry kind="lib" path="lib/quartz-all-1.6.3.jar" sourcepath="F:/工作内容/java源码/quartz-all-1.6.3.jar.src.zip">
+		<attributes>
+			<attribute name="source_encoding" value="UTF-8"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

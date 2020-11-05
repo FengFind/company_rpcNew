@@ -10,10 +10,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.quartz.CronTrigger;
+import org.quartz.JobDataMap;
+import org.quartz.JobDetail;
+import org.quartz.Scheduler;
+import org.quartz.SchedulerException;
+import org.quartz.impl.SchedulerRepository;
+
 import com.alibaba.fastjson.JSONObject;
 import com.newtec.company.entity.collect.CollectInfo;
 import com.newtec.company.service.CollectService;
 import com.newtec.company.utils.DBLimit;
+import com.newtec.company.utils.DataViewMain;
+import com.newtec.company.utils.DataViewTask;
 import com.newtec.myqdp.server.utils.StringUtils;
 import com.newtec.reflect.annotation.RpcClass;
 import com.newtec.reflect.annotation.RpcMethod;
@@ -205,7 +214,7 @@ public class CollectServiceImpl implements CollectService{
 					+ "	from db_collect dc "
 					+ " inner join db_limit dl on dl.id=dc.sou_id "
 					+ " inner join db_limit dlt on dlt.id=dc.target_id "
-					+ " order by create_time desc limit ?) as a limit ?,?";
+					+ " group by dc.ch_name order by create_time desc limit ?) as a limit ?,?";
 			
 			if(sql != null && !sql.equals("")) {
 				ssql = "select * from ("
@@ -215,7 +224,7 @@ public class CollectServiceImpl implements CollectService{
 						+ " ) as b"
 						+ " inner join db_limit dl on dl.id=b.sou_id "
 						+ " inner join db_limit dlt on dlt.id=b.target_id "
-						+ " order by b.create_time desc limit ? ) as a limit ?,?";
+						+ " group by b.ch_name order by b.create_time desc limit ? ) as a limit ?,?";
 			}
 			System.out.println(ssql);
 			try {
@@ -242,6 +251,10 @@ public class CollectServiceImpl implements CollectService{
 					c.setTarget_id(rs.getString("target_id"));
 					c.setSou_sys_name(rs.getString("sou_sys_name"));
 					c.setTar_sys_name(rs.getString("tar_sys_name"));
+					
+					// 加入 定时器执行状态
+					c.setTask_status(DataViewMain.checkTaskRunStatus(rs.getString("target_name"))+"");
+					
 					list.add(c);
 				}
 			} catch (SQLException e) {
@@ -305,5 +318,144 @@ public class CollectServiceImpl implements CollectService{
 		public Map<String, Object> getCollectBySql(FetchWebRequest<Map<String, String>> fetchWebReq) {
 			// TODO Auto-generated method stub
 			return null;
+		}
+
+		@RpcMethod(loginValidate = false)
+		@Override
+		public Map<String, Object> dealCollectQuartz(FetchWebRequest<Map<String, String>> fetchWebReq) {
+			Map<String,Object> map = new HashMap<String, Object>();
+			try {
+				// 获取参数值
+				Map<String, String> resMap = fetchWebReq.getData();
+				// 目标英文表名
+				String targetName = resMap.get("target_name");
+				// 定时任务名称是根据目标英文表名设置的 
+				// 命名规则为 targetName+Scheduler
+				// 循环定时任务
+				for (Scheduler scheduler : DataViewMain.getSchedList()) {
+					// 如果scheduler的名称与targetName+Scheduler 相等 
+					// 表示 该scheduler是要找的作业 否则 继续循环
+					if(!scheduler.getSchedulerName().equals(targetName+"Scheduler")) {
+						continue;
+					}
+					
+					// 获取JobDetail
+					JobDetail job = scheduler.getJobDetail(targetName, "dataView");					
+					// 获取类型
+					String type = resMap.get("type");
+					// 获取值
+					String val = resMap.get("val");
+					
+					//对数值进行判断 如果不是整数 直接返回错误信息
+					map = DataViewMain.checkSetVal(Integer.parseInt(type), val);
+					
+					// 如果map中的status 不是 1 表示数据有问题直接返回
+					if(!map.get("status").toString().equals("1")) {
+						break;
+					}
+					
+					// 时间规则
+					String gz = map.get("gz").toString();
+					System.out.println(" gz ----- " + gz);
+					CronTrigger trigger = new CronTrigger(targetName+"Trigger", targetName, gz);
+					scheduler.deleteJob(targetName, "dataView");
+					scheduler.scheduleJob(job, trigger);
+					scheduler.start();
+					
+					break;
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			
+			return map;
+		}
+		
+		@RpcMethod(loginValidate = false)
+		@Override
+		public Map<String, Object> stopCollectQuartz(FetchWebRequest<Map<String, String>> fetchWebReq) {
+			Map<String,Object> map = new HashMap<String, Object>();
+			try {
+				// 获取参数值
+				Map<String, String> resMap = fetchWebReq.getData();
+				// 目标英文表名
+				String targetName = resMap.get("target_name");
+				// 定时任务名称是根据目标英文表名设置的 
+				// 命名规则为 targetName+Scheduler
+				// 循环定时任务
+				// 计数
+				int js = 0;
+				for (Scheduler scheduler : DataViewMain.getSchedList()) {
+					js++;
+					// 如果scheduler的名称与targetName+Scheduler 相等 
+					// 表示 该scheduler是要找的作业 否则 继续循环
+					if(!scheduler.getSchedulerName().equals(targetName+"Scheduler")) {
+						continue;
+					}
+					
+					// 先停掉定时任务 再将定时任务从列表中删除
+					scheduler.shutdown();
+					SchedulerRepository schedRep = SchedulerRepository.getInstance();
+					schedRep.remove(scheduler.getSchedulerName());
+					break;
+				}
+				
+				DataViewMain.getSchedList().remove(--js);
+				
+				map.put("status", "1");
+			} catch (Exception e) {
+				e.printStackTrace();
+				map.put("status", "-1");
+				map.put("msg", "系统异常！");
+			}
+			
+			return map;
+		}
+
+		@RpcMethod(loginValidate = false)
+		@Override
+		public Map<String, Object> startCollectQuartz(FetchWebRequest<Map<String, String>> fetchWebReq) {
+			Map<String,Object> map = new HashMap<String, Object>();
+			try {
+				// 获取参数值
+				Map<String, String> resMap = fetchWebReq.getData();
+				// 目标英文表名
+				String targetName = resMap.get("target_name");
+				// 目标英文表名
+				String souName = resMap.get("sou_name");
+				// 目标英文表名
+				String chName = resMap.get("ch_name");
+				// 作业列表
+				List<Scheduler> schedList = DataViewMain.getSchedList();
+				// 创建LzstoneTimeTask的定时任务
+				JobDataMap jobDataMap = new JobDataMap();
+				// 来源表英文名称
+				jobDataMap.put("souName", souName);
+				// 目标表英文名称
+				jobDataMap.put("tarName", targetName);
+				// 中文名称
+				jobDataMap.put("chName", chName);
+				
+				JobDetail jobDetail = new JobDetail(targetName, "dataView", DataViewTask.class);
+				
+				jobDetail.setJobDataMap(jobDataMap);
+				
+				// 目标 创建任务计划
+				CronTrigger trigger = new CronTrigger(targetName+"Trigger", targetName, "0 */1 * * * ?");
+				// 0 0 12 * * ? 代表每天的中午12点触发
+				
+				Scheduler sched = DataViewMain.getSchedulerByName(targetName+"Scheduler");
+				sched.scheduleJob(jobDetail, trigger);
+				sched.start();
+				
+				schedList.add(sched);
+				map.put("status", "1");
+			} catch (Exception e) {
+				e.printStackTrace();
+				map.put("status", "-1");
+				map.put("msg", "系统异常！");
+			}
+			
+			return map;
 		}
 }

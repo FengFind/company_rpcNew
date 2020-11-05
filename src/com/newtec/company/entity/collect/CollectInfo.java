@@ -17,7 +17,14 @@ public class CollectInfo {
 	private String tar_ch_name;
 	private String sou_sys_name;
 	private String tar_sys_name;
+	private String task_status;
 	
+	public String getTask_status() {
+		return task_status;
+	}
+	public void setTask_status(String task_status) {
+		this.task_status = task_status;
+	}
 	public String getSou_sys_name() {
 		return sou_sys_name;
 	}
@@ -96,17 +103,18 @@ public class CollectInfo {
 	public void setCreate_time(String create_time) {
 		this.create_time = create_time;
 	}
-	@Override
-	public String toString() {
-		return "CollectInfo [id=" + id + ", target_name=" + target_name + ", target_count=" + target_count
-				+ ", target_id=" + target_id + ", create_time=" + create_time + ", sou_name=" + sou_name
-				+ ", sou_count=" + sou_count + ", sou_id=" + sou_id + ", same=" + same + ", ch_name=" + ch_name
-				+ ", sou_ch_name=" + sou_ch_name + ", tar_ch_name=" + tar_ch_name + ", sou_sys_name=" + sou_sys_name
-				+ ", tar_sys_name=" + tar_sys_name + "]";
+	public String getCh_name() {
+		return ch_name;
+	}
+	public void setCh_name(String ch_name) {
+		this.ch_name = ch_name;
+	}
+	public CollectInfo() {
+		super();
 	}
 	public CollectInfo(String id, String target_name, Integer target_count, String target_id, String create_time,
 			String sou_name, Integer sou_count, String sou_id, String same, String ch_name, String sou_ch_name,
-			String tar_ch_name, String sou_sys_name, String tar_sys_name) {
+			String tar_ch_name, String sou_sys_name, String tar_sys_name, String task_status) {
 		super();
 		this.id = id;
 		this.target_name = target_name;
@@ -122,15 +130,15 @@ public class CollectInfo {
 		this.tar_ch_name = tar_ch_name;
 		this.sou_sys_name = sou_sys_name;
 		this.tar_sys_name = tar_sys_name;
+		this.task_status = task_status;
 	}
-	public String getCh_name() {
-		return ch_name;
-	}
-	public void setCh_name(String ch_name) {
-		this.ch_name = ch_name;
-	}
-	public CollectInfo() {
-		super();
+	@Override
+	public String toString() {
+		return "CollectInfo [id=" + id + ", target_name=" + target_name + ", target_count=" + target_count
+				+ ", target_id=" + target_id + ", create_time=" + create_time + ", sou_name=" + sou_name
+				+ ", sou_count=" + sou_count + ", sou_id=" + sou_id + ", same=" + same + ", ch_name=" + ch_name
+				+ ", sou_ch_name=" + sou_ch_name + ", tar_ch_name=" + tar_ch_name + ", sou_sys_name=" + sou_sys_name
+				+ ", tar_sys_name=" + tar_sys_name + ", task_status=" + task_status + "]";
 	}
 
 	

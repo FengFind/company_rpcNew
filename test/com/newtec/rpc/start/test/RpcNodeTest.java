@@ -1,6 +1,7 @@
 package com.newtec.rpc.start.test;
 
 import com.newtec.company.start.CompanyRpc;
+import com.newtec.company.utils.DataViewMain;
 import com.newtec.myqdp.server.utils.MyqdpEncryptImpl;
 import com.newtec.myqdp.server.utils.exception.CustomException;
 import com.newtec.rpc.node.NodeUtils;
@@ -20,6 +21,7 @@ public class RpcNodeTest {
 		NodeUtils.getLocHost(); 
 //		CollectThread c = new CollectThread();
 //		c.start();
+//		DataViewMain.run();
 		MyqdpEncryptImpl.getMyqdpServerHttpAddr();  
 	}                        
 }

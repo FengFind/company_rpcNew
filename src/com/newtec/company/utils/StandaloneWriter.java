@@ -34,7 +34,7 @@ public class StandaloneWriter extends XMLWriter {
               writer.write(" encoding=\"" + encoding + "\"");
             }
 
-//            writer.write(" standalone=\"true\"");
+            writer.write(" standalone=\"yes\"");
             writer.write("?>");
           }
 

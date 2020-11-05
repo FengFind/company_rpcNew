@@ -45,12 +45,21 @@ public class PsiIumeCertDataConvertToXmlZip {
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		// 计数 
 		int js = 0;
+		
+		// 获取附件对应的ids
+		String ids = PDFBinaryConvert.findStringFromTxt("F:/hgcsbw/ids.txt");
+		
 		// 安装海运传输的xml格式模拟数据
 		for (int i = 0; i < db.size(); i++) {
 //		for (int i = 0; i < 3000; i++) {
 			// 数据库查出来的一条数据
 			JSONArray dbi = db.get(i);
 //			JSONArray dbi = new JSONArray();
+			
+			// 判断是否存在于ids中
+			if(ids.indexOf(dbi.get(0).toString()) < 0) {
+				continue;
+			}
 			
 			// 需要组装成xml中对应的格式
 			List<Object> rut = new ArrayList<Object>();
@@ -72,7 +81,7 @@ public class PsiIumeCertDataConvertToXmlZip {
 			rut.add("装运前检验机构"+i);
 			rut.add(sdf.format(new Date()).replace(" ", "T")+"Z");
 			rut.add("检验地点"+i);
-			rut.add(dbi.get(0));
+			rut.add(dbi.get(0).toString().length() > 40 ? dbi.get(0).toString().substring(0, 40) : dbi.get(0).toString());
 			rut.add(StringUtil.MD5(System.currentTimeMillis()+""+i).substring(0, 8));
 			rut.add(sdf.format(sdf.parse(dbi.getString(6))).replace(" ", "T")+"Z");
 			rut.add("授权签字人"+i);
@@ -87,7 +96,7 @@ public class PsiIumeCertDataConvertToXmlZip {
 			rut.add("产地"+i);
 			rut.add(sdf.format(new Date()).replace(" ", "T")+"Z");
 			rut.add("0");			
-			rut.add(dbi.get(4).toString());
+			rut.add(dbi.get(4).toString().length() > 64 ? dbi.get(4).toString().substring(0, 64) : dbi.get(4).toString());
 			rut.add(StringUtil.MD5(System.currentTimeMillis()+""+i).substring(0, 8));
 			rut.add(i%3+"");
 			rut.add(StringUtil.MD5(System.currentTimeMillis()+""+i));
