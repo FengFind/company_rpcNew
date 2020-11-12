@@ -18,7 +18,14 @@ public class CollectInfo {
 	private String sou_sys_name;
 	private String tar_sys_name;
 	private String task_status;
+	private String task_cron;
 	
+	public String getTask_cron() {
+		return task_cron;
+	}
+	public void setTask_cron(String task_cron) {
+		this.task_cron = task_cron;
+	}
 	public String getTask_status() {
 		return task_status;
 	}
@@ -114,7 +121,7 @@ public class CollectInfo {
 	}
 	public CollectInfo(String id, String target_name, Integer target_count, String target_id, String create_time,
 			String sou_name, Integer sou_count, String sou_id, String same, String ch_name, String sou_ch_name,
-			String tar_ch_name, String sou_sys_name, String tar_sys_name, String task_status) {
+			String tar_ch_name, String sou_sys_name, String tar_sys_name, String task_status, String task_cron) {
 		super();
 		this.id = id;
 		this.target_name = target_name;
@@ -131,6 +138,7 @@ public class CollectInfo {
 		this.sou_sys_name = sou_sys_name;
 		this.tar_sys_name = tar_sys_name;
 		this.task_status = task_status;
+		this.task_cron = task_cron;
 	}
 	@Override
 	public String toString() {
@@ -138,9 +146,7 @@ public class CollectInfo {
 				+ ", target_id=" + target_id + ", create_time=" + create_time + ", sou_name=" + sou_name
 				+ ", sou_count=" + sou_count + ", sou_id=" + sou_id + ", same=" + same + ", ch_name=" + ch_name
 				+ ", sou_ch_name=" + sou_ch_name + ", tar_ch_name=" + tar_ch_name + ", sou_sys_name=" + sou_sys_name
-				+ ", tar_sys_name=" + tar_sys_name + ", task_status=" + task_status + "]";
+				+ ", tar_sys_name=" + tar_sys_name + ", task_status=" + task_status + ", task_cron=" + task_cron + "]";
 	}
-
 	
-
 }

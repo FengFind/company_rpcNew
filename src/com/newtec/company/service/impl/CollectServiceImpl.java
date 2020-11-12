@@ -45,6 +45,7 @@ public class CollectServiceImpl implements CollectService{
 			// 对比的表的数量，Map<String,Object> map = new HashMap<String,Object>();
 			Map<String, String> resMap = fetchWebReq.getData();
 			String strPageNum = resMap.get("pageNum");
+			String strPageSize = resMap.get("pageSize");
 			String sql = resMap.get("sql");
 			String ch_name = resMap.get("ch_name");
 			String sou_name = resMap.get("sou_name");
@@ -58,7 +59,8 @@ public class CollectServiceImpl implements CollectService{
 			}
 			
 			Integer pageNum = StringUtils.isStrNull(strPageNum)?1:Integer.valueOf(strPageNum);
-			List<CollectInfo> list = getCollectInfo(connection, pageNum, count, sql);
+			Integer ps = StringUtils.isStrNull(strPageSize)?pageSize:Integer.valueOf(strPageSize);
+			List<CollectInfo> list = getCollectInfo(connection, pageNum, count, sql, ps);
 			map.put("pageNum", pageNum);
 			map.put("data", list);
 			
@@ -205,33 +207,35 @@ public class CollectServiceImpl implements CollectService{
 		 * @param count
 		 * @return
 		 */
-		public static List<CollectInfo> getCollectInfo(Connection conn,Integer pageNum,int count,String sql)throws Exception{
+		public static List<CollectInfo> getCollectInfo(Connection conn,Integer pageNum,int count,String sql, int ps)throws Exception{
 			PreparedStatement pre = null;
 			ResultSet rs = null;
 			List<CollectInfo> list = new ArrayList<CollectInfo>();
 			String ssql = "select * from ("
-					+ " select dc.*,dl.sysname as sou_sys_name, dlt.sysname as tar_sys_name"
+					+ " select dc.*,dl.sysname as sou_sys_name, dlt.sysname as tar_sys_name,dm.task_cron as task_cron "
 					+ "	from db_collect dc "
 					+ " inner join db_limit dl on dl.id=dc.sou_id "
 					+ " inner join db_limit dlt on dlt.id=dc.target_id "
+					+ " inner join db_mapper dm on dm.ch_name=dc.ch_name and dm.tar_name=dc.target_name and dm.sou_name=dc.sou_name "
 					+ " group by dc.ch_name order by create_time desc limit ?) as a limit ?,?";
 			
 			if(sql != null && !sql.equals("")) {
 				ssql = "select * from ("
-						+ " select b.*,dl.sysname as sou_sys_name, dl.sysname as tar_sys_name"
+						+ " select b.*,dl.sysname as sou_sys_name, dl.sysname as tar_sys_name,dm.task_cron as task_cron "
 						+ " from ( "
 						+ sql.replaceAll("\n", "")
 						+ " ) as b"
 						+ " inner join db_limit dl on dl.id=b.sou_id "
 						+ " inner join db_limit dlt on dlt.id=b.target_id "
+						+ " inner join db_mapper dm on dm.ch_name=dc.ch_name and dm.tar_name=dc.target_name and dm.sou_name=dc.sou_name "
 						+ " group by b.ch_name order by b.create_time desc limit ? ) as a limit ?,?";
 			}
 			System.out.println(ssql);
 			try {
 				pre = conn.prepareStatement(ssql);
 				pre.setInt(1, count);
-				pre.setInt(2, (pageNum - 1) * pageSize);
-				pre.setInt(3, pageSize);
+				pre.setInt(2, (pageNum - 1) * ps);
+				pre.setInt(3, ps);
 				rs = pre.executeQuery();
 				CollectInfo c = null;
 				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -254,6 +258,8 @@ public class CollectServiceImpl implements CollectService{
 					
 					// 加入 定时器执行状态
 					c.setTask_status(DataViewMain.checkTaskRunStatus(rs.getString("target_name"))+"");
+					// 加入 定时器 运行cron表达式
+					c.setTask_cron(rs.getString("task_cron") == null || rs.getString("task_cron").equals("") ? "* * * ? * 2 *" : rs.getString("task_cron"));
 					
 					list.add(c);
 				}
@@ -342,30 +348,49 @@ public class CollectServiceImpl implements CollectService{
 					// 获取JobDetail
 					JobDetail job = scheduler.getJobDetail(targetName, "dataView");					
 					// 获取类型
-					String type = resMap.get("type");
+//					String type = resMap.get("type");
 					// 获取值
-					String val = resMap.get("val");
+//					String val = resMap.get("val");
 					
 					//对数值进行判断 如果不是整数 直接返回错误信息
-					map = DataViewMain.checkSetVal(Integer.parseInt(type), val);
+//					map = DataViewMain.checkSetVal(Integer.parseInt(type), val);
 					
 					// 如果map中的status 不是 1 表示数据有问题直接返回
-					if(!map.get("status").toString().equals("1")) {
-						break;
-					}
+//					if(!map.get("status").toString().equals("1")) {
+//						break;
+//					}
 					
 					// 时间规则
-					String gz = map.get("gz").toString();
+//					String gz = map.get("gz").toString();
+					String gz = resMap.get("cron");
 					System.out.println(" gz ----- " + gz);
 					CronTrigger trigger = new CronTrigger(targetName+"Trigger", targetName, gz);
 					scheduler.deleteJob(targetName, "dataView");
 					scheduler.scheduleJob(job, trigger);
 					scheduler.start();
 					
+					// 将gz 更新到数据库中
+					Connection connection = DBLimit.getConnection();
+					// sql
+					String sql = "update db_mapper set task_cron=? where tar_name = ? ";
+					PreparedStatement pstmt=connection.prepareStatement(sql);
+					pstmt.setString(1, gz);
+					pstmt.setString(2, targetName);
+					int n=pstmt.executeUpdate();
+					
+					if(n == 1) {
+						map.put("status", "1");
+					}else {
+						map.put("status", "-2");
+						map.put("msg", "目标表"+targetName+"更新task_cron为"+gz+"失败");
+					}
+					
 					break;
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
+				map.put("status", "-1");
+				map.put("msg", "系统异常!");
 			}
 			
 			return map;

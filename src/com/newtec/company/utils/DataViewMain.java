@@ -49,7 +49,7 @@ public class DataViewMain {
 				
 				// 目标 创建任务计划
 //				CronTrigger trigger = new CronTrigger(mapper.getTar_name()+"Trigger", mapper.getTar_name(), "10/5 * * * * ?");
-				CronTrigger trigger = new CronTrigger(mapper.getTar_name()+"Trigger", mapper.getTar_name(), "50-40 * * * * ? ");
+				CronTrigger trigger = new CronTrigger(mapper.getTar_name()+"Trigger", mapper.getTar_name(), "* * * ? * 1-2 *");
 				// 0 0 12 * * ? 代表每天的中午12点触发
 				
 				Scheduler sched = getSchedulerByName(mapper.getTar_name()+"Scheduler");
