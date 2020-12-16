@@ -41,10 +41,25 @@ public class PDFBinaryConvert {
 	static BASE64Decoder decoder = new sun.misc.BASE64Decoder();
 
 	public static void main(String[] args) {
+		StringBuffer sbuf = new StringBuffer();
 		// 将PDF格式文件转成base64编码
-//		String path = "F:/hgcsbw/OutBox/#367-4 报告.pdf";
-//		String base64String = getPDFBinary(new File(path));
-//		System.out.println(base64String);
+		String path = "F:/hgcsbw/#709-4 报告.pdf";
+		String base64String = getPDFBinary(new File(path));
+		System.out.println(base64String);
+		sbuf.append(base64String);
+		// md5加密
+		try {
+			sbuf.append("\r\n ----- 加密后的md5 ------ ");
+			System.out.println(" ----- 加密后的md5 ------ ");
+			sbuf.append("\r\n "+StringUtil.MD5(base64String));
+			System.out.println(StringUtil.MD5(base64String));
+			
+			String txt = "F:/hgcsbw/base64及加密后的md5_001.txt";
+			writeContentToTxt(txt, sbuf.toString());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
 		// 将base64的编码转成PDF格式文件
 //		String dest = "F:/hgcsbw/OutBox/tttt.pdf";
 //		base64StringToPDF(base64String, dest);
@@ -54,7 +69,7 @@ public class PDFBinaryConvert {
 		
 //		PDFBinaryConvert.convertPdfToManyByPages("F:/hgcsbw/#367-4 报告.pdf", "F:/hgcsbw/fgpdf");
 		
-		PDFBinaryConvert.yasuoPdf("F:/hgcsbw/loaded/testpdf/#367-4 报告.pdf", "F:/hgcsbw/loaded/yasuo/yasuo.pdf");
+//		PDFBinaryConvert.yasuoPdf("F:/hgcsbw/loaded/testpdf/#367-4 报告.pdf", "F:/hgcsbw/loaded/yasuo/yasuo.pdf");
 		
 //		writeContentToTxt("F:/hgcsbw/loaded/test/8FA816653EBD188657F202FE5C1E99AF.xml", PDFBinaryConvert.findStringFromTxt("F:/hgcsbw/loaded/test/8FA816653EBD188657F202FE5C1E99AF.xml").replace("standalone=\"true\"", ""));
 //		System.out.println(PDFBinaryConvert.findStringFromTxt("F:/hgcsbw/loaded/test/8FA816653EBD188657F202FE5C1E99AF.xml"));

@@ -26,7 +26,7 @@ public class Customer {
 	@Column(name = "id")
 	private String id;
 
-	/*
+	/* 
 	 * 企业数据库ID
 	 */
 	@Column(name = "bus_own_id")

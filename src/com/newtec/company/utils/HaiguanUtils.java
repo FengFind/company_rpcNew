@@ -106,8 +106,8 @@ public class HaiguanUtils {
 
 	public static List<JSONArray> findFileData() {
 		// 查询 T_FILE
-//		String sqlFile = "select a.*, rownum from( " + "select * from T_FILE where CERTTYPE = 'CERT' " + ") a " + "where rownum < 28";
-		String sqlFile = "select a.*, rownum from( " + "select * from T_FILE where CERTTYPE = 'CERT' " + ") a ";
+		String sqlFile = "select a.*, rownum from( " + "select * from T_FILE where CERTTYPE = 'CERT' " + ") a " + "where rownum < 28";
+//		String sqlFile = "select a.*, rownum from( " + "select * from T_FILE where CERTTYPE = 'CERT' " + ") a ";
 		return findData(sqlFile);
 	}
 

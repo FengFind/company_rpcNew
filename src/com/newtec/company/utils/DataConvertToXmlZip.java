@@ -83,6 +83,8 @@ public class DataConvertToXmlZip {
 			String fileName;
 			// base64编码
 			String ecode;
+			// 文件大小
+			int fileSize;
 			// 获取 已经存在的 pdf文件名称和base64
 			String exist = "F:/hgcsbw/loaded/txt";
 			// 存放信息的jsonobject
@@ -91,24 +93,78 @@ public class DataConvertToXmlZip {
 			if(ejo.getString("FileName") != null && !ejo.getString("FileName").equals("")) {
 				fileName = ejo.getString("FileName");
 				ecode = ejo.getString("base64");				
+				fileSize = ejo.getIntValue("size");
 			}else {
 				// 下载文件的地址
 				String url = path+dbi.getString(0);
 				// 保存后的文件名称
 				fileName = HaiguanUtils.downLoadByUrl(url, dest);				
 				// 将文件转换成base64编码 并添加到jsoaarray
-				ecode = PDFBinaryConvert.getPDFBinary(new File(dest+ File.separator + fileName));
+				File pdf = new File(dest+ File.separator + fileName);
+				ecode = PDFBinaryConvert.getPDFBinary(pdf);
+				fileSize = Integer.parseInt(pdf.length()+"");
 			}
-
-			// 判断ecode 是否大于3M 剩余1M 用来存放其他字符
-			if(ecode.length() > 3 * 1024 * 1024) {
-				continue;
-			}
+			
+			// md5
+			String fmd5 = StringUtil.MD5(ecode);
 			
 			sb.append(dbi.get(0)+"@@");
 			
 			// 正在进行
 			System.out.println(dbi.getString(0) + "  正在生成第"+(++jfs)+"个xml --------- ");
+			
+			// 判断ecode 是否大于3M 剩余1M 用来存放其他字符
+			if(ecode.length() > 3 * 1024 * 1024) {
+				int maxel = ecode.length() % (3*1024*1024) > 0 ? ( ecode.length() / (3*1024*1024) + 1 ) : ( ecode.length() / (3*1024*1024) );
+				for (int eln = 0; eln < maxel  ; eln++) {
+					// 需要组装成xml中对应的格式
+					List<Object> rut = new ArrayList<Object>();
+					
+					// 测试数据			
+					rut.add("PSIUMEEDOC");
+					rut.add(dbi.get(4).toString().length() > 64 ? dbi.get(4).toString().substring(0, 64) : dbi.get(4).toString() );
+					// 判断文件名称是否超过64位
+					if(fileName.length() > 64) {
+						fileName = fileName.substring(0, 64 - fileName.substring(fileName.lastIndexOf(".")).length())+fileName.substring(fileName.lastIndexOf("."));
+					}
+					rut.add(fileName);
+					rut.add("");
+					rut.add("");
+					rut.add(dbi.get(4).toString());
+					rut.add("F");
+					rut.add(sdf.format(new Date()));
+					rut.add("中检集团证书中心");
+					rut.add("");
+					rut.add(ecode.substring(eln*3 * 1024 * 1024, ( eln == (maxel - 1) ? ecode.length() : (eln + 1) * 3 * 1024 * 1024)) );
+					
+					// 添加新的五个属性
+					rut.add(fileSize);
+					rut.add(fmd5);
+					rut.add(1);
+					rut.add(eln+1);
+					rut.add(maxel);
+					System.out.println(fileName + " 第 " + (eln+1) + " 个 共 "+maxel+" 个 ");
+					rut.add(dbi.get(0).toString().length() > 40 ? dbi.get(0).toString().substring(0, 40) : dbi.get(0).toString() );
+					rut.add("");
+					rut.add("");
+					rut.add("");
+					
+					result.add(rut);
+					
+					if(js == 100) {
+						// 将查询出的数据 封装到xml中
+						setDataToXml(result, source, dest);
+						
+						js =0;
+						result = new ArrayList<List<Object>>();
+						continue;
+					}
+					
+					js++;
+				} 
+				
+				continue;
+			}
 			
 			// 需要组装成xml中对应的格式
 			List<Object> rut = new ArrayList<Object>();
@@ -117,7 +173,9 @@ public class DataConvertToXmlZip {
 			rut.add("PSIUMEEDOC");
 			rut.add(dbi.get(4).toString().length() > 64 ? dbi.get(4).toString().substring(0, 64) : dbi.get(4).toString() );
 			// 判断文件名称是否超过64位
-			fileName = fileName.substring(0, 64 - fileName.substring(fileName.lastIndexOf(".")).length())+fileName.substring(fileName.lastIndexOf("."));
+			if(fileName.length() > 64) {
+				fileName = fileName.substring(0, 64 - fileName.substring(fileName.lastIndexOf(".")).length())+fileName.substring(fileName.lastIndexOf("."));
+			}
 			rut.add(fileName);
 			rut.add("");
 			rut.add("");
@@ -127,6 +185,14 @@ public class DataConvertToXmlZip {
 			rut.add("中检集团证书中心");
 			rut.add("");
 			rut.add(ecode);
+			
+			// 添加新的五个属性
+			rut.add(fileSize);
+			rut.add(fmd5);
+			rut.add(0);
+			rut.add(1);
+			rut.add(1);
+			
 			rut.add(dbi.get(0).toString().length() > 40 ? dbi.get(0).toString().substring(0, 40) : dbi.get(0).toString() );
 			rut.add("");
 			rut.add("");
@@ -341,6 +407,6 @@ public class DataConvertToXmlZip {
 	}
 
 	public static void main(String[] args) {
-		DataConvertToXmlZip.dataToZip("F:/工作内容/海关数据对接/测试报文样例/CliPsiEdoc.xml", "F:/hgcsbw/OutBox");
+		DataConvertToXmlZip.dataToZip("F:/工作内容/海关数据对接/测试报文样例/CliPsiEdoc_last.xml", "F:/hgcsbw/OutBox");
 	}
 }

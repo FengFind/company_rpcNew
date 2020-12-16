@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import com.alibaba.fastjson.JSONObject;
 import com.newtec.company.entity.collect.Limit;
 import com.newtec.company.entity.collect.MapperInfo;
 import com.newtec.company.utils.DBLimit;
@@ -29,7 +30,8 @@ public class CollectThread  extends Thread {
 			try {
 				System.out.println("启动定时任务：");
 				long sTime = System.currentTimeMillis();
-				collectInfo();
+//				collectInfo();
+				getInfo();
 				System.out.println("结束定时采集对比任务，共耗时："+(System.currentTimeMillis()-sTime));
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
@@ -65,7 +67,7 @@ public class CollectThread  extends Thread {
 		
 		//目标表链接
 		Connection tar_Conn = DBOrcal.getConnection(tarInfo.getUrl(),tarInfo.getUsername(),tarInfo.getPassword());
-		getInfo(sou_Conn,tar_Conn);
+//		getInfo(sou_Conn,tar_Conn);
 	}
 	
 	/**
@@ -73,8 +75,8 @@ public class CollectThread  extends Thread {
 	 * @param conn
 	 * @param conn1
 	 */
-	public static void getInfo(Connection sou_Conn,Connection tar_Conn) {
-		List<MapperInfo> mapperList = null;
+	public static void getInfo() {
+		List<JSONObject> mapperList = null;
 		try {
 			mapperList = DBLimit.getMapper();
 		} catch (SQLException e1) {
@@ -82,36 +84,35 @@ public class CollectThread  extends Thread {
 			e1.printStackTrace();
 			System.err.println("获取映射关系失败");
 		}
-		for(MapperInfo mapper:mapperList) {
+		
+		for(JSONObject mapper:mapperList) {
 			try {
+				// 根据数据库类型 选择不同的数据库连接
+				Connection sou_Conn = null;
+				Connection tar_Conn = null; 
+				
+				if(mapper.getString("souType").toLowerCase().equals("mysql")) {
+					sou_Conn = DBMySql.getConnection(mapper.getString("souUrl"), mapper.getString("souUname"), mapper.getString("souPswd"));
+				}else if(mapper.getString("souType").toLowerCase().equals("oracle")) {
+					sou_Conn = DBOrcal.getConnection(mapper.getString("souUrl"), mapper.getString("souUname"), mapper.getString("souPswd"));
+				}
+				
+				if(mapper.getString("tarType").toLowerCase().equals("mysql")) {
+					tar_Conn = DBMySql.getConnection(mapper.getString("tarUrl"), mapper.getString("tarUname"), mapper.getString("tarPswd"));
+				}else if(mapper.getString("tarType").toLowerCase().equals("oracle")) {
+					tar_Conn = DBOrcal.getConnection(mapper.getString("tarUrl"), mapper.getString("tarUname"), mapper.getString("tarPswd"));
+				}
+				
 				//去来源表查
-				int sou_Count = getCount(sou_Conn,mapper.getSou_name());
-				int tar_Count= getCount(tar_Conn, mapper.getTar_name());
-				System.err.println("对比表并插入  【"+mapper.getCh_name()+"("+mapper.getSou_name()+")】  信息");
+				int sou_Count = getCount(sou_Conn,mapper.getString("sou_name"));
+				int tar_Count= getCount(tar_Conn, mapper.getString("tar_name"));
+				System.err.println("对比表并插入  【"+mapper.getString("ch_name")+"("+mapper.getString("sou_name")+")】  信息");
 				insertData(mapper, sou_Count, tar_Count);
 			}catch (Exception e) {
 				// TODO: handle exception
 				e.printStackTrace();
-			}finally {
-				continue;
 			}
-		}
-		if(tar_Conn != null) {
-			try {
-				tar_Conn.close();
-			} catch (SQLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		if(sou_Conn != null) {
-			try {
-				sou_Conn.close();
-			} catch (SQLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
+		}		
 	}
 	
 	
@@ -144,6 +145,9 @@ public class CollectThread  extends Thread {
 					if(pre != null) {
 						pre.close();
 					}
+					if(conn != null) {
+						conn.close();
+					}
 				} catch (SQLException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -160,7 +164,7 @@ public class CollectThread  extends Thread {
 	 * @param tcount
 	 * @param scount
 	 */
-	public static void insertData(MapperInfo mapper,int scount,int tcount) {
+	public static void insertData(JSONObject mapper,int scount,int tcount) {
 		Connection conn = DBLimit.getConnection();
 		UUID uuid = UUID.randomUUID();
 		String id =  uuid.toString().replaceAll("-", "");
@@ -171,15 +175,15 @@ public class CollectThread  extends Thread {
 		try {
 			PreparedStatement pre = conn.prepareStatement(sql);
 			pre.setString(1, id);
-			pre.setString(2, mapper.getTar_name());
+			pre.setString(2, mapper.getString("tar_name"));
 			pre.setInt(3, tcount);
 			pre.setString(4, createTime);
-			pre.setString(5, targetID);
-			pre.setString(6, mapper.getSou_name());
+			pre.setString(5, mapper.getString("tar_db_id"));
+			pre.setString(6, mapper.getString("sou_name"));
 			pre.setInt(7, scount);
-			pre.setString(8, souID);
+			pre.setString(8, mapper.getString("sou_db_id"));
 			pre.setString(9, same);
-			pre.setString(10, mapper.getCh_name());
+			pre.setString(10, mapper.getString("ch_name"));
 			int update = pre.executeUpdate();
 			if(update == 0)
 				System.err.println("插入失败");

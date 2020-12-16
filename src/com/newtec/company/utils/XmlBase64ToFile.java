@@ -17,7 +17,8 @@ public class XmlBase64ToFile {
 	public static void main(String[] args) {
 		try {
 //			findBase64AndConvertToFile("F:/hgcsbw/loaded/test", "F:/hgcsbw/loaded/testpdf");
-			findBase64AndSaveToTxt("F:/hgcsbw/loaded/OutBox", "F:/hgcsbw/loaded/txt");
+			findBase64AndConvertToFile("F:\\hgcsbw\\1608104078548_202012161534_Cli\\OutBox", "F:\\hgcsbw\\1608104078548_202012161534_Cli\\txt");
+//			findBase64AndSaveToTxt("F:\\hgcsbw\\1608104078548_202012161534_Cli\\OutBox", "F:\\hgcsbw\\1608104078548_202012161534_Cli\\txt");
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -83,6 +84,8 @@ public class XmlBase64ToFile {
 				if(fileName.indexOf(certNo) > 0) {
 					ls.put("FileName", files[i].getName().substring(0, files[i].getName().lastIndexOf("_")));
 					ls.put("base64", PDFBinaryConvert.findStringFromTxt(files[i].getAbsolutePath()));
+					// 文件大小
+					ls.put("size", files[i].length());
 					break;
 				}
 			}

@@ -17,9 +17,11 @@ import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.impl.SchedulerRepository;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.newtec.company.entity.collect.CollectInfo;
 import com.newtec.company.service.CollectService;
+import com.newtec.company.utils.CollectUtil;
 import com.newtec.company.utils.DBLimit;
 import com.newtec.company.utils.DataViewMain;
 import com.newtec.company.utils.DataViewTask;
@@ -50,17 +52,44 @@ public class CollectServiceImpl implements CollectService{
 			String ch_name = resMap.get("ch_name");
 			String sou_name = resMap.get("sou_name");
 			String target_name = resMap.get("target_name");
+			String souDbIds = resMap.get("souDbIds");
+			String tarDbIds = resMap.get("tarDbIds");
 			int count = 1;
+			
+			// 检验是否勾选了数据源
+			String cond = "";
+			
+			if(souDbIds != null && !souDbIds.equals("")) {
+				cond += " and dm.sou_db_id in (";
+				String[] sda = souDbIds.split(",");
+				for (int i = 0; i < sda.length; i++) {
+					if (sda[i] != null && !sda[i].equals("")) {
+						cond += "'"+sda[i]+"',";
+					}
+				}
+				cond = cond.substring(0, cond.length() - 1)+") ";
+			}
+			
+			if(tarDbIds != null && !tarDbIds.equals("")) {
+				cond += " and dm.tar_db_id in (";
+				String[] sda = tarDbIds.split(",");
+				for (int i = 0; i < sda.length; i++) {
+					if (sda[i] != null && !sda[i].equals("")) {
+						cond += "'"+sda[i]+"',";
+					}
+				}
+				cond = cond.substring(0, cond.length() - 1)+") ";
+			}
 			
 			if((ch_name == null || ch_name.equals("")) 
 					&& (sou_name == null || sou_name.equals(""))
 					&& (target_name == null || target_name.equals(""))) {
-				count = getCount(connection,"select count(1) as count from db_mapper where state = '0'");
+				count = getCount(connection,"select count(1) as count from db_mapper dm where dm.state = '0'" + cond);
 			}
 			
 			Integer pageNum = StringUtils.isStrNull(strPageNum)?1:Integer.valueOf(strPageNum);
 			Integer ps = StringUtils.isStrNull(strPageSize)?pageSize:Integer.valueOf(strPageSize);
-			List<CollectInfo> list = getCollectInfo(connection, pageNum, count, sql, ps);
+			List<CollectInfo> list = getCollectInfo(connection, pageNum, count, sql, ps, cond);
 			map.put("pageNum", pageNum);
 			map.put("data", list);
 			
@@ -68,7 +97,7 @@ public class CollectServiceImpl implements CollectService{
 			Map m = new HashMap();
 			
 			// 总页数
-			m.put("total",  (count % pageSize == 0) ? count/pageSize : (count/pageSize + 1));
+			m.put("total",  (count % ps == 0) ? count/ps : (count/ps + 1));
 			
 			map.put("pageMsg", m);
 		}catch (Exception e) {
@@ -176,6 +205,7 @@ public class CollectServiceImpl implements CollectService{
 			PreparedStatement pre = null;
 			int rowCount = 0;
 			try {
+				System.out.println(sql);
 				pre = conn.prepareStatement(sql);
 				rs = pre.executeQuery();
 				while(rs.next())
@@ -207,28 +237,51 @@ public class CollectServiceImpl implements CollectService{
 		 * @param count
 		 * @return
 		 */
-		public static List<CollectInfo> getCollectInfo(Connection conn,Integer pageNum,int count,String sql, int ps)throws Exception{
+		public static List<CollectInfo> getCollectInfo(Connection conn,Integer pageNum,int count,String sql, int ps, 
+				String cond)throws Exception{
 			PreparedStatement pre = null;
 			ResultSet rs = null;
 			List<CollectInfo> list = new ArrayList<CollectInfo>();
+//			String ssql = "select * from ("
+//					+ " select dc.*,dl.sysname as sou_sys_name, dlt.sysname as tar_sys_name,dm.task_cron as task_cron "
+//					+ "	from db_mapper dm "
+//					+ " inner join db_collect dc on dm.ch_name=dc.ch_name and dm.tar_name=dc.target_name and dm.sou_name=dc.sou_name "
+//					+ " inner join db_limit dl on dl.id=dc.sou_id "
+//					+ " inner join db_limit dlt on dlt.id=dc.target_id "
+//					+ " group by dc.ch_name order by create_time desc limit ?) as a limit ?,?";
+			
 			String ssql = "select * from ("
-					+ " select dc.*,dl.sysname as sou_sys_name, dlt.sysname as tar_sys_name,dm.task_cron as task_cron "
-					+ "	from db_collect dc "
-					+ " inner join db_limit dl on dl.id=dc.sou_id "
-					+ " inner join db_limit dlt on dlt.id=dc.target_id "
-					+ " inner join db_mapper dm on dm.ch_name=dc.ch_name and dm.tar_name=dc.target_name and dm.sou_name=dc.sou_name "
-					+ " group by dc.ch_name order by create_time desc limit ?) as a limit ?,?";
+					+ " select "
+					+ " dc.id,dc.target_count,max(dc.create_time) as create_time,dc.sou_count,dc.same, "
+					+ " dm.tar_name,dm.sou_name,dm.sou_db_id,dm.tar_db_id,dm.create_time as dmct,dm.ch_name,dm.task_status, "
+					+ " dl.sysname AS sou_sys_name, "
+					+ " dlt.sysname AS tar_sys_name, "
+					+ " dm.task_cron AS task_cron  "
+					+ " from db_mapper dm "
+					+ " INNER JOIN db_limit dl ON dl.id = dm.sou_db_id "
+					+ " INNER JOIN db_limit dlt ON dlt.id = dm.tar_db_id "
+					+ " LEFT JOIN db_collect dc ON dm.ch_name = dc.ch_name AND dm.tar_name = dc.target_name AND dm.sou_name = dc.sou_name "
+					+ " where dm.state='0' "
+					+ cond
+					+ " group by dc.ch_name,dm.tar_name,dm.sou_name,dm.sou_db_id,dm.tar_db_id order by dmct desc, dc.create_time desc limit ?) as a limit ?,?";
 			
 			if(sql != null && !sql.equals("")) {
 				ssql = "select * from ("
-						+ " select b.*,dl.sysname as sou_sys_name, dl.sysname as tar_sys_name,dm.task_cron as task_cron "
+						+ " select "
+						+ " dc.id,dc.target_count,max(dc.create_time) as create_time,dc.sou_count,dc.same, "
+						+ " dm.tar_name,dm.sou_name,dm.sou_db_id,dm.tar_db_id,dm.create_time as dmct,dm.ch_name,dm.task_status, "
+						+ " dl.sysname AS sou_sys_name, "
+						+ " dlt.sysname AS tar_sys_name, "
+						+ " dm.task_cron AS task_cron  "
 						+ " from ( "
 						+ sql.replaceAll("\n", "")
 						+ " ) as b"
 						+ " inner join db_limit dl on dl.id=b.sou_id "
 						+ " inner join db_limit dlt on dlt.id=b.target_id "
 						+ " inner join db_mapper dm on dm.ch_name=dc.ch_name and dm.tar_name=dc.target_name and dm.sou_name=dc.sou_name "
-						+ " group by b.ch_name order by b.create_time desc limit ? ) as a limit ?,?";
+						+ " where 1=1 "
+						+ cond
+						+ " group by dc.ch_name,dm.tar_name,dm.sou_name,dm.sou_db_id,dm.tar_db_id order by dmct desc, dc.create_time desc limit ? ) as a limit ?,?";
 			}
 			System.out.println(ssql);
 			try {
@@ -241,25 +294,31 @@ public class CollectServiceImpl implements CollectService{
 				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 				while(rs.next()) {
 					c = new CollectInfo();
-					c.setCh_name(rs.getString("ch_name"));
-					c.setSou_ch_name(rs.getString("ch_name"));
-					c.setTar_ch_name(rs.getString("ch_name"));
-					c.setCreate_time(sdf.format(sdf.parse(rs.getString("create_time"))));
-					c.setId(rs.getString("id"));
-					c.setSame(rs.getString("same"));
-					c.setSou_count(rs.getInt("sou_count"));
-					c.setTarget_count(rs.getInt("target_count"));
-					c.setSou_id(rs.getString("sou_id"));
-					c.setSou_name(rs.getString("sou_name"));
-					c.setTarget_name(rs.getString("target_name"));
-					c.setTarget_id(rs.getString("target_id"));
-					c.setSou_sys_name(rs.getString("sou_sys_name"));
-					c.setTar_sys_name(rs.getString("tar_sys_name"));
+					c.setCh_name(rs.getObject("ch_name") == null ? "" : rs.getString("ch_name"));
+					c.setSou_ch_name(rs.getObject("ch_name") == null ? "" : rs.getString("ch_name"));
+					c.setTar_ch_name(rs.getObject("ch_name") == null ? "" : rs.getString("ch_name"));
+					c.setCreate_time(rs.getObject("create_time") == null ? "" : sdf.format(sdf.parse(rs.getString("create_time"))) );
+					c.setId(rs.getObject("id") == null ? "" : rs.getString("id"));
+					c.setSame(rs.getObject("same") == null ? "" : rs.getString("same"));
+					c.setSou_count(rs.getObject("sou_count") == null ? 0 : rs.getInt("sou_count"));
+					c.setTarget_count(rs.getObject("target_count") == null ? 0 : rs.getInt("target_count"));
+					c.setSou_id(rs.getObject("sou_db_id") == null ? "" : rs.getString("sou_db_id"));
+					c.setSou_name(rs.getObject("sou_name") == null ? "" : rs.getString("sou_name"));
+					c.setTarget_name(rs.getObject("tar_name") == null ? "" : rs.getString("tar_name"));
+					c.setTarget_id(rs.getObject("tar_db_id") == null ? "" : rs.getString("tar_db_id"));
+					c.setSou_sys_name(rs.getObject("sou_sys_name") == null ? "" : rs.getString("sou_sys_name"));
+					c.setTar_sys_name(rs.getObject("tar_sys_name") == null ? "" : rs.getString("tar_sys_name"));
+					c.setDmct(rs.getObject("dmct") == null ? "" : sdf.format(sdf.parse(rs.getString("dmct"))) );
+					c.setTask_status(rs.getObject("task_status") == null ? "" : rs.getString("task_status"));
 					
 					// 加入 定时器执行状态
-					c.setTask_status(DataViewMain.checkTaskRunStatus(rs.getString("target_name"))+"");
+//					c.setTask_status(DataViewMain.checkTaskRunStatus(rs.getObject("tar_name") == null ? "" : rs.getString("tar_name"))+"");
 					// 加入 定时器 运行cron表达式
-					c.setTask_cron(rs.getString("task_cron") == null || rs.getString("task_cron").equals("") ? "* * * ? * 2 *" : rs.getString("task_cron"));
+					if(rs.getString("task_cron") == null || rs.getString("task_cron").equals("")) {
+						c.setTask_cron("");
+					}else {
+						c.setTask_cron(rs.getString("task_cron"));
+					}
 					
 					list.add(c);
 				}
@@ -405,6 +464,10 @@ public class CollectServiceImpl implements CollectService{
 				Map<String, String> resMap = fetchWebReq.getData();
 				// 目标英文表名
 				String targetName = resMap.get("target_name");
+				// 来源英文表名
+				String souName = resMap.get("sou_name");
+				// 中文表名
+				String chName = resMap.get("ch_name");
 				// 定时任务名称是根据目标英文表名设置的 
 				// 命名规则为 targetName+Scheduler
 				// 循环定时任务
@@ -427,7 +490,15 @@ public class CollectServiceImpl implements CollectService{
 				
 				DataViewMain.getSchedList().remove(--js);
 				
-				map.put("status", "1");
+				// 更新 dbmapper 数据状态
+				int res = CollectUtil.updateDbMapperTaskStatus(chName, souName, targetName, "0");
+				
+				if(res < 0) {
+					map.put("status", "-2");
+					map.put("msg", "数据库更新异常！");
+				}else {
+					map.put("status", "1");
+				}
 			} catch (Exception e) {
 				e.printStackTrace();
 				map.put("status", "-1");
@@ -474,7 +545,297 @@ public class CollectServiceImpl implements CollectService{
 				sched.start();
 				
 				schedList.add(sched);
-				map.put("status", "1");
+				
+				// 更新 dbmapper 数据状态
+				int res = CollectUtil.updateDbMapperTaskStatus(chName, souName, targetName, "1");
+				
+				if(res < 0) {
+					map.put("status", "-2");
+					map.put("msg", "数据库更新异常！");
+				}else {
+					map.put("status", "1");
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+				map.put("status", "-1");
+				map.put("msg", "系统异常！");
+			}
+			
+			return map;
+		}
+
+		@RpcMethod(loginValidate = false)
+		@Override
+		public Map<String, Object> saveNewCollectMsg(FetchWebRequest<Map<String, String>> fetchWebReq) {
+			Map<String,Object> map = new HashMap<String, Object>();
+			try {
+				// 获取参数值
+				Map<String, String> resMap = fetchWebReq.getData();
+				// 先获取来源表数据库信息 并保存数据库信息
+				String souDbType = resMap.get("souDbType");
+				String souDbUrl = resMap.get("souDbUrl");
+				String souDbName = resMap.get("souDbName");
+				String souDbChar = resMap.get("souDbChar");
+				String souDbUname = resMap.get("souDbUname");
+				String souDbPswd = resMap.get("souDbPswd");
+				String souSysname = resMap.get("souSysname");
+				
+				JSONObject sou = CollectUtil.saveDbLimitByDbMsg(souDbType, souDbUrl, souDbName, souDbChar, souDbUname, souDbPswd, souSysname);
+				
+				if(sou == null) {
+					map.put("status", "-1");
+					map.put("msg", "系统异常！");
+					return map;
+				}
+				
+				// 再获取目标表数据库信息并保存数据库信息
+				String tarDbType = resMap.get("tarDbType");
+				String tarDbUrl = resMap.get("tarDbUrl");
+				String tarDbName = resMap.get("tarDbName");
+				String tarDbChar = resMap.get("tarDbChar");
+				String tarDbUname = resMap.get("tarDbUname");
+				String tarDbPswd = resMap.get("tarDbPswd");
+				String tarSysname = resMap.get("tarSysname");
+				
+				JSONObject tar = CollectUtil.saveDbLimitByDbMsg(tarDbType, tarDbUrl, tarDbName, tarDbChar, tarDbUname, tarDbPswd, tarSysname);
+				
+				if(tar == null) {
+					map.put("status", "-1");
+					map.put("msg", "系统异常！");
+					return map;
+				}
+				
+				// 然后保存来源表和目标表信息
+				// 中文表名
+				String chName = resMap.get("chName");
+				// 来源 英文表名
+				String souName = resMap.get("souName");
+				// 目标 英文表名
+				String tarName = resMap.get("tarName");
+				// 来源表 表中字段
+				String souTableColumns = resMap.get("souTableColumns");
+				// 目标表 表中字段
+				String tarTableColumns = resMap.get("tarTableColumns");
+				// 来源表 查询条件
+				String souTableCond = resMap.get("souTableCond");
+		        // 目标表 查询条件
+		        String tarTableCond = resMap.get("tarTableCond");
+		        // 类型
+		        String operType = resMap.get("operType");
+		        
+		        boolean res = CollectUtil.saveDbMapperMsg(chName, souName, tarName, sou.getString("id"), tar.getString("id"), souTableColumns, tarTableColumns, souTableCond, tarTableCond, operType);
+		        
+		        if(!res) {
+		        	map.put("status", "-1");
+					map.put("msg", "系统异常！");
+					return map;
+		        }
+		        
+				map.put("status", "0");
+			} catch (Exception e) {
+				e.printStackTrace();
+				map.put("status", "-1");
+				map.put("msg", "系统异常！");
+			}
+			
+			return map;
+		}
+
+		@RpcMethod(loginValidate = false)
+		@Override
+		public Map<String, Object> testDbMsgConnect(FetchWebRequest<Map<String, String>> fetchWebReq) {
+			Map<String,Object> map = new HashMap<String, Object>();
+			try {
+				// 获取参数值
+				Map<String, String> resMap = fetchWebReq.getData();
+				// 先获取来源表数据库信息 并保存数据库信息
+				String dbType = resMap.get("dbType");
+				String dbUrl = resMap.get("dbUrl");
+				String dbName = resMap.get("dbName");
+				String dbCharSet = resMap.get("dbCharSet");
+				String dbUname = resMap.get("dbUname");
+				String dbPswd = resMap.get("dbPswd");
+				
+				boolean res = CollectUtil.testDbMsgConnect(dbType, dbUrl, dbName, dbCharSet, dbUname, dbPswd);
+				
+				if(!res) {
+					map.put("status", "-2");
+					map.put("msg", "获取连接失败！您输入的信息有误，请查证后再测");
+					return map;
+				}
+				
+				map.put("status", "0");
+			} catch (Exception e) {
+				e.printStackTrace();
+				map.put("status", "-1");
+				map.put("msg", "系统异常！");
+			}
+			
+			return map;
+		}
+		
+		@RpcMethod(loginValidate = false)
+		@Override
+		public Map<String, Object> findDbInfoById(FetchWebRequest<Map<String, String>> fetchWebReq) {
+			Map<String,Object> map = new HashMap<String, Object>();
+			try {
+				// 获取参数值
+				Map<String, String> resMap = fetchWebReq.getData();
+				// 先获取来源表数据库信息 并保存数据库信息
+				String id = resMap.get("id");
+				
+				JSONObject res = CollectUtil.findDbInfoById(id);
+				
+				map.put("dbMsg", res);
+				map.put("status", "0");
+			} catch (Exception e) {
+				e.printStackTrace();
+				map.put("status", "-1");
+				map.put("msg", "系统异常！");
+			}
+			
+			return map;
+		}
+
+		@RpcMethod(loginValidate = false)
+		@Override
+		public Map<String, Object> findMapperInfoById(FetchWebRequest<Map<String, String>> fetchWebReq) {
+			Map<String,Object> map = new HashMap<String, Object>();
+			try {
+				// 获取参数值
+				Map<String, String> resMap = fetchWebReq.getData();
+				// 先获取来源表数据库信息 并保存数据库信息
+				String chName = resMap.get("chName"); 
+				String souName = resMap.get("souName"); 
+				String souDbId = resMap.get("souDbId");
+				String tarName = resMap.get("tarName"); 
+				String tarDbId = resMap.get("tarDbId");
+				
+				JSONObject res = CollectUtil.findMapperInfoById(chName, souName, souDbId, tarName, tarDbId);
+				
+				map.put("dbMsg", res);
+				map.put("status", "0");
+			} catch (Exception e) {
+				e.printStackTrace();
+				map.put("status", "-1");
+				map.put("msg", "系统异常！");
+			}
+			
+			return map;
+		}
+		
+		@RpcMethod(loginValidate = false)
+		@Override
+		public Map<String, Object> doOnceTask(FetchWebRequest<Map<String, String>> fetchWebReq) {
+			Map<String,Object> map = new HashMap<String, Object>();
+			try {
+				// 获取参数值
+				Map<String, String> resMap = fetchWebReq.getData();
+				// 先获取来源表数据库信息 并保存数据库信息
+				String chName = resMap.get("chName"); 
+				String souName = resMap.get("souName"); 
+				String souDbId = resMap.get("souDbId");
+				String tarName = resMap.get("tarName"); 
+				String tarDbId = resMap.get("tarDbId");
+				
+				JSONObject res = CollectUtil.doOnceTask(chName, souName, souDbId, tarName, tarDbId);
+				
+				map.put("dbMsg", res);
+				map.put("status", "0");
+			} catch (Exception e) {
+				e.printStackTrace();
+				map.put("status", "-1");
+				map.put("msg", "系统异常！");
+			}
+			
+			return map;
+		}
+		
+		@RpcMethod(loginValidate = false)
+		@Override
+		public Map<String, Object> selectTableNames(FetchWebRequest<Map<String, String>> fetchWebReq) {
+			Map<String,Object> map = new HashMap<String, Object>();
+			try {
+				// 获取参数值
+				Map<String, String> resMap = fetchWebReq.getData();
+				// 先获取来源表数据库信息 并保存数据库信息
+				//数据库类型
+				String dbType = resMap.get("dbType");
+				// 数据库地址
+				String dbUrl = resMap.get("dbUrl");
+				//数据库库名
+				String dbName = resMap.get("dbName");
+				//数据库字符集
+				String dbCharSet = resMap.get("dbCharSet");
+				// 数据库用户名
+				String dbUname = resMap.get("dbUname");
+				//数据库用户密码
+				String dbPswd = resMap.get("dbPswd");
+				
+				JSONArray res = CollectUtil.selectTableNames(dbType, dbUrl, dbName, dbCharSet, dbUname, dbPswd);
+				
+				map.put("tableName", res);
+				map.put("status", "0");
+			} catch (Exception e) {
+				e.printStackTrace();
+				map.put("status", "-1");
+				map.put("msg", "系统异常！");
+			}
+			
+			return map;
+		}
+		
+		@RpcMethod(loginValidate = false)
+		@Override
+		public Map<String, Object> selectColumnsNamesByTable(FetchWebRequest<Map<String, String>> fetchWebReq) {
+			Map<String,Object> map = new HashMap<String, Object>();
+			try {
+				// 获取参数值
+				Map<String, String> resMap = fetchWebReq.getData();
+				// 先获取来源表数据库信息 并保存数据库信息
+				//数据库类型
+				String dbType = resMap.get("dbType");
+				// 数据库地址
+				String dbUrl = resMap.get("dbUrl");
+				//数据库库名
+				String dbName = resMap.get("dbName");
+				//数据库字符集
+				String dbCharSet = resMap.get("dbCharSet");
+				// 数据库用户名
+				String dbUname = resMap.get("dbUname");
+				//数据库用户密码
+				String dbPswd = resMap.get("dbPswd");
+				//数据库表名
+				String tableName = resMap.get("tableName");
+				
+				JSONArray res = CollectUtil.selectColumnsNamesByTable(dbType, dbUrl, dbName, dbCharSet, dbUname, dbPswd, tableName);
+				
+				map.put("data", res);
+				map.put("status", "0");
+			} catch (Exception e) {
+				e.printStackTrace();
+				map.put("status", "-1");
+				map.put("msg", "系统异常！");
+			}
+			
+			return map;
+		}
+		
+		@RpcMethod(loginValidate = false)
+		@Override
+		public Map<String, Object> findDbAry(FetchWebRequest<Map<String, String>> fetchWebReq) {
+			Map<String,Object> map = new HashMap<String, Object>();
+			try {
+				JSONObject res = CollectUtil.findDbAry();
+				
+				if(res.getInteger("status") == 0) {
+					map.put("souDbAry", res.get("souDbAry"));
+					map.put("tarDbAry", res.get("tarDbAry"));
+					map.put("status", "0");
+				}else {
+					map.put("status", "-2");
+					map.put("msg", "查询异常！");
+				}
 			} catch (Exception e) {
 				e.printStackTrace();
 				map.put("status", "-1");

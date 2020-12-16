@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.alibaba.fastjson.JSONObject;
 import com.newtec.company.entity.collect.Limit;
 import com.newtec.company.entity.collect.MapperInfo;
 
@@ -97,17 +98,45 @@ public class DBLimit{
 	 * @return
 	 * @throws SQLException
 	 */
-	public static List<MapperInfo>  getMapper() throws SQLException {
+	public static List<JSONObject>  getMapper() throws SQLException {
 		
 		Connection conn = getConnection();
-		String sql = "select * from db_mapper where state = '0'";
+		String sql = "SELECT  " + 
+				"	dm.*, " + 
+				"	dl.url as souUrl,dl.type as souType,dl.username as souUname,dl.`password` as souPswd, " + 
+				"	dll.url as tarUrl,dll.type as tarType,dll.username as tarUname,dll.`password` as tarPswd " + 
+				"from  " + 
+				"	db_mapper dm  " + 
+				"INNER JOIN db_limit dl on dm.sou_db_id = dl.id  " + 
+				"INNER JOIN db_limit dll on dm.tar_db_id = dll.id " + 
+				"where dm.state='0'";
 		PreparedStatement pre = conn.prepareStatement(sql);
 		ResultSet rs = pre.executeQuery();
-		MapperInfo mapper = null;
-		List<MapperInfo> list = new ArrayList<MapperInfo>();
+		List<JSONObject> list = new ArrayList<JSONObject>();
 		while(rs.next()) {
-			mapper = new MapperInfo(rs.getString("ch_name"),rs.getString("sou_name"),rs.getString("tar_name"),rs.getString("state"));
-			list.add(mapper);
+			JSONObject jo = new JSONObject();
+			
+			jo.put("ch_name", rs.getString("ch_name"));
+			jo.put("sou_name", rs.getString("sou_name"));
+			jo.put("tar_name", rs.getString("tar_name"));
+			jo.put("state", rs.getString("state"));
+			jo.put("task_cron", rs.getString("task_cron"));
+			jo.put("sou_db_id", rs.getString("sou_db_id"));
+			jo.put("tar_db_id", rs.getString("tar_db_id"));
+			jo.put("souUrl", rs.getString("souUrl"));
+			jo.put("souType", rs.getString("souType"));
+			jo.put("souUname", rs.getString("souUname"));
+			jo.put("souPswd", rs.getString("souPswd"));
+			jo.put("tarUrl", rs.getString("tarUrl"));
+			jo.put("tarType", rs.getString("tarType"));
+			jo.put("tarUname", rs.getString("tarUname"));
+			jo.put("tarPswd", rs.getString("tarPswd"));
+			jo.put("souTableColumns", rs.getObject("sou_table_columns") == null ? "" : rs.getString("sou_table_columns"));
+			jo.put("tarTableColumns", rs.getObject("tar_table_columns") == null ? "" : rs.getString("tar_table_columns"));
+			jo.put("souTableCond", rs.getObject("sou_table_cond") == null ? "" : rs.getString("sou_table_cond"));
+			jo.put("tarTableCond", rs.getObject("tar_table_cond") == null ? "" : rs.getString("tar_table_cond"));
+			
+			list.add(jo);
 		}
 		closeConnection(conn);
 		return list;

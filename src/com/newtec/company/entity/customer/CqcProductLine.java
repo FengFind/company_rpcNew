@@ -16,7 +16,7 @@ import org.hibernate.annotations.GenericGenerator;
 @Entity
 @Table(name = "cqc_product_line")
 public class CqcProductLine {
-
+ 
 	@Id
 	@GenericGenerator(name = "hibernate-uuid", strategy = "uuid")
 	@GeneratedValue(generator = "hibernate-uuid")

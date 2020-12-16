@@ -47,7 +47,7 @@ public class PsiIumeCertDataConvertToXmlZip {
 		int js = 0;
 		
 		// 获取附件对应的ids
-		String ids = PDFBinaryConvert.findStringFromTxt("F:/hgcsbw/ids.txt");
+//		String ids = PDFBinaryConvert.findStringFromTxt("F:/hgcsbw/ids.txt");
 		
 		// 安装海运传输的xml格式模拟数据
 		for (int i = 0; i < db.size(); i++) {
@@ -57,9 +57,9 @@ public class PsiIumeCertDataConvertToXmlZip {
 //			JSONArray dbi = new JSONArray();
 			
 			// 判断是否存在于ids中
-			if(ids.indexOf(dbi.get(0).toString()) < 0) {
-				continue;
-			}
+//			if(ids.indexOf(dbi.get(0).toString()) < 0) {
+//				continue;
+//			}
 			
 			// 需要组装成xml中对应的格式
 			List<Object> rut = new ArrayList<Object>();

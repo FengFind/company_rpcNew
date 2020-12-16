@@ -15,6 +15,7 @@ import org.quartz.SchedulerException;
 import org.quartz.impl.SchedulerRepository;
 import org.quartz.impl.StdSchedulerFactory;
 
+import com.alibaba.fastjson.JSONObject;
 import com.newtec.company.entity.collect.MapperInfo;
 
 public class DataViewMain {
@@ -26,33 +27,55 @@ public class DataViewMain {
 			schedList = new ArrayList<Scheduler>();
 			
 			// MapperList 表列表
-			List<MapperInfo> mapperList = DBLimit.getMapper();
+			List<JSONObject> mapperList = DBLimit.getMapper();
 			// 计数
 			int js = 0;
 			
-			for(MapperInfo mapper : mapperList) {
+			for(JSONObject mapper : mapperList) {
+				// 判断 如果 定时器规则字段为null 则不开启定时器
+				if(mapper.get("task_cron") == null || mapper.get("task_cron").equals("")) {
+					continue;
+				}
+				
 				// 创建LzstoneTimeTask的定时任务
 				JobDataMap jobDataMap = new JobDataMap();
 				// 来源表英文名称
-				jobDataMap.put("souName", mapper.getSou_name());
+				jobDataMap.put("souName", mapper.getString("sou_name"));
 				// 目标表英文名称
-				jobDataMap.put("tarName", mapper.getTar_name());
+				jobDataMap.put("tarName", mapper.getString("tar_name"));
 				// 中文名称
-				jobDataMap.put("chName", mapper.getCh_name());
-				// 定时任务scheduler的名称
-				jobDataMap.put("schedulerName", mapper.getTar_name()+"Scheduler");
+				jobDataMap.put("chName", mapper.getString("ch_name"));
+				// 来源数据库 信息
+				jobDataMap.put("souUrl", mapper.getString("souUrl"));
+				jobDataMap.put("souType", mapper.getString("souType"));
+				jobDataMap.put("souUname", mapper.getString("souUname"));
+				jobDataMap.put("souPswd", mapper.getString("souPswd"));
+				jobDataMap.put("souTableColumns", mapper.getString("souTableColumns"));
+				jobDataMap.put("souTableCond", mapper.getString("souTableCond"));
+				jobDataMap.put("sou_db_id", mapper.getString("sou_db_id"));
+				// 目标数据库 信息
+				jobDataMap.put("tarUrl", mapper.getString("tarUrl"));
+				jobDataMap.put("tarType", mapper.getString("tarType"));
+				jobDataMap.put("tarUname", mapper.getString("tarUname"));
+				jobDataMap.put("tarPswd", mapper.getString("tarPswd"));
+				jobDataMap.put("tarTableColumns", mapper.getString("tarTableColumns"));
+				jobDataMap.put("tarTableCond", mapper.getString("tarTableCond"));
+				jobDataMap.put("tar_db_id", mapper.getString("tar_db_id"));
 				
-				JobDetail jobDetail = new JobDetail(mapper.getTar_name(), "dataView", DataViewTask.class);
+				// 定时任务scheduler的名称
+				jobDataMap.put("schedulerName", mapper.getString("tar_name")+"Scheduler");
+				
+				JobDetail jobDetail = new JobDetail(mapper.getString("tar_name"), "dataView", DataViewTask.class);
 //				JobDetail jobDetail = new JobDetail("dv"+(++js),"ddd", DataViewTask.class);
 				
 				jobDetail.setJobDataMap(jobDataMap);
 				
 				// 目标 创建任务计划
-//				CronTrigger trigger = new CronTrigger(mapper.getTar_name()+"Trigger", mapper.getTar_name(), "10/5 * * * * ?");
-				CronTrigger trigger = new CronTrigger(mapper.getTar_name()+"Trigger", mapper.getTar_name(), "* * * ? * 1-2 *");
+//				CronTrigger trigger = new CronTrigger(mapper.getString("tar_name")+"Trigger", mapper.getString("tar_name"), "10/5 * * * * ?");
+				CronTrigger trigger = new CronTrigger(mapper.getString("tar_name")+"Trigger", mapper.getString("tar_name"), "0 0 0 ? * 2#2 *");
 				// 0 0 12 * * ? 代表每天的中午12点触发
 				
-				Scheduler sched = getSchedulerByName(mapper.getTar_name()+"Scheduler");
+				Scheduler sched = getSchedulerByName(mapper.getString("tar_name")+"Scheduler");
 				sched.scheduleJob(jobDetail, trigger);
 				sched.start();
 				

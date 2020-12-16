@@ -1,5 +1,6 @@
 package com.newtec.company.utils;
 
+import java.io.File;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.util.List;
@@ -13,9 +14,13 @@ public class Util {
 //		DecimalFormat df = new DecimalFormat("#.000");
 //		
 //		System.out.println(df.format(new BigDecimal("1235.6978")));
-		String s = "烟台恒邦集团有限公司", s1 = "恒邦集团烟台恒邦集团有限公司大股东他参股29家公司 ";
+//		String s = "烟台恒邦集团有限公司", s1 = "恒邦集团烟台恒邦集团有限公司大股东他参股29家公司 ";
 		
-		System.out.println(s1.substring(s1.indexOf(s)+s.length()).replace("大股东", ""));
+//		System.out.println(s1.substring(s1.indexOf(s)+s.length()).replace("大股东", ""));
+		
+		File f = new File("F:\\hgcsbw\\1608102952011\\OutBox\\6D20951383BDD3C25416B007B91AA9BB.xml");
+		
+		System.out.println(f.length());
 	}
 	
 	/**
