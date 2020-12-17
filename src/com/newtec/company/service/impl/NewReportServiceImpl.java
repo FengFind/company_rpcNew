@@ -22,15 +22,22 @@ public class NewReportServiceImpl implements NewReportService {
 	@Override
 	public Map<String, Object> findTotalByZhongjian(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception {
 		// TODO Auto-generated method stub
-    	String sql = " select '总计' as a," + 
-                "         case when sum(yysrbnlj) is null then 0 else sum(yysrbnlj) end as b," + 
-                "         case when sum(yycbbnlj) is null then 0 else sum(yycbbnlj) end as c," + 
-                "         case when sum(yylybnlj) is null then 0 else sum(yylybnlj) end as d," + 
-                "         case when sum(lrzebnlj) is null then 0 else sum(lrzebnlj) end as e," + 
-                "         case when sum(jlrbnlj)  is null then 0 else sum(jlrbnlj) end as f" + 
-                "    from infoshar_202007kbsj " + 
-                " where month=(select max(month) from infoshar_202007kbsj)"+ 
-                "   and org_name_t is not null  ";
+    	String sql = " select '总计' 总计, sum(营业收入),sum(营业成本),sum(营业利润),sum(利润总额),sum(净利润)  from " + 
+    			"(select sum(b.M10081) 营业收入," + 
+    			"        sum(b.M10101) 营业成本," + 
+    			"       sum(b.M10030) 营业利润," + 
+    			"        sum(b.M10129) 利润总额," + 
+    			"        sum(b.M10017) 净利润," + 
+    			"        a.COMPANY_NAME as 公司名称," + 
+    			"        a.business_region as 区域," + 
+    			"        b.KEYWORD3" + 
+    			"   from NC_QZLJ a" + 
+    			"   left join INFOSHAR_1733409658 b" + 
+    			"     on a.org_code = b.ORG_CODE" + 
+    			"  where b.KEYWORD3 = '2020-10'" +  
+    			"    and substr(b.KEYWORD3, 1, 4) = '2020'" + 
+    			"    and A.org_code NOT LIKE 'CE%'" + 
+    			"  group by a.COMPANY_NAME, a.business_region, b.KEYWORD3)  ";
     	System.out.println(sql);
     List<Object[]> list = DBManager.get("kabBan").createNativeQuery(sql).getResultList();
 		Map<String, Object> map = new HashMap<String, Object>();
@@ -56,17 +63,22 @@ public class NewReportServiceImpl implements NewReportService {
 		// TODO Auto-generated method stub
     	Map<String, String>reMap = fetchWebReq.getData();
 		String companyId = reMap.get("companyId");
-		String sql ="select org_name_t as 公司名称," + 
-                "         case when to_number(yysrbnlj) is null then 0 else to_number(yysrbnlj) end as 营业收入," + 
-                "         case when to_number(yycbbnlj )is null then 0 else to_number(yycbbnlj) end as 营业成本," + 
-                "         case when to_number(yylybnlj )is null then 0 else to_number(yylybnlj) end as 营业利润," + 
-                "         case when to_number(lrzebnlj )is null then 0 else to_number(lrzebnlj) end as 利润总额," + 
-                "         case when to_number(jlrbnlj ) is null then 0 else to_number(jlrbnlj ) end as 净利润," +
-                "         month" + 
-                "    from infoshar_202007kbsj " + 
-                "    where month=(select max(month) from infoshar_202007kbsj)"+
-                "   and org_name_t is not null " + 
-                "   and org_name_t = '"+companyId+"'";
+		String sql ="select a.COMPANY_NAME as 公司名称," + 
+				"        sum(b.M10081) 营业收入," + 
+				"        sum(b.M10101) 营业成本," + 
+				"        sum(b.M10030) 营业利润," + 
+				"        sum(b.M10129) 利润总额," + 
+				"        sum(b.M10017) 净利润," + 
+				"        b.KEYWORD3" + 
+				"   from NC_QZLJ a" + 
+				"   left join INFOSHAR_1733409658 b" + 
+				"     on a.org_code = b.ORG_CODE" + 
+				"  where b.KEYWORD3 = '2020-10'" + 
+				"    and substr(b.KEYWORD3, 1, 4) = '2020'" + 
+				"    and A.org_code NOT LIKE 'CE%'" + 
+				"    and a.COMPANY_NAME is not null" + 
+				"    and a.COMPANY_NAME = '"+companyId+"'" + 
+				"  group by a.COMPANY_NAME, b.KEYWORD3 order by a.COMPANY_NAME";
 		System.out.println(sql);
     	List<Object[]> list = DBManager.get("kabBan").createNativeQuery(sql).getResultList();
 		Map<String, Object> map = new HashMap<String, Object>();
@@ -90,17 +102,23 @@ public class NewReportServiceImpl implements NewReportService {
 		// TODO Auto-generated method stub
 		Map<String, String>reMap = fetchWebReq.getData();
 		String companyId = reMap.get("companyId");
-		String sql = " select '总计' as a,quyu," + 
-                "         case when sum(yysrbnlj) is null then 0 else sum(yysrbnlj) end as b," + 
-                "         case when sum(yycbbnlj) is null then 0 else sum(yycbbnlj) end as c," + 
-                "         case when sum(yylybnlj) is null then 0 else sum(yylybnlj) end as d," + 
-                "         case when sum(lrzebnlj) is null then 0 else sum(lrzebnlj) end as e," + 
-                "         case when sum(jlrbnlj)  is null then 0 else sum(jlrbnlj) end as f" + 
-                "    from infoshar_202007kbsj " + 
-                " where month=(select max(month) from infoshar_202007kbsj)"+
-                "   and org_name_t is not null " +
-                "   and quyu='"+companyId+"'"+
-                " group by quyu";  
+		String sql = " select  '总计' as 总计," + 
+				"        a.business_region as 区域," + 
+				"        sum(b.M10081) 营业收入," + 
+				"        sum(b.M10101) 营业成本," + 
+				"        sum(b.M10030) 营业利润," + 
+				"        sum(b.M10129) 利润总额," + 
+				"        sum(b.M10017) 净利润," + 
+				"        b.KEYWORD3" + 
+				"   from NC_QZLJ a" + 
+				"   left join INFOSHAR_1733409658 b" + 
+				"     on a.org_code = b.ORG_CODE" + 
+				"  where b.KEYWORD3 = '2020-10'" + 
+				"    and substr(b.KEYWORD3, 1, 4) = '2020'" + 
+				"    and A.org_code NOT LIKE 'CE%'" + 
+				"    and a.COMPANY_NAME is not null" + 
+				"    and a.business_region = '"+companyId+"'" + 
+				"  group by a.business_region, b.KEYWORD3 ";  
     	System.out.println(sql);
 		List<Object[]> list = DBManager.get("kabBan").createNativeQuery(sql).getResultList();
 		Map<String, Object> map = new HashMap<String, Object>();
@@ -123,13 +141,18 @@ public class NewReportServiceImpl implements NewReportService {
 	@Override
 	public Map<String, Object> findYysrTbByZhongjian(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception {
 		// TODO Auto-generated method stub
-    	String sql = "select  to_number(substr(month, 6, 2))||'月' as month," + 
-    			"       sum(yysrbnlj) 今年营业收入," + 
-    			"       sum(yysrsntqljje) 去年营业收入," + 
-    			"       round((sum(yysrbnlj) - sum(yysrsntqljje))/sum(yysrsntqljje) * 100,2) as 营业收入同比" + 
-    			"  from infoshar_202007kbsj" + 
-    			" where substr(month, 6, 2) <= to_char(sysdate, 'mm')  and  substr(month, 1, 4)='2020'" + 
-    			" group by substr(month, 6, 2) order by month";
+    	String sql = "select to_number(substr(b.KEYWORD3, 6, 2))||'月' as KEYWORD3，" + 
+    			"               round(sum(b.M10081),2) 今年营业收入," + 
+    			"               round(sum(b.M10006),2) 去年营业收入," + 
+    			"               round((sum(b.M10081)-sum(b.M10006))/sum(b.M10006)*100,2)同比" + 
+    			"          from NC_QZLJ a" + 
+    			"          left join INFOSHAR_1733409658 b" + 
+    			"            on a.org_code = b.ORG_CODE" + 
+    			"         where substr(b.KEYWORD3, 6, 2) < to_char(sysdate, 'mm')" + 
+    			"           and substr(b.KEYWORD3, 1, 4) = '2020'" + 
+    			"           and to_number(substr(b.KEYWORD3, 6, 2)) != 11" + 
+    			"           and A.org_code NOT LIKE 'CE%'" + 
+    			"         group by substr(b.KEYWORD3, 6, 2) order by to_number(substr(b.KEYWORD3, 6, 2))";
     	System.out.println(sql);
     	List<Object[]> reList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();	
 		Map<String, Object> map = new HashMap<String, Object>();
@@ -208,13 +231,20 @@ public class NewReportServiceImpl implements NewReportService {
 	@Override
 	public Map<String, Object> findYycbTbByZhongjian(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception {
 		// TODO Auto-generated method stub
-    	String sql = "select  to_number(substr(month, 6, 2))||'月' as month," + 
-    			"       sum(yycbbnlj) 今年营业成本," + 
-    			"       sum(yycbsntqljje) 去年营业成本," + 
-    			"       round((sum(yycbbnlj) - sum(yycbsntqljje))/sum(yycbsntqljje) * 100,2) as 营业成本同比" + 
-    			"  from infoshar_202007kbsj" + 
-    			" where substr(month, 6, 2) <= to_char(sysdate, 'mm')  and  substr(month, 1, 4)='2020'" + 
-    			" group by substr(month, 6, 2) order by month";
+    	String sql = "select to_number(substr(b.KEYWORD3, 6, 2)) || '月' as KEYWORD3，" + 
+    			"               round(sum(b.M10101),2) 今年营业成本," + 
+    			"               round(sum(b.M10108),2) 去年营业成本," + 
+    			"               round((sum(b.M10101)-sum(b.M10108))/sum(b.M10108)*100,2) 同比" + 
+    			"               " + 
+    			"          from NC_QZLJ a" + 
+    			"          left join INFOSHAR_1733409658 b" + 
+    			"            on a.org_code = b.ORG_CODE" + 
+    			"         where substr(b.KEYWORD3, 6, 2) < to_char(sysdate, 'mm')" + 
+    			"           and substr(b.KEYWORD3, 1, 4) = '2020'" + 
+    			"           and to_number(substr(b.KEYWORD3, 6, 2)) != 11" + 
+    			"           and A.org_code NOT LIKE 'CE%'" + 
+    			"         group by substr(KEYWORD3, 6, 2)" + 
+    			" order by to_number(substr(b.KEYWORD3, 6, 2))";
     	System.out.println(sql);
     	List<Object[]> reList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();	
 		Map<String, Object> map = new HashMap<String, Object>();
@@ -293,13 +323,19 @@ public class NewReportServiceImpl implements NewReportService {
 	@Override
 	public Map<String, Object> findYylrTbByZhongjian(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception {
 		// TODO Auto-generated method stub
-    	String sql = "select  to_number(substr(month, 6, 2))||'月' as month," + 
-    			"       sum(yylybnlj) 今年营业利润," + 
-    			"       sum(yylrssntqljje) 去年营业利润," + 
-    			"       round((sum(yylybnlj) - sum(yylrssntqljje))/sum(yylrssntqljje) * 100,2) as 营业利润同比" + 
-    			"  from infoshar_202007kbsj" + 
-    			" where substr(month, 6, 2) <= to_char(sysdate, 'mm')  and  substr(month, 1, 4)='2020'" + 
-    			" group by substr(month, 6, 2) order by month";
+    	String sql = "select to_number(substr(b.KEYWORD3, 6, 2)) || '月' as KEYWORD3，" + 
+    			"       round(sum(b.M10030),2) 今年营业利润, " + 
+    			"       round(sum(b.M10091),2) 去年营业利润," + 
+    			"       round((sum(b.M10030)-sum(b.M10091))/sum(b.M10091)*100,2) 同比     " + 
+    			"          from NC_QZLJ a" + 
+    			"          left join INFOSHAR_1733409658 b" + 
+    			"            on a.org_code = b.ORG_CODE" + 
+    			"         where substr(b.KEYWORD3, 6, 2) < to_char(sysdate, 'mm')" + 
+    			"           and substr(b.KEYWORD3, 1, 4) = '2020'" + 
+    			"           and to_number(substr(b.KEYWORD3, 6, 2)) != 11" + 
+    			"           and A.org_code NOT LIKE 'CE%'" + 
+    			"         group by substr(KEYWORD3, 6, 2)" + 
+    			" order by to_number(substr(b.KEYWORD3, 6, 2))";
     	System.out.println(sql);
     	List<Object[]> reList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();	
 		Map<String, Object> map = new HashMap<String, Object>();
@@ -381,16 +417,20 @@ public class NewReportServiceImpl implements NewReportService {
 		// TODO Auto-generated method stub
     	Map<String, String>reMap = fetchWebReq.getData();
 		String companyId = reMap.get("companyId");
-    	String sql = "select substr(month, 7, 1)||'月' as month," + 
-    			"       sum(yysrbnlj) 今年营业收入," + 
-    			"       sum(yysrsntqljje) 去年营业收入," + 
-    			"       round((sum(yysrbnlj) - sum(yysrsntqljje)) / (case when  sum(yysrsntqljje)='0.00' then 1 else sum(yysrsntqljje) end ) * 100,2) as 营业收入同比" + 
-    			"  from infoshar_202007kbsj" + 
-    			" where substr(month,6,2) <= to_char(sysdate,'mm')" + 
-    			"   and substr(month,1,4) = '2020'" + 
-    			"   and org_name_t = '"+companyId+"'" + 
-    			" group by substr(month,7,1)" + 
-    			" order by month";
+    	String sql = "select to_number(substr(b.KEYWORD3, 6, 2)) || '月' as KEYWORD3，" + 
+    			"               round(sum(b.M10081),2) 今年营业收入,              " + 
+    			"               round(sum(b.M10006),2) 去年营业收入," + 
+    			"               round((sum(b.M10081)-sum(b.M10006))/(case when sum(b.M10006)='0.00' then 1 else sum(b.M10006) end) *100,2) 同比" + 
+    			"          from NC_QZLJ a" + 
+    			"          left join INFOSHAR_1733409658 b" + 
+    			"            on a.org_code = b.ORG_CODE" + 
+    			"         where substr(b.KEYWORD3, 6, 2) < to_char(sysdate, 'mm')" + 
+    			"           and substr(b.KEYWORD3, 1, 4) = '2020'" + 
+    			"           and to_number(substr(b.KEYWORD3, 6, 2)) != 11" + 
+    			"           and A.org_code NOT LIKE 'CE%'" + 
+    			"           and COMPANY_NAME = '"+companyId+"'" + 
+    			"         group by substr(KEYWORD3, 6, 2)" + 
+    			" order by to_number(substr(b.KEYWORD3, 6, 2))";
     	System.out.println(sql);
     	List<Object[]> reList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();	
 		Map<String, Object> map = new HashMap<String, Object>();
@@ -471,14 +511,20 @@ public class NewReportServiceImpl implements NewReportService {
 		// TODO Auto-generated method stub
     	Map<String, String>reMap = fetchWebReq.getData();
 		String companyId = reMap.get("companyId");
-		String sql = "select  to_number(substr(month, 7, 1))||'月' as month," + 
-    			"       sum(yycbbnlj) 今年营业成本," + 
-    			"       sum(yycbsntqljje) 去年营业成本," + 
-    			"       round((sum(yycbbnlj) - sum(yycbsntqljje))/(case when sum(yycbsntqljje)='0.00'then 1 else sum(yycbsntqljje) end) * 100,2) as 营业成本同比" + 
-    			"  from infoshar_202007kbsj" + 
-    			" where substr(month, 6, 2) <= to_char(sysdate, 'mm')  and  substr(month, 1, 4)='2020'" +
-    			" and org_name_t = '"+companyId+"'" +
-    			" group by substr(month, 7, 1) order by month";
+		String sql = "select  to_number(substr(b.KEYWORD3, 6, 2)) || '月' as KEYWORD3，" + 
+				"         round(sum(b.M10101),2) 今年营业成本," + 
+				"         round(sum(b.M10108),2) 去年营业成本," + 
+				"         round((sum(b.M10101)-sum(b.M10108))/(case when sum(b.M10108)='0.00' then 1 else sum(b.M10108) end) *100,2) 同比   " + 
+				"          from NC_QZLJ a" + 
+				"          left join INFOSHAR_1733409658 b" + 
+				"            on a.org_code = b.ORG_CODE" + 
+				"         where substr(b.KEYWORD3, 6, 2) < to_char(sysdate, 'mm')" + 
+				"           and substr(b.KEYWORD3, 1, 4) = '2020'" + 
+				"           and to_number(substr(b.KEYWORD3, 6, 2)) != 11" + 
+				"           and A.org_code NOT LIKE 'CE%'" + 
+				"           and COMPANY_NAME = '"+companyId+"'" + 
+				"         group by substr(KEYWORD3, 6, 2)" + 
+				" order by to_number(substr(b.KEYWORD3, 6, 2))";
 		System.out.println(sql);
     	List<Object[]> reList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();	
 		Map<String, Object> map = new HashMap<String, Object>();
@@ -559,14 +605,20 @@ public class NewReportServiceImpl implements NewReportService {
 		// TODO Auto-generated method stub
     	Map<String, String>reMap = fetchWebReq.getData();
 		String companyId = reMap.get("companyId");
-		String sql = "select  to_number(substr(month, 7, 1))||'月' as month," + 
-    			"       sum(yylybnlj) 今年营业利润," + 
-    			"       sum(yylrssntqljje) 去年营业利润," + 
-    			"       round((sum(yylybnlj) - sum(yylrssntqljje))/(case when sum(yylrssntqljje)='0.00'then 1 else sum(yylrssntqljje) end) * 100,2) as 营业利润同比" + 
-    			"  from infoshar_202007kbsj" + 
-    			" where substr(month, 6, 2) <= to_char(sysdate, 'mm')  and  substr(month, 1, 4)='2020'" +
-    			" and org_name_t = '"+companyId+"'" +
-    			" group by substr(month, 7, 1) order by month";
+		String sql = "select  to_number(substr(b.KEYWORD3, 6, 2)) || '月' as KEYWORD3," + 
+				"          round(sum(b.M10030),2) 今年营业利润, " + 
+				"          round(sum(b.M10091),2) 去年营业利润," + 
+				"          round((sum(b.M10030)-sum(b.M10091))/(case when sum(b.M10091)='0.00' then 1 else sum(b.M10091) end) *100,2) 同比     " + 
+				"          from NC_QZLJ a" + 
+				"          left join INFOSHAR_1733409658 b" + 
+				"            on a.org_code = b.ORG_CODE" + 
+				"         where substr(b.KEYWORD3, 6, 2) < to_char(sysdate, 'mm')" + 
+				"           and substr(b.KEYWORD3, 1, 4) = '2020'" + 
+				"           and to_number(substr(b.KEYWORD3, 6, 2)) != '11'" + 
+				"           and A.org_code NOT LIKE 'CE%'" + 
+				"           and COMPANY_NAME = '"+companyId+"'" + 
+				"         group by substr(KEYWORD3, 6, 2)" + 
+				" order by to_number(substr(b.KEYWORD3, 6, 2))";
 		System.out.println(sql);
     	List<Object[]> reList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();	
 		Map<String, Object> map = new HashMap<String, Object>();
@@ -647,14 +699,20 @@ public class NewReportServiceImpl implements NewReportService {
 		// TODO Auto-generated method stub
     	Map<String, String>reMap = fetchWebReq.getData();
 		String companyId = reMap.get("companyId");
-    	String sql = "select  to_number(substr(month, 6, 2))||'月' as month，" + 
-    			"       sum(yysrbnlj) 今年营业收入," + 
-    			"       sum(yysrsntqljje) 去年营业收入," + 
-    			"       round((sum(yysrbnlj) - sum(yysrsntqljje))/sum(yysrsntqljje) * 100,2) as 营业收入同比" + 
-    			"  from infoshar_202007kbsj" + 
-    			" where substr(month, 6, 2) <= to_char(sysdate, 'mm')  and  substr(month, 1, 4)='2020'" +
-    			" and quyu = '"+companyId+"'" +
-    			" group by substr(month, 6, 2) order by month";
+    	String sql = "select to_number(substr(b.KEYWORD3, 6, 2)) || '月' as KEYWORD3，" + 
+    			"               round(sum(b.M10081),2) 今年营业收入,              " + 
+    			"               round(sum(b.M10006),2) 去年营业收入," + 
+    			"               round((sum(b.M10081)-sum(b.M10006))/(case when sum(b.M10006)='0.00' then 1 else sum(b.M10006) end) *100,2) 同比" + 
+    			"          from NC_QZLJ a" + 
+    			"          left join INFOSHAR_1733409658 b" + 
+    			"            on a.org_code = b.ORG_CODE" + 
+    			"         where substr(b.KEYWORD3, 6, 2) < to_char(sysdate, 'mm')" + 
+    			"           and substr(b.KEYWORD3, 1, 4) = '2020'" + 
+    			"           and to_number(substr(b.KEYWORD3, 6, 2)) != 11" + 
+    			"           and A.org_code NOT LIKE 'CE%'" + 
+    			"           and business_region = '"+companyId+"'" + 
+    			"         group by substr(KEYWORD3, 6, 2)" + 
+    			" order by to_number(substr(b.KEYWORD3, 6, 2))";
     	System.out.println(sql);
     	List<Object[]> reList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();	
 		Map<String, Object> map = new HashMap<String, Object>();
@@ -735,14 +793,20 @@ public class NewReportServiceImpl implements NewReportService {
 		// TODO Auto-generated method stub
     	Map<String, String>reMap = fetchWebReq.getData();
 		String companyId = reMap.get("companyId");
-		String sql = "select  to_number(substr(month, 6, 2))||'月' as month," + 
-    			"       sum(yycbbnlj) 今年营业成本," + 
-    			"       sum(yycbsntqljje) 去年营业成本," + 
-    			"       round((sum(yycbbnlj) - sum(yycbsntqljje))/sum(yycbsntqljje) * 100,2) as 营业成本同比" + 
-    			"  from infoshar_202007kbsj" + 
-    			" where substr(month, 6, 2) <= to_char(sysdate, 'mm')  and  substr(month, 1, 4)='2020'" +
-    			" and quyu = '"+companyId+"'" +
-    			" group by substr(month, 6, 2) order by month";
+		String sql = "select  to_number(substr(b.KEYWORD3, 6, 2)) || '月' as KEYWORD3， " + 
+				"         round(sum(b.M10101),2) 今年营业成本, " + 
+				"         round(sum(b.M10108),2) 去年营业成本," + 
+				"         round((sum(b.M10101)-sum(b.M10108))/(case when sum(b.M10108)='0.00' then 1 else sum(b.M10108) end) *100,2) 同比    " + 
+				"          from NC_QZLJ a" + 
+				"          left join INFOSHAR_1733409658 b" + 
+				"            on a.org_code = b.ORG_CODE" + 
+				"         where substr(b.KEYWORD3, 6, 2) < to_char(sysdate, 'mm')" + 
+				"           and substr(b.KEYWORD3, 1, 4) = '2020'" + 
+				"           and to_number(substr(b.KEYWORD3, 6, 2)) != 11" + 
+				"           and A.org_code NOT LIKE 'CE%'" + 
+				"           and business_region = '"+companyId+"'" + 
+				"         group by substr(KEYWORD3, 6, 2)" + 
+				" order by to_number(substr(b.KEYWORD3, 6, 2))";
 		System.out.println(sql);
     	List<Object[]> reList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();	
 		Map<String, Object> map = new HashMap<String, Object>();
@@ -823,14 +887,20 @@ public class NewReportServiceImpl implements NewReportService {
 		// TODO Auto-generated method stub
     	Map<String, String>reMap = fetchWebReq.getData();
 		String companyId = reMap.get("companyId");
-		String sql = "select  to_number(substr(month, 6, 2))||'月' as month," + 
-    			"       sum(yylybnlj) 今年营业利润," + 
-    			"       sum(yylrssntqljje) 去年营业利润," + 
-    			"       round((sum(yylybnlj) - sum(yylrssntqljje))/sum(yylrssntqljje) * 100,2) as 营业利润同比" + 
-    			"  from infoshar_202007kbsj" + 
-    			" where substr(month, 6, 2) <= to_char(sysdate, 'mm')  and  substr(month, 1, 4)='2020'" +
-    			" and quyu = '"+companyId+"'" +
-    			" group by substr(month, 6, 2) order by month";
+		String sql = "select  to_number(substr(b.KEYWORD3, 6, 2)) || '月' as KEYWORD3," + 
+				"          round(sum(b.M10030),2) 今年营业利润, " + 
+				"          round(sum(b.M10091),2) 去年营业利润," + 
+				"          round((sum(b.M10030)-sum(b.M10091))/(case when sum(b.M10091)='0.00' then 1 else sum(b.M10091) end) *100,2) 同比     " + 
+				"          from NC_QZLJ a" + 
+				"          left join INFOSHAR_1733409658 b" + 
+				"            on a.org_code = b.ORG_CODE" + 
+				"         where substr(b.KEYWORD3, 6, 2) < to_char(sysdate, 'mm')" + 
+				"           and substr(b.KEYWORD3, 1, 4) = '2020'" + 
+				"           and to_number(substr(b.KEYWORD3, 6, 2)) != '11'" + 
+				"           and A.org_code NOT LIKE 'CE%'" + 
+				"           and business_region = '"+companyId+"'" + 
+				"         group by substr(KEYWORD3, 6, 2)" + 
+				" order by to_number(substr(b.KEYWORD3, 6, 2))";
 		System.out.println(sql);
     	List<Object[]> reList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();	
 		Map<String, Object> map = new HashMap<String, Object>();
@@ -1758,62 +1828,60 @@ public class NewReportServiceImpl implements NewReportService {
 			throws Exception {
 		StringBuffer sql = new StringBuffer();
 		
-		sql.append("SELECT BUSINESS_REGION, " + 
-				"       SORG_LEVEL3, " + 
-				"       SUM(委托单量) 委托单量, " + 
-				"       SUM(预测收入) 预测收入, " + 
-				"       SUM(年业务收入) 年业务收入, " + 
-				"       SUM(业务成本) 业务成本, " + 
-				"       sorg_level3_id " + 
-				"  FROM (SELECT BUSINESS_REGION, " + 
-				"               sorg_level3_id, " + 
-				"               SORG_LEVEL3, " + 
-				"               COUNT(DISTINCT(ORDER_UUID)) 委托单量, " + 
-				"               0 AS 年业务收入, " + 
-				"               0 AS 预测收入, " + 
-				"               0 AS 业务成本 " + 
-				"          FROM T_ORDER_SERVER " + 
-				"         WHERE SUBSTR(CREATE_TIME_ORDER, 0, 4) = TO_CHAR(SYSDATE, 'YYYY') " + 
-				"           AND BUSINESS_REGION IS NOT NULL " + 
-				"         GROUP BY BUSINESS_REGION, sorg_level3_id, SORG_LEVEL3 " + 
-				"        UNION ALL " + 
-				"        SELECT BUSINESS_REGION, " + 
-				"               sorg_level3_id, " + 
-				"               SORG_LEVEL3, " + 
-				"               0 AS 委托单量, " + 
-				"               SUM(EX_TAX_PRICE) 年业务收入, " + 
-				"               0 AS 预测收入, " + 
-				"               0 AS 业务成本 " + 
-				"          FROM T_COMP_INVOICE_ALL " + 
-				"         WHERE VOID_TIME IS NULL " + 
-				"           AND BUSINESS_REGION IS NOT NULL " + 
-				"           AND SUBSTR(INVOICE_DATE, 0, 4) = TO_CHAR(SYSDATE, 'YYYY') " + 
-				"           AND SUBSTR(INVOICE_DATE, 0, 7) <= TO_CHAR(SYSDATE, 'YYYY-MM') " + 
-				"         GROUP BY BUSINESS_REGION, sorg_level3_id, SORG_LEVEL3 " + 
-				"        UNION ALL " + 
-				"        SELECT BUSINESS_REGION, " + 
-				"               sorg_level3_id, " + 
-				"               SORG_LEVEL3, " + 
-				"               0 AS 委托单量, " + 
-				"               0 AS 年业务收入, " + 
-				"               SUM(SYS_CUR_TOTAL_AMOUNT) 预测收入, " + 
-				"               0 AS 业务成本 " + 
-				"          FROM T_ORDER_SERVER " + 
-				"         WHERE SUBSTR(WORK_FINISH_TIME, 1, 4) = TO_CHAR(SYSDATE, 'YYYY') " + 
-				"           AND BUSINESS_REGION IS NOT NULL " + 
-				"         GROUP BY BUSINESS_REGION, sorg_level3_id, SORG_LEVEL3 " + 
-				"        UNION ALL " + 
-				"        SELECT BUSINESS_REGION, " + 
-				"               sorg_level3_id, " + 
-				"               SORG_LEVEL3, " + 
-				"               0 AS 委托单量, " + 
-				"               0 AS 年业务收入, " + 
-				"               0 AS 预测收入, " + 
-				"               SUM(APPORT_PAY_AMOUNT + DIRECT_COST) 业务成本 " + 
-				"          FROM T_COMPANY_COST_ALL " + 
-				"         WHERE BUSINESS_REGION IS NOT NULL " + 
-				"         GROUP BY BUSINESS_REGION,sorg_level3_id, SORG_LEVEL3) " + 
-				" GROUP BY BUSINESS_REGION, sorg_level3_id, SORG_LEVEL3 " + 
+		sql.append("SELECT BUSINESS_REGION," + 
+				"       SORG_LEVEL3," + 
+				"       SUM(委托单量) 委托单量," + 
+				"       SUM(预测收入) 预测收入," + 
+				"       SUM(年业务收入) 年业务收入," + 
+				"       SUM(业务成本) 业务成本" + 
+				"  FROM (SELECT BUSINESS_REGION," + 
+				"               SORG_LEVEL3," + 
+				"               COUNT(DISTINCT(ORDER_UUID)) 委托单量," + 
+				"               0 AS 年业务收入," + 
+				"               0 AS 预测收入," + 
+				"               0 AS 业务成本" + 
+				"          FROM T_ORDER_SERVER" + 
+				"         WHERE SUBSTR(CREATE_TIME_ORDER, 0, 4) = TO_CHAR(SYSDATE, 'YYYY')" + 
+				"           AND BUSINESS_REGION IS NOT NULL" + 
+				"         GROUP BY BUSINESS_REGION, SORG_LEVEL3" + 
+				"        UNION ALL" + 
+				"        SELECT BUSINESS_REGION," + 
+				"               SORG_LEVEL3," + 
+				"               0 AS 委托单量," + 
+				"               SUM(SYSTEM_EX_TAX_PRICE - VOID_SYSTEM_EX_TAX_PRICE +" + 
+				"           SYSTEM_EX_TAX_PRICE_PSI + SYSTEM_EX_TAX_PRICE_SY +" + 
+				"           SYSTEM_EX_TAX_PRICE_YX + SYSTEM_EX_TAX_PRICE_CQC +" + 
+				"           SYSTEM_EX_TAX_PRICE_FYW) AS 年业务收入," + 
+				"               0 AS 预测收入," + 
+				"               0 AS 业务成本" + 
+				"          FROM T_COMP_INVOICE_ALL_MONTH" + 
+				"         WHERE  BUSINESS_REGION IS NOT NULL" + 
+				"           AND SUBSTR(INVOICE_DATE_MONTH, 0, 4) = TO_CHAR(SYSDATE, 'YYYY')" + 
+				"           AND SUBSTR(INVOICE_DATE_MONTH, 0, 7) <= TO_CHAR(SYSDATE, 'YYYY-MM')" + 
+				"         GROUP BY BUSINESS_REGION, SORG_LEVEL3" + 
+				"" + 
+				"        UNION ALL" + 
+				"        SELECT BUSINESS_REGION," + 
+				"               SORG_LEVEL3," + 
+				"               0 AS 委托单量," + 
+				"               0 AS 年业务收入," + 
+				"               SUM(SYS_CUR_TOTAL_AMOUNT) 预测收入," + 
+				"               0 AS 业务成本" + 
+				"          FROM T_ORDER_SERVER" + 
+				"         WHERE SUBSTR(WORK_FINISH_TIME, 1, 4) = TO_CHAR(SYSDATE, 'YYYY')" + 
+				"           AND BUSINESS_REGION IS NOT NULL" + 
+				"         GROUP BY BUSINESS_REGION, SORG_LEVEL3" + 
+				"        UNION ALL" + 
+				"        SELECT BUSINESS_REGION," + 
+				"               SORG_LEVEL3," + 
+				"               0 AS 委托单量," + 
+				"               0 AS 年业务收入," + 
+				"               0 AS 预测收入," + 
+				"               SUM(APPORT_PAY_AMOUNT + DIRECT_COST) 业务成本" + 
+				"          FROM T_COMPANY_COST_ALL" + 
+				"         WHERE BUSINESS_REGION IS NOT NULL" + 
+				"         GROUP BY BUSINESS_REGION, SORG_LEVEL3)" + 
+				" GROUP BY BUSINESS_REGION, SORG_LEVEL3" + 
 				" order by 预测收入 desc");
 		System.out.println(sql.toString());
 		List<Object[]> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
@@ -1836,59 +1904,75 @@ public class NewReportServiceImpl implements NewReportService {
 			throws Exception {
 		StringBuffer sql = new StringBuffer();
 		
-		sql.append("SELECT PRODUCT_LINE_NAME_ST1, " + 
-				"       PRODUCT_LINE_NAME, " + 
-				"       sum(年委托单) 委托单量, " + 
-				"       SUM(预测收入) 预测收入, " + 
-				"       SUM(年业务收入) 年业务收入, " + 
-				"       SUM(业务成本) 业务成本 " + 
-				"  FROM (select PRODUCT_LINE_NAME_ST1, " + 
-				"               PRODUCT_LINE_NAME, " + 
-				"               count(distinct(order_uuid)) 年委托单, " + 
-				"               0 as 年业务收入, " + 
-				"               0 as 预测收入, " + 
-				"               0 as 业务成本 " + 
-				"          from T_ORDER_SERVER " + 
-				"         where substr(create_time_order, 0, 4) = to_char(sysdate, 'yyyy') " + 
-				"           and data_state_order <> '草稿' " + 
-				"           and data_state_order <> '草稿' " + 
-				"           and audit_state_order <> '已删除' " + 
-				"         group by PRODUCT_LINE_NAME_ST1, PRODUCT_LINE_NAME " + 
-				"        union all " + 
-				"        SELECT PRODUCT_LINE_NAME_ST1, " + 
-				"               PRODUCT_LINE_NAME, " + 
-				"               0 as 委托单量, " + 
-				"               SUM(EX_TAX_PRICE) 年业务收入, " + 
-				"               0 as 预测收入, " + 
-				"               0 as 业务成本 " + 
-				"          FROM T_COMP_INVOICE_ALL " + 
-				"         WHERE VOID_TIME IS NULL " + 
-				"           AND TYPE = '产品线业务' " + 
-				"           AND SUBSTR(INVOICE_DATE, 0, 4) = TO_CHAR(SYSDATE, 'YYYY') " + 
-				"           AND SUBSTR(INVOICE_DATE, 0, 7) <= TO_CHAR(SYSDATE, 'YYYY-MM') " + 
-				"         GROUP BY PRODUCT_LINE_NAME_ST1, PRODUCT_LINE_NAME " + 
-				"        union all " + 
-				"        SELECT PRODUCT_LINE_NAME_ST1, " + 
-				"               PRODUCT_LINE_NAME, " + 
-				"               0 as 委托单量, " + 
-				"               0 as 年业务收入, " + 
-				"               SUM(SYS_CUR_TOTAL_AMOUNT) 预测收入, " + 
-				"               0 as 业务成本 " + 
-				"          FROM T_ORDER_SERVER " + 
-				"         WHERE SUBSTR(WORK_FINISH_TIME, 1, 4) = TO_CHAR(SYSDATE, 'YYYY') " + 
-				"         GROUP BY PRODUCT_LINE_NAME_ST1, PRODUCT_LINE_NAME  " + 
-				"        union all " + 
-				"        SELECT PRODUCT_LINE_NAME_ST1, " + 
-				"               product_name PRODUCT_LINE_NAME, " + 
-				"               0 as 委托单量, " + 
-				"               0 as 年业务收入, " + 
-				"               0 as 预测收入, " + 
-				"               SUM(total_cost) AS 业务成本 " + 
-				"          FROM T_COMPANY_COST_ALL " + 
-				"         WHERE PRODUCT_NAME IS NOT NULL " + 
-				"         GROUP BY PRODUCT_LINE_NAME_ST1, product_name) " + 
-				" GROUP BY PRODUCT_LINE_NAME_ST1, PRODUCT_LINE_NAME " + 
-				" order by 预测收入 desc ");
+		sql.append(" SELECT PRODUCT_LINE_NAME_ST1," + 
+				"        PRODUCT_LINE_NAME," + 
+				"        sum(年委托单) 委托单量," + 
+				"        SUM(预测收入) 预测收入," + 
+				"        SUM(年业务收入) 年业务收入," + 
+				"        SUM(业务成本) 业务成本" + 
+				"   FROM (select PRODUCT_LINE_NAME_ST1," + 
+				"                PRODUCT_LINE_NAME," + 
+				"                count(distinct(order_uuid)) 年委托单," + 
+				"                0 as 年业务收入," + 
+				"                0 as 预测收入," + 
+				"                0 as 业务成本" + 
+				"           from T_ORDER_SERVER" + 
+				"          where substr(create_time_order, 0, 4) = to_char(sysdate, 'yyyy')" + 
+				"            and data_state_order <> '草稿'" + 
+				"            and data_state_order <> '草稿'" + 
+				"            and audit_state_order <> '已删除'" + 
+				"          group by PRODUCT_LINE_NAME_ST1, PRODUCT_LINE_NAME" + 
+				"         union all" + 
+				"" + 
+				" SELECT          PRODUCT_LINE_NAME_ST1," + 
+				"                PRODUCT_LINE_NAME," + 
+				"                0 as 委托单量," + 
+				"                SUM(EX_TAX_PRICE-废票) 年业务收入," + 
+				"                0 as 预测收入," + 
+				"                0 as 业务成本" + 
+				"  FROM (SELECT PRODUCT_LINE_NAME_ST1," + 
+				"                PRODUCT_LINE_NAME," + 
+				"                SUM(EX_TAX_PRICE) AS EX_TAX_PRICE, " + 
+				"                0 AS 废票" + 
+				"          FROM T_COMP_INVOICE_ALL" + 
+				"         WHERE TYPE in ('产品线业务','非产品线业务')" + 
+				"           AND SUBSTR(INVOICE_DATE, 0, 4) = TO_CHAR(SYSDATE, 'YYYY')" + 
+				"           AND SUBSTR(INVOICE_DATE, 0, 7) <= TO_CHAR(SYSDATE, 'YYYY-MM')" + 
+				"         GROUP BY PRODUCT_LINE_NAME_ST1, PRODUCT_LINE_NAME" + 
+				"        UNION ALL" + 
+				"        SELECT PRODUCT_LINE_NAME_ST1," + 
+				"                PRODUCT_LINE_NAME," + 
+				"                0 AS EX_TAX_PRICE, " + 
+				"                SUM(EX_TAX_PRICE) AS 废票" + 
+				"          FROM T_COMP_INVOICE_ALL" + 
+				"         WHERE TYPE IN ('产品线业务','非产品线业务')" + 
+				"           AND SUBSTR(VOID_TIME, 0, 4) = TO_CHAR(SYSDATE, 'YYYY')" + 
+				"           AND SUBSTR(VOID_TIME, 0, 7) <= TO_CHAR(SYSDATE, 'YYYY-MM')" + 
+				"         GROUP BY  PRODUCT_LINE_NAME_ST1, PRODUCT_LINE_NAME) " + 
+				"         GROUP BY  PRODUCT_LINE_NAME_ST1,PRODUCT_LINE_NAME" + 
+				"" + 
+				"         union all" + 
+				"         SELECT PRODUCT_LINE_NAME_ST1," + 
+				"                PRODUCT_LINE_NAME," + 
+				"                0 as 委托单量," + 
+				"                0 as 年业务收入," + 
+				"                SUM(SYS_CUR_TOTAL_AMOUNT) 预测收入," + 
+				"                0 as 业务成本" + 
+				"           FROM T_ORDER_SERVER" + 
+				"          WHERE SUBSTR(WORK_FINISH_TIME, 1, 4) = TO_CHAR(SYSDATE, 'YYYY')" + 
+				"          GROUP BY PRODUCT_LINE_NAME_ST1, PRODUCT_LINE_NAME" + 
+				"         union all" + 
+				"         SELECT PRODUCT_LINE_NAME_ST1," + 
+				"                product_name PRODUCT_LINE_NAME," + 
+				"                0 as 委托单量," + 
+				"                0 as 年业务收入," + 
+				"                0 as 预测收入," + 
+				"                SUM(total_cost) AS 业务成本" + 
+				"           FROM T_COMPANY_COST_ALL" + 
+				"          WHERE PRODUCT_NAME IS NOT NULL" + 
+				"          GROUP BY PRODUCT_LINE_NAME_ST1, product_name)" + 
+				"  GROUP BY PRODUCT_LINE_NAME_ST1, PRODUCT_LINE_NAME" + 
+				"  order by 预测收入 desc ");
 		System.out.println(sql.toString());
 		List<Object[]> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
 		
@@ -1913,51 +1997,47 @@ public class NewReportServiceImpl implements NewReportService {
 		Map<String, String> resMap = fetchWebReq.getData();
 		String cpxName = resMap.get("cpxName");
 		
-		sql.append("select SORG_LEVEL3, " + 
-				"       nvl(sum(委托单量), 0) 委托单量, " + 
-				"       nvl(sum(年预测收入), 0) 年预测收入, " + 
-				"       nvl(sum(收入总额), 0) 收入总额, " + 
-				"       nvl(sum(业务成本), 0) 业务成本, " + 
-				"       company_busi_org_id " + 
-				"from (select company_busi_org_id, " + 
-				"             SORG_LEVEL2, " + 
-				"             SORG_LEVEL3, " + 
-				"             sum(ORDER_CREATE_COUNT) 委托单量, " + 
-				"             sum(server_end_amount) 年预测收入, " + 
-				"             0 as 收入总额, " + 
-				"             0 as 业务成本 " + 
-				"      from T_COMP_AMOUNT_ALL_MONTH " + 
-				"      where SORG_LEVEL2 not like '%参股%' " + 
-				"      and product_line_name = '"+cpxName+"' " + 
-				"      and substr(data_stats_month, 0, 4) = to_char(sysdate, 'YYYY') " + 
-				"      group by company_busi_org_id, SORG_LEVEL2, SORG_LEVEL3 " + 
-				"      union all " + 
-				"      SELECT company_busi_org_id, " + 
-				"             SORG_LEVEL2, " + 
-				"             SORG_LEVEL3, " + 
-				"             0 委托单量, " + 
-				"             0 年预测收入, " + 
-				"             SUM(invoice_all_ex_tax_price) 收入总额, " + 
-				"             0 业务成本 " + 
-				"      FROM T_COMP_INVOICE_ALL_MONTH " + 
-				"      WHERE SUBSTR(invoice_date_month, 0, 4) = TO_CHAR(SYSDATE, 'YYYY') " + 
-				"      and product_line_name = '"+cpxName+"' " + 
-				"      AND SUBSTR(invoice_date_month, 0, 7) <= TO_CHAR(SYSDATE, 'YYYY-MM') " + 
-				"      GROUP BY company_busi_org_id, SORG_LEVEL2, SORG_LEVEL3 " + 
-				"      union all " + 
-				"      SELECT company_busi_org_id, " + 
-				"             SORG_LEVEL2, " + 
-				"             SORG_LEVEL3, " + 
-				"             0 委托单量, " + 
-				"             0 年预测收入, " + 
-				"             0 as 收入总额, " + 
-				"             SUM(total_cost) 业务成本 " + 
-				"      FROM T_COMPANY_COST_ALL " + 
-				"      where product_name = '"+cpxName+"' " + 
-				"      GROUP BY company_busi_org_id, SORG_LEVEL2, SORG_LEVEL3) " + 
-				"group by company_busi_org_id, SORG_LEVEL3 " + 
-				"order by 年预测收入 desc " + 
-				"");
+		sql.append(" select SORG_LEVEL3," + 
+				"        nvl(sum(委托单量), 0) 委托单量," + 
+				"        nvl(sum(年预测收入), 0) 年预测收入," + 
+				"        nvl(sum(收入总额), 0) 收入总额," + 
+				"        nvl(sum(业务成本), 0) 业务成本" + 
+				"   from (select SORG_LEVEL2," + 
+				"                SORG_LEVEL3," + 
+				"                sum(ORDER_CREATE_COUNT) 委托单量," + 
+				"                sum(server_end_amount) 年预测收入," + 
+				"                0 as 收入总额," + 
+				"                0 as 业务成本" + 
+				"           from T_COMP_AMOUNT_ALL_MONTH" + 
+				"          where SORG_LEVEL2 not like '%参股%'" + 
+				"            and product_line_name = '"+cpxName+"'" + 
+				"            and substr(data_stats_month, 0, 4) = to_char(sysdate, 'YYYY')" + 
+				"          group by SORG_LEVEL2, SORG_LEVEL3" + 
+				"         union all" + 
+				"         SELECT SORG_LEVEL2," + 
+				"                SORG_LEVEL3," + 
+				"                0 委托单量," + 
+				"                0 年预测收入," + 
+				"                SUM(invoice_all_ex_tax_price) 收入总额," + 
+				"                0 业务成本" + 
+				"           FROM T_COMP_INVOICE_ALL_MONTH" + 
+				"          WHERE SUBSTR(invoice_date_month, 0, 4) = TO_CHAR(SYSDATE, 'YYYY')" + 
+				"            and product_line_name = '"+cpxName+"'" + 
+				"            AND SUBSTR(invoice_date_month, 0, 7) <=" + 
+				"                TO_CHAR(SYSDATE, 'YYYY-MM')" + 
+				"          GROUP BY SORG_LEVEL2, SORG_LEVEL3" + 
+				"         union all" + 
+				"         SELECT SORG_LEVEL2," + 
+				"                SORG_LEVEL3," + 
+				"                0 委托单量," + 
+				"                0 年预测收入," + 
+				"                0 as 收入总额," + 
+				"                SUM(total_cost) 业务成本" + 
+				"           FROM T_COMPANY_COST_ALL" + 
+				"          where product_name = '"+cpxName+"'" + 
+				"          GROUP BY SORG_LEVEL2, SORG_LEVEL3)" + 
+				"  group by SORG_LEVEL3" + 
+				"  order by 年预测收入 desc" );
 		System.out.println(sql.toString());
 		List<Object[]> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
 			
@@ -2304,15 +2384,62 @@ public class NewReportServiceImpl implements NewReportService {
 		String gsName = resMap.get("gsName");
 		String type = resMap.get("type");
 		
-		sql.append(" select * from ( ")
-		.append("       select aa.*, rownum as rm from ( ")
-		.append("             select customer_name, count(order_uuid) 委托单数, sum(order_cerc) 出证数量, sum(sys_total_amount) 委托金额, sum(system_total_amount_income) 已收金额 ")
-		.append("             from T_ORDER_CRM ")
-		.append("             where group_type='").append(type).append("' ")
-		.append("             and BUSINESS_REGION='").append(gsName).append("' ")
-		.append("             group by customer_name order by 委托金额 desc  ")
-		.append("       ) aa where rownum < 100")
-		.append(" )bb where rm > 0");
+		sql.append(" select *" + 
+				"    from (select aa.*, rownum as rm" + 
+				"            from (select 客户名," + 
+				"                         sum(委托单数量) 委托单量," + 
+				"                         sum(证书) 出证数量," + 
+				"                         sum(委托金额) 委托金额," + 
+				"                         sum(实收) 已收金额" + 
+				"                         " + 
+				"                    from (SELECT CUSTOMER_NAME 客户名," + 
+				"                                 GROUP_TYPE 内外部," + 
+				"                                 COUNT(DISTINCT(ORDER_UUID)) 委托单数量," + 
+				"                                 nvl(sum(SYS_CUR_TOTAL_AMOUNT), 0) 委托金额," + 
+				"                                 0 as 实收," + 
+				"                                 0 as 证书" + 
+				"                            FROM T_ORDER_SERVER" + 
+				"                           WHERE PRODUCT_LINE_NAME_ST1 IS NOT NULL" + 
+				"                             AND DATA_STATE_ORDER <> '已删除'" + 
+				"                             AND DATA_STATE_ORDER <> '草稿'" + 
+				"                             AND AUDIT_STATE_ORDER <> '草稿'" + 
+				"                              and business_region='"+gsName+"'" + 
+				"                              and GROUP_TYPE = '"+type+"'" + 
+				"                             AND SUBSTR(CREATE_TIME_ORDER, 0, 4) =" + 
+				"                                 TO_CHAR(SYSDATE, 'yyyy')" + 
+				"                           GROUP BY CUSTOMER_NAME, GROUP_TYPE" + 
+				"                          union all" + 
+				"                          SELECT CUSTOMER_NAME 客户名," + 
+				"                                 GROUP_TYPE 内外部," + 
+				"                                 0 as 委托单数量," + 
+				"                                 0 as 委托金额," + 
+				"                                 SUM(SYSTEM_TOTAL_AMOUNT) 实收," + 
+				"                                 0 as 证书" + 
+				"                            FROM T_SERVER_INCOME" + 
+				"                           WHERE business_region='"+gsName+"'" + 
+				"                           and GROUP_TYPE = '"+type+"'" + 
+				"                             AND SUBSTR(match_date, 0, 4) =" + 
+				"                                 TO_CHAR(SYSDATE, 'yyyy')" + 
+				"                           GROUP BY CUSTOMER_NAME, group_type" + 
+				"                          union all" + 
+				"                          SELECT CUSTOMER_NAME 客户名," + 
+				"                                 group_type 内外部," + 
+				"                                 0 as 委托单数量," + 
+				"                                 0 as 委托金额," + 
+				"                                 0 as 实收," + 
+				"                                 COUNT(MID) 证书" + 
+				"                            FROM T_ORDER_CERC" + 
+				"                           WHERE business_region='"+gsName+"'" + 
+				"                           and GROUP_TYPE = '"+type+"'" + 
+				"                            and state = '已完成'" + 
+				"                             AND SUBSTR(FICTIONAL_DATE, 0, 4) =" + 
+				"                                 TO_CHAR(SYSDATE, 'yyyy')" + 
+				"                           GROUP BY CUSTOMER_NAME, group_type)" + 
+				"                   group by 客户名, 内外部) aa" + 
+				"           where rownum < 100" + 
+				"             " + 
+				"           order by aa.委托金额 desc) bb" + 
+				"   where rm > 0");
 		System.out.println(sql.toString());
 		List<Object[]> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
 		
@@ -2758,11 +2885,16 @@ public class NewReportServiceImpl implements NewReportService {
 	@RpcMethod(loginValidate = false)
    	@Override
    	public Map<String, Object> findYyjyqkYhSrzeYear(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception {
-       	String sql1 = " SELECT SUM(EX_TAX_PRICE) as 年业务收入 " + 
-       			"       FROM T_COMP_INVOICE_ALL " + 
-       			"       WHERE VOID_TIME IS NULL " + 
-       			"       AND SUBSTR(INVOICE_DATE, 0, 4) = TO_CHAR(SYSDATE, 'YYYY') " + 
-       			"       AND SUBSTR(INVOICE_DATE, 0, 7) <= TO_CHAR(SYSDATE, 'YYYY-MM')";		
+       	String sql1 = " SELECT SUM(总开票 - 废票) 年业务收入" + 
+       			"  FROM (SELECT SUM(EX_TAX_PRICE) 总开票, 0 AS 废票" + 
+       			"          FROM T_COMP_INVOICE_ALL" + 
+       			"         WHERE SUBSTR(INVOICE_DATE, 0, 4) = TO_CHAR(SYSDATE, 'YYYY')" + 
+       			"           AND SUBSTR(INVOICE_DATE, 0, 7) <= TO_CHAR(SYSDATE, 'YYYY-MM')" + 
+       			"        UNION ALL" + 
+       			"        SELECT 0 总开票, SUM(EX_TAX_PRICE) AS 废票" + 
+       			"          FROM T_COMP_INVOICE_ALL" + 
+       			"         WHERE SUBSTR(VOID_TIME, 0, 4) = TO_CHAR(SYSDATE, 'YYYY')" + 
+       			"           AND SUBSTR(VOID_TIME, 0, 7) <= TO_CHAR(SYSDATE, 'YYYY-MM')) ";		
        	System.out.println(sql1);
    		List<BigDecimal> list = DBManager.get("kabBan").createNativeQuery(sql1).getResultList();
    		Map<String, Object> map = new HashMap<String, Object>();
@@ -2791,12 +2923,23 @@ public class NewReportServiceImpl implements NewReportService {
 	@RpcMethod(loginValidate = false)
 	@Override
 	public Map<String, Object> findYyjyqkYhSrzeCpxywsr(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception {
-		String sql1 = " SELECT SUM(EX_TAX_PRICE) AS 产品线业务 " + 
-				"            FROM T_COMP_INVOICE_ALL " + 
-				"            WHERE TYPE in ('产品线业务') " + 
-				"            AND VOID_TIME IS NULL " + 
-				"            AND SUBSTR(INVOICE_DATE, 0, 4) = TO_CHAR(SYSDATE, 'YYYY') " + 
-				"            AND SUBSTR(INVOICE_DATE, 0, 7) <= TO_CHAR(SYSDATE, 'YYYY-MM')";		
+		String sql1 = " SELECT round(SUM(EX_TAX_PRICE - 废票),2) 产品线业务" + 
+				"  FROM (SELECT SUM(EX_TAX_PRICE) AS EX_TAX_PRICE, 0 AS 废票,0 AS 日开票" + 
+				"          FROM T_COMP_INVOICE_ALL" + 
+				"         WHERE TYPE = '产品线业务'" + 
+				"           AND SUBSTR(INVOICE_DATE, 0, 4) = TO_CHAR(SYSDATE, 'YYYY')" + 
+				"           AND SUBSTR(INVOICE_DATE, 0, 7) <= TO_CHAR(SYSDATE, 'YYYY-MM')" + 
+				"        UNION ALL" + 
+				"        SELECT 0 AS EX_TAX_PRICE, SUM(EX_TAX_PRICE) AS 废票,0 AS 日开票" + 
+				"          FROM T_COMP_INVOICE_ALL" + 
+				"         WHERE TYPE = '产品线业务'" + 
+				"           AND SUBSTR(VOID_TIME, 0, 4) = TO_CHAR(SYSDATE, 'YYYY')" + 
+				"           AND SUBSTR(VOID_TIME, 0, 7) <= TO_CHAR(SYSDATE, 'YYYY-MM')" + 
+				"         UNION ALL" + 
+				"         SELECT 0 AS EX_TAX_PRICE, 0 AS 废票，SUM(EX_TAX_PRICE) AS 日开票" + 
+				"          FROM T_COMP_INVOICE_ALL" + 
+				"         WHERE TYPE = '产品线业务'" + 
+				"           AND SUBSTR(INVOICE_DATE, 0, 10) = TO_CHAR(SYSDATE, 'YYYY-MM-DD'))";		
 		System.out.println(sql1);
 		List<BigDecimal> list = DBManager.get("kabBan").createNativeQuery(sql1).getResultList();
 		Map<String, Object> map = new HashMap<String, Object>();
@@ -3947,28 +4090,15 @@ public class NewReportServiceImpl implements NewReportService {
 		// TODO Auto-generated method stub
     	Map<String, String>reMap = fetchWebReq.getData();
 		String companyId = reMap.get("companyId");
-		String sql = " SELECT SUM(年客户数量) 年客户数量, " + 
-				"       SUM(NVL(日客户数量, 0)) 日客户数量 " + 
-				"  FROM (SELECT product_line_name, COUNT(DISTINCT CUSTOMER_NAME) 年客户数量 " + 
-				"          FROM T_ORDER_CRM " + 
-				"         WHERE SUBSTR(CREATE_TIME_ORDER, 0, 7) >= " + 
-				"               TO_CHAR(ADD_MONTHS(SYSDATE, -12), 'yyyy-mm') " + 
-				"           AND product_line_name IS NOT NULL " + 
-				"         GROUP BY product_line_name) A " + 
-				"  LEFT JOIN (SELECT product_line_name, COUNT(DISTINCT CUSTOMER_NAME) 日客户数量 " + 
-				"               FROM T_ORDER_CRM " + 
-				"              WHERE SUBSTR(CREATE_TIME_ORDER, 1, 10) = " + 
-				"                    TO_CHAR(SYSDATE, 'YYYY-MM-DD') " + 
-				"              GROUP BY product_line_name) B " + 
-				"    ON A.product_line_name = B.product_line_name " + 
-				"  LEFT JOIN (SELECT COUNT(CUSTOMER_NAME) 非产品线活跃客户, product_line_name " + 
-				"               FROM (SELECT DISTINCT CUSTOMER_NAME, product_line_name " + 
-				"                       FROM T_ORDER_CRM T1 " + 
-				"                      WHERE TYPE <> '产品线业务') " + 
-				"              GROUP BY product_line_name) D " + 
-				"    ON A.product_line_name = D.product_line_name " + 
-				" WHERE A.product_line_name = '"+companyId+"' " + 
-				" GROUP BY A.product_line_name " ;
+		String sql = " SELECT 年客户, 日客户" + 
+				"  FROM (SELECT COUNT(DISTINCT(CUSTOMER_NAME)) 年客户" + 
+				"          FROM T_ORDER_CRM" + 
+				"         WHERE SUBSTR(CREATE_TIME_ORDER, 0, 4) = to_char(SYSDATE,'YYYY')" + 
+				"           AND PRODUCT_LINE_NAME = '"+companyId+"') A," + 
+				"       (SELECT COUNT(DISTINCT(CUSTOMER_NAME)) 日客户" + 
+				"          FROM T_ORDER_CRM" + 
+				"         WHERE SUBSTR(CREATE_TIME_ORDER, 0, 10) = to_char(SYSDATE,'YYYY')" + 
+				"           AND PRODUCT_LINE_NAME = '"+companyId+"') B " ;
     	System.out.println("----------"+sql.toString());
     	List<Object[]> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
 		
@@ -4459,9 +4589,8 @@ public class NewReportServiceImpl implements NewReportService {
 			String companyId = reMap.get("companyId");
 			String sql = "SELECT SUM(A.收入) OVER(ORDER BY A.月份) 收入," + 
 					"       SUM(B.成本) OVER(ORDER BY A.月份) 成本," + 
-					"       substr(A.月份, 7, 1)||'月'" + 
-					"  FROM (SELECT SUM(EX_TAX_PRICE) AS 收入," + 
-					"               SUBSTR(INVOICE_DATE, 1, 7) 月份" + 
+					"       to_number(substr(A.月份, 6,2)) || '月'" + 
+					"  FROM (SELECT SUM(EX_TAX_PRICE) AS 收入, SUBSTR(INVOICE_DATE, 1, 7) 月份" + 
 					"          FROM T_COMP_INVOICE_ALL" + 
 					"         WHERE TYPE IN ('产品线业务')" + 
 					"           AND VOID_TIME IS NULL" + 
@@ -4474,7 +4603,7 @@ public class NewReportServiceImpl implements NewReportService {
 					"              WHERE PAY_END_DATE IS NOT NULL" + 
 					"                AND PRODUCT_NAME = '"+companyId+"'" + 
 					"              GROUP BY SUBSTR(PAY_END_DATE, 1, 7)) B" + 
-					"    ON A.月份 = B.月份";
+					"    ON A.月份 = B.月份" ;
 			System.out.println(sql);
 	    	List<Object[]> reList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();	
 			Map<String, Object> map = new HashMap<String, Object>();
@@ -4836,35 +4965,37 @@ public class NewReportServiceImpl implements NewReportService {
 			Map<String, String> resMap = fetchWebReq.getData();
 			String companyId = resMap.get("companyId");
 			
-			sql.append(" SELECT 年出证数量,今日出证数量, " + 
-					"       \"纸质报告+纸质证书\"+\"电子报告+电子证书\", " + 
-					"       \"其他工作成果物\" " + 
-					"        " + 
-					"  FROM (SELECT COUNT(MID) AS 年出证数量, " + 
-					"               SUM(CASE " + 
-					"                     WHEN CERTTYPE IN ('纸质报告', '纸质证书') THEN " + 
-					"                      1 " + 
-					"                     ELSE " + 
-					"                      0 " + 
-					"                   END) AS \"纸质报告+纸质证书\", " + 
-					"               SUM(CASE " + 
-					"                     WHEN CERTTYPE IN ('电子报告', '电子证书') THEN " + 
-					"                      1 " + 
-					"                     ELSE " + 
-					"                      0 " + 
-					"                   END) AS \"电子报告+电子证书\", " + 
-					"               SUM(CASE " + 
-					"                     WHEN CERTTYPE = '其他工作成果物' THEN " + 
-					"                      1 " + 
-					"                     ELSE " + 
-					"                      0 " + 
-					"                   END) AS \"其他工作成果物\" " + 
-					"          FROM T_ORDER_CERC WHERE SUBSTR(FICTIONAL_DATE,1,4) = to_char(SYSDATE,'YYYY') " + 
-					"         and sorg_level3 ='"+companyId+"'), " + 
-					"       (SELECT COUNT(MID) AS 今日出证数量 " + 
-					"          FROM T_ORDER_CERC " + 
-					"         WHERE SUBSTR(FICTIONAL_DATE, 1, 10) =TO_CHAR(SYSDATE, 'YYYY-MM-DD') " + 
-					"               and sorg_level3 ='"+companyId+"') ");
+			sql.append("  SELECT 年出证数量," + 
+					"        今日出证数量," + 
+					"        \"纸质报告 + 纸质证书\" + \"电子报告 + 电子证书\"," + 
+					"        \"其他工作成果物\"" + 
+					"   FROM (SELECT COUNT(MID) AS 年出证数量," + 
+					"                SUM(CASE" + 
+					"                      WHEN CERTTYPE IN ('纸质报告', '纸质证书') THEN" + 
+					"                       1" + 
+					"                      ELSE" + 
+					"                       0" + 
+					"                    END) AS \"纸质报告 + 纸质证书\"," + 
+					"                SUM(CASE" + 
+					"                      WHEN CERTTYPE IN ('电子报告', '电子证书') THEN" + 
+					"                       1" + 
+					"                      ELSE" + 
+					"                       0" + 
+					"                    END) AS \"电子报告 + 电子证书\"," + 
+					"                SUM(CASE" + 
+					"                      WHEN CERTTYPE = '其他工作成果物' THEN" + 
+					"                       1" + 
+					"                      ELSE" + 
+					"                       0" + 
+					"                    END) AS \"其他工作成果物\"" + 
+					"           FROM T_ORDER_CERC" + 
+					"          WHERE SUBSTR(FICTIONAL_DATE, 1, 4) = to_char(SYSDATE, 'YYYY')" + 
+					"            and sorg_level3 = '"+companyId+"')," + 
+					"        (SELECT COUNT(MID) AS 今日出证数量" + 
+					"           FROM T_ORDER_CERC" + 
+					"          WHERE SUBSTR(FICTIONAL_DATE, 1, 10) =" + 
+					"                TO_CHAR(SYSDATE, 'YYYY-MM-DD')" + 
+					"            and sorg_level3 = '"+companyId+"')");
 			System.out.println(sql.toString());
 			List<Object[]> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
 			
@@ -5457,24 +5588,32 @@ public class NewReportServiceImpl implements NewReportService {
 			Map<String, String> resMap = fetchWebReq.getData();
 			String companyId = resMap.get("companyId");
 			
-			sql.append(" SELECT 年供应商数量 年供应商数量, " + 
-					"       活跃供应商数量 - NVL(非产品线活跃供应商, 0) 产品线活跃供应商数量, " + 
-					"       NVL(非产品线活跃供应商, 0) 非产品线活跃供应商, " + 
-					"       NVL(日供应商数量, 0) 日供应商数量, " + 
-					"       年供应商数量 - 活跃供应商数量 非活跃供应商数量 " + 
-					"FROM (SELECT COUNT(DISTINCT NAME) 年供应商数量 FROM INFOSHAR_618389493) A, " + 
-					"     (SELECT COUNT(DISTINCT NAME) 日供应商数量 " + 
-					"      FROM INFOSHAR_618389493 " + 
-					"      WHERE SUBSTR(START_TIME, 1, 10) = TO_CHAR(SYSDATE, 'YYYY-MM-DD')) B, " + 
-					"     (SELECT COUNT(DISTINCT SUB_PACKAGE_ID) 活跃供应商数量 " + 
-					"      FROM T_ORDER_SRM " + 
-					"      WHERE SUBSTR(CREATE_TIME_ORDER, 0, 7) >= " + 
-					"            TO_CHAR(ADD_MONTHS(SYSDATE, -12), 'yyyy-mm')) C, " + 
-					"     (SELECT COUNT(SUB_PACKAGE_NAME) 非产品线活跃供应商, SORG_LEVEL3 " + 
-					"      FROM (SELECT DISTINCT SUB_PACKAGE_NAME, SORG_LEVEL3 " + 
-					"            FROM T_ORDER_SRM T1 " + 
-					"            WHERE TYPE <> '产品线业务')) D " + 
-					" ");
+			sql.append(" SELECT 年供应商数量 年供应商数量," + 
+					"          活跃供应商数量 - NVL(非产品线活跃供应商, 0) 产品线活跃供应商数量," + 
+					"          NVL(非产品线活跃供应商, 0) 非产品线活跃供应商," + 
+					"          NVL(日供应商数量, 0) 日供应商数量," + 
+					"          年供应商数量 - 活跃供应商数量 非活跃供应商数量" + 
+					"  FROM (SELECT COUNT(DISTINCT NAME) 年供应商数量 FROM INFOSHAR_618389493) A," + 
+					"       (SELECT COUNT(DISTINCT NAME) 日供应商数量" + 
+					"          FROM INFOSHAR_618389493" + 
+					"         WHERE SUBSTR(START_TIME, 1, 10) = TO_CHAR(SYSDATE, 'YYYY-MM-DD')) B," + 
+					"       (SELECT COUNT(DISTINCT SUB_PACKAGE_ID) 活跃供应商数量" + 
+					"          FROM T_ORDER_SRM" + 
+					"         WHERE SUBSTR(CREATE_TIME_ORDER, 0, 7) >=" + 
+					"               TO_CHAR(ADD_MONTHS(SYSDATE, -12), 'yyyy-mm')) C," + 
+					"        (SELECT COUNT(DISTINCT SUB_PACKAGE_ID) 日活跃供应商数量" + 
+					"          FROM T_ORDER_SRM" + 
+					"         WHERE SUBSTR(CREATE_TIME_ORDER, 0, 12) >=" + 
+					"               TO_CHAR(SYSDATE, 'yyyy-mm-dd')) D,       " + 
+					"       (SELECT COUNT(SUB_PACKAGE_NAME) 非产品线活跃供应商" + 
+					"          FROM (SELECT DISTINCT SUB_PACKAGE_NAME" + 
+					"                  FROM T_ORDER_SRM T1" + 
+					"                 WHERE TYPE <> '产品线业务')) E," + 
+					"      (SELECT COUNT(SUB_PACKAGE_NAME) 非产品线日活跃供应商" + 
+					"          FROM (SELECT DISTINCT SUB_PACKAGE_NAME" + 
+					"                  FROM T_ORDER_SRM T1" + 
+					"                 WHERE TYPE <> '产品线业务' AND SUBSTR(CREATE_TIME_ORDER, 0, 0) >=" + 
+					"               TO_CHAR(SYSDATE, 'yyyy-mm-dd'))) E" );
 			System.out.println(sql.toString());
 			List<Object[]> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
 			
@@ -5544,9 +5683,9 @@ public class NewReportServiceImpl implements NewReportService {
 				throws Exception {
 			StringBuffer sql = new StringBuffer();
 			
-			sql.append(" SELECT COUNT(MID) AS 年出证数量 " + 
-					"       FROM T_ORDER_CERC " + 
-					"       WHERE SUBSTR(FICTIONAL_DATE, 1, 4) = to_char(SYSDATE, 'YYYY') ");
+			sql.append(" SELECT COUNT(MID) AS 年出证数量  FROM T_ORDER_CERC" + 
+					"         WHERE SUBSTR(FICTIONAL_DATE, 1, 4) = TO_CHAR(SYSDATE, 'YYYY')" + 
+					"           and state = '已完成'");
 			System.out.println(sql.toString());
 			List<BigDecimal> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
 			
@@ -5565,9 +5704,10 @@ public class NewReportServiceImpl implements NewReportService {
 				throws Exception {
 			StringBuffer sql = new StringBuffer();
 			
-			sql.append(" SELECT COUNT(MID) AS 今日出证数量 " + 
-					"       FROM T_ORDER_CERC " + 
-					"       WHERE SUBSTR(FICTIONAL_DATE, 1, 10) = TO_CHAR(SYSDATE, 'YYYY-MM-DD') ");
+			sql.append(" SELECT COUNT(MID) AS 今日出证数量 FROM T_ORDER_CERC" + 
+					"         WHERE SUBSTR(FICTIONAL_DATE, 1, 10) =" + 
+					"               TO_CHAR(SYSDATE, 'YYYY-MM-DD')" + 
+					"           and state = '已完成'");
 			System.out.println(sql.toString());
 			List<BigDecimal> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
 			
@@ -5586,20 +5726,15 @@ public class NewReportServiceImpl implements NewReportService {
 				throws Exception {
 			StringBuffer sql = new StringBuffer();
 			
-			sql.append(" SELECT SUM(CASE " + 
-					"                    WHEN CERTTYPE IN ('纸质报告', '纸质证书') THEN " + 
-					"                     1 " + 
-					"                    ELSE " + 
-					"                     0 " + 
-					"                  END) + " + 
-					"              SUM(CASE " + 
-					"                    WHEN CERTTYPE IN ('电子报告', '电子证书') THEN " + 
-					"                     1 " + 
-					"                    ELSE " + 
-					"                     0 " + 
-					"                  END) AS \"出证数量\" " + 
-					"       FROM T_ORDER_CERC " + 
-					"       WHERE SUBSTR(FICTIONAL_DATE, 1, 4) = to_char(SYSDATE, 'YYYY') ");
+			sql.append(" SELECT SUM(CASE WHEN CERTTYPE IN ('纸质报告', '纸质证书') " + 
+					"                                    THEN 1" + 
+					"                        ELSE 0" + 
+					"                   END) +   SUM(CASE WHEN CERTTYPE IN ('电子报告', '电子证书') " + 
+					"                                    THEN 1" + 
+					"                        ELSE 0" + 
+					"                   END) as 出证数量      FROM T_ORDER_CERC" + 
+					"         WHERE SUBSTR(FICTIONAL_DATE, 1, 4) = TO_CHAR(SYSDATE, 'YYYY')" + 
+					"           and state = '已完成'");
 			System.out.println(sql.toString());
 			List<BigDecimal> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
 			
@@ -5618,14 +5753,15 @@ public class NewReportServiceImpl implements NewReportService {
 				throws Exception {
 			StringBuffer sql = new StringBuffer();
 			
-			sql.append(" SELECT SUM(CASE " + 
-					"                    WHEN CERTTYPE = '其他工作成果物' THEN " + 
-					"                     1 " + 
-					"                    ELSE " + 
-					"                     0 " + 
-					"                  END) AS \"其他工作成果物\" " + 
-					"       FROM T_ORDER_CERC " + 
-					"       WHERE SUBSTR(FICTIONAL_DATE, 1, 4) = to_char(SYSDATE, 'YYYY') ");
+			sql.append(" SELECT SUM(CASE" + 
+					"             WHEN CERTTYPE = '其他工作成果物' THEN" + 
+					"              1" + 
+					"             ELSE" + 
+					"              0" + 
+					"           END) AS \"其他工作成果物\"" + 
+					"  FROM T_ORDER_CERC" + 
+					" WHERE SUBSTR(FICTIONAL_DATE, 1, 4) = to_char(SYSDATE, 'YYYY')" + 
+					"   and state = '已完成' ");
 			System.out.println(sql.toString());
 			List<BigDecimal> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
 			
@@ -5837,35 +5973,33 @@ public class NewReportServiceImpl implements NewReportService {
 			Map<String, String> resMap = fetchWebReq.getData();
 			String companyId = resMap.get("companyId");
 			
-			sql.append("  SELECT 年出证数量,今日出证数量, " + 
-					"       \"纸质报告+纸质证书\"+\"电子报告+电子证书\", " + 
-					"       \"其他工作成果物\" " + 
-					"        " + 
-					"  FROM (SELECT COUNT(MID) AS 年出证数量, " + 
-					"               SUM(CASE " + 
-					"                     WHEN CERTTYPE IN ('纸质报告', '纸质证书') THEN " + 
-					"                      1 " + 
-					"                     ELSE " + 
-					"                      0 " + 
-					"                   END) AS \"纸质报告+纸质证书\", " + 
-					"               SUM(CASE " + 
-					"                     WHEN CERTTYPE IN ('电子报告', '电子证书') THEN " + 
-					"                      1 " + 
-					"                     ELSE " + 
-					"                      0 " + 
-					"                   END) AS \"电子报告+电子证书\", " + 
-					"               SUM(CASE " + 
-					"                     WHEN CERTTYPE = '其他工作成果物' THEN " + 
-					"                      1 " + 
-					"                     ELSE " + 
-					"                      0 " + 
-					"                   END) AS \"其他工作成果物\" " + 
-					"          FROM T_ORDER_CERC WHERE SUBSTR(FICTIONAL_DATE,1,4) = to_char(SYSDATE,'YYYY') " + 
-					"         and business_region='"+companyId+"'), " + 
-					"       (SELECT COUNT(MID) AS 今日出证数量 " + 
-					"          FROM T_ORDER_CERC " + 
-					"         WHERE SUBSTR(FICTIONAL_DATE, 1, 10) =TO_CHAR(SYSDATE, 'YYYY-MM-DD') " + 
-					"               and business_region='"+companyId+"')");
+			sql.append("  SELECT 年出证数量," + 
+					"       今日出证数量," + 
+					"       \"纸质报告+纸质证书\" + \"电子报告+电子证书\"," + 
+					"       \"其他工作成果物\"" + 
+					"  FROM (SELECT COUNT(MID) AS 年出证数量," + 
+					"               SUM(CASE WHEN CERTTYPE IN ('纸质报告', '纸质证书') " + 
+					"                                    THEN 1" + 
+					"                        ELSE 0" + 
+					"                   END) AS \"纸质报告+纸质证书\"," + 
+					"               SUM(CASE WHEN CERTTYPE IN ('电子报告', '电子证书') " + 
+					"                                    THEN 1" + 
+					"                        ELSE 0" + 
+					"                   END) AS \"电子报告+电子证书\"," + 
+					"               SUM(CASE WHEN CERTTYPE = '其他工作成果物' " + 
+					"                                    THEN 1" + 
+					"                        ELSE 0" + 
+					"                   END) AS \"其他工作成果物\"" + 
+					"          FROM T_ORDER_CERC" + 
+					"         WHERE SUBSTR(FICTIONAL_DATE, 1, 4) = TO_CHAR(SYSDATE, 'YYYY')" + 
+					"         and business_region = '"+companyId+"'" + 
+					"           and state = '已完成')," + 
+					"       (SELECT COUNT(MID) AS 今日出证数量" + 
+					"          FROM T_ORDER_CERC" + 
+					"         WHERE SUBSTR(FICTIONAL_DATE, 1, 10) =" + 
+					"               TO_CHAR(SYSDATE, 'YYYY-MM-DD')" + 
+					"               and business_region = '"+companyId+"'" + 
+					"           and state = '已完成')");
 			System.out.println(sql.toString());
 			List<Object[]> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
 			

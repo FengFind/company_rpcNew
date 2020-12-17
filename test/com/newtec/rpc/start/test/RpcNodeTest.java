@@ -21,7 +21,7 @@ public class RpcNodeTest {
 		NodeUtils.getLocHost(); 
 //		CollectThread c = new CollectThread();
 //		c.start();
-		DataViewMain.run();
+//		DataViewMain.run();
 		MyqdpEncryptImpl.getMyqdpServerHttpAddr();  
 	}                        
 }
