@@ -1676,68 +1676,104 @@ public class NewReportServiceImpl implements NewReportService {
 	public Map<String, Object> findCompanyMsgByCpx(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception {
 		StringBuffer sql = new StringBuffer();
 
-		sql.append(" SELECT PRODUCT_LINE_NAME_ST1," + "        PRODUCT_LINE_NAME," + "        sum(年委托单) 委托单量,"
-				+ "        SUM(预测收入) 预测收入," + "        SUM(年业务收入) 年业务收入," + "        SUM(业务成本) 业务成本"
-				+ "   FROM (select PRODUCT_LINE_NAME_ST1,"
-				+ "                product_line_uuid||'-'||PRODUCT_LINE_NAME as PRODUCT_LINE_NAME,"
-				+ "                count(distinct(order_uuid)) 年委托单," + "                0 as 年业务收入,"
-				+ "                0 as 预测收入," + "                0 as 业务成本" + "           from T_ORDER_SERVER"
-				+ "          where substr(create_time_order, 0, 4) = to_char(sysdate, 'yyyy')"
-				+ "            and data_state_order <> '草稿'" + "            and data_state_order <> '草稿'"
-				+ "            and audit_state_order <> '已删除'" + "            and product_line_uuid_st1='99'"
-				+ "          group by PRODUCT_LINE_NAME_ST1, product_line_uuid||'-'||PRODUCT_LINE_NAME"
-				+ "         union all" + "         SELECT PRODUCT_LINE_NAME_ST1," + "                PRODUCT_LINE_NAME,"
-				+ "                0 as 委托单量," + "                ROUND(SUM(EX_TAX_PRICE - 废票), 2) 年业务收入,"
-				+ "                0 as 预测收入," + "                0 as 业务成本"
-				+ "           FROM (SELECT a.PRODUCT_LINE_NAME_ST1,"
-				+ "                        a.product_id||'-'||a.PRODUCT_LINE_NAME as PRODUCT_LINE_NAME,"
-				+ "                        SUM(a.EX_TAX_PRICE) AS EX_TAX_PRICE," + "                        0 AS 废票"
-				+ "                   FROM T_COMP_INVOICE_ALL a inner join PRODUCT_LINE_2_1 b on a.product_id =b.product_line_uuid"
-				+ "                  WHERE TYPE = '产品线业务'"
-				+ "                    AND SUBSTR(INVOICE_DATE, 0, 4) = TO_CHAR(SYSDATE, 'YYYY')"
-				+ "                    AND SUBSTR(INVOICE_DATE, 0, 7) <="
-				+ "                        TO_CHAR(SYSDATE, 'YYYY-MM')"
-				+ "                  GROUP BY a.PRODUCT_LINE_NAME_ST1, a.product_id||'-'||a.PRODUCT_LINE_NAME"
-				+ "                 UNION ALL" + "                 SELECT a.PRODUCT_LINE_NAME_ST1,"
-				+ "                         a.product_id||'-'||a.PRODUCT_LINE_NAME as PRODUCT_LINE_NAME,"
-				+ "                        0 AS EX_TAX_PRICE," + "                        SUM(a.EX_TAX_PRICE) AS 废票"
-				+ "                   FROM T_COMP_INVOICE_ALL  a inner join PRODUCT_LINE_2_1 b on a.product_id =b.product_line_uuid"
-				+ "                  WHERE TYPE = '产品线业务'"
-				+ "                    AND SUBSTR(VOID_TIME, 0, 4) = TO_CHAR(SYSDATE, 'YYYY')"
-				+ "                    AND SUBSTR(VOID_TIME, 0, 7) <="
-				+ "                        TO_CHAR(SYSDATE, 'YYYY-MM')"
-				+ "                  GROUP BY a.PRODUCT_LINE_NAME_ST1, a.product_id||'-'||a.PRODUCT_LINE_NAME)"
-				+ "          GROUP BY PRODUCT_LINE_NAME_ST1, PRODUCT_LINE_NAME" + "         union all"
-				+ "         SELECT PRODUCT_LINE_NAME_ST1,"
-				+ "                product_line_uuid||'-'||PRODUCT_LINE_NAME as PRODUCT_LINE_NAME,"
-				+ "                0 as 委托单量," + "                0 as 年业务收入,"
-				+ "                SUM(SYS_CUR_TOTAL_AMOUNT) 预测收入," + "                0 as 业务成本"
-				+ "           FROM T_ORDER_SERVER"
-				+ "          WHERE SUBSTR(WORK_FINISH_TIME, 1, 4) = TO_CHAR(SYSDATE, 'YYYY')"
-				+ "            and data_state_order <> '已删除'" + "            and data_state_order <> '草稿'"
-				+ "            and audit_state_order <> '草稿'" + "            and product_line_uuid_st1='99'"
-				+ "          GROUP BY PRODUCT_LINE_NAME_ST1, product_line_uuid||'-'||PRODUCT_LINE_NAME"
-				+ "         union all" + "         SELECT a.PRODUCT_LINE_NAME_ST1,"
-				+ "                a.product_id||'-'||a.product_name as PRODUCT_LINE_NAME,"
-				+ "                0 as 委托单量," + "                0 as 年业务收入," + "                0 as 预测收入,"
-				+ "                SUM(total_cost) AS 业务成本"
-				+ "           FROM T_COMPANY_COST_ALL a inner join PRODUCT_LINE_2_1 b on a.product_id =b.product_line_uuid"
-				+ "          WHERE a.PRODUCT_NAME IS NOT NULL"
-				+ "            and SUBSTR(PAY_END_DATE, 0, 4) = TO_CHAR(SYSDATE, 'yyyy')"
-				+ "          GROUP BY a.PRODUCT_LINE_NAME_ST1, a.product_id||'-'||a.product_name)"
-				+ "  GROUP BY PRODUCT_LINE_NAME_ST1, PRODUCT_LINE_NAME" + "  order by 预测收入 desc");
+		sql.append(" SELECT PRODUCT_LINE_NAME_ST1," + 
+				"       PRODUCT_LINE_NAME," + 
+				"       sum(年委托单) 委托单量," + 
+				"       SUM(预测收入) 预测收入," + 
+				"       SUM(年业务收入) 年业务收入," + 
+				"       SUM(业务成本) 业务成本" + 
+				"  FROM (select PRODUCT_LINE_NAME_ST1," + 
+				"               product_line_uuid || '-' || PRODUCT_LINE_NAME as PRODUCT_LINE_NAME," + 
+				"               count(distinct(order_uuid)) 年委托单," + 
+				"               0 as 年业务收入," + 
+				"               0 as 预测收入," + 
+				"               0 as 业务成本" + 
+				"          from T_ORDER_SERVER" + 
+				"         where substr(create_time_order, 0, 4) = to_char(sysdate, 'yyyy')" + 
+				"           and data_state_order <> '草稿'" + 
+				"           and data_state_order <> '草稿'" + 
+				"           and audit_state_order <> '已删除'" + 
+				"           and product_line_uuid_st1 = '99'" + 
+				"         group by PRODUCT_LINE_NAME_ST1," + 
+				"                  product_line_uuid || '-' || PRODUCT_LINE_NAME" + 
+				"        union all" + 
+				"        SELECT PRODUCT_LINE_NAME_ST1," + 
+				"               PRODUCT_LINE_NAME," + 
+				"               0 as 委托单量," + 
+				"               ROUND(SUM(EX_TAX_PRICE - 废票), 2) 年业务收入," + 
+				"               0 as 预测收入," + 
+				"               0 as 业务成本" + 
+				"          FROM (SELECT a.PRODUCT_LINE_NAME_ST1," + 
+				"                       a.product_id || '-' || a.PRODUCT_LINE_NAME as PRODUCT_LINE_NAME," + 
+				"                       SUM(a.EX_TAX_PRICE) AS EX_TAX_PRICE," + 
+				"                       0 AS 废票" + 
+				"                  FROM T_COMP_INVOICE_ALL a" + 
+				"                 inner join PRODUCT_LINE_2_1 b" + 
+				"                    on a.product_id = b.product_line_uuid" + 
+				"                 WHERE TYPE = '产品线业务'" + 
+				"                   AND SUBSTR(INVOICE_DATE, 0, 4) = TO_CHAR(SYSDATE, 'YYYY')" + 
+				"                   AND SUBSTR(INVOICE_DATE, 0, 7) <=" + 
+				"                       TO_CHAR(SYSDATE, 'YYYY-MM')" + 
+				"                 GROUP BY a.PRODUCT_LINE_NAME_ST1," + 
+				"                          a.product_id || '-' || a.PRODUCT_LINE_NAME" + 
+				"                UNION ALL" + 
+				"                SELECT a.PRODUCT_LINE_NAME_ST1," + 
+				"                       a.product_id || '-' || a.PRODUCT_LINE_NAME as PRODUCT_LINE_NAME," + 
+				"                       0 AS EX_TAX_PRICE," + 
+				"                       SUM(a.EX_TAX_PRICE) AS 废票" + 
+				"                  FROM T_COMP_INVOICE_ALL a" + 
+				"                 inner join PRODUCT_LINE_2_1 b" + 
+				"                    on a.product_id = b.product_line_uuid" + 
+				"                 WHERE TYPE = '产品线业务'" + 
+				"                   AND SUBSTR(VOID_TIME, 0, 4) = TO_CHAR(SYSDATE, 'YYYY')" + 
+				"                   AND SUBSTR(VOID_TIME, 0, 7) <= TO_CHAR(SYSDATE, 'YYYY-MM')" + 
+				"                 GROUP BY a.PRODUCT_LINE_NAME_ST1," + 
+				"                          a.product_id || '-' || a.PRODUCT_LINE_NAME)" + 
+				"         GROUP BY PRODUCT_LINE_NAME_ST1, PRODUCT_LINE_NAME" + 
+				"        union all" + 
+				"        SELECT PRODUCT_LINE_NAME_ST1," + 
+				"               product_line_uuid || '-' || PRODUCT_LINE_NAME as PRODUCT_LINE_NAME," + 
+				"               0 as 委托单量," + 
+				"               0 as 年业务收入," + 
+				"               SUM(SYS_CUR_TOTAL_AMOUNT) 预测收入," + 
+				"               0 as 业务成本" + 
+				"          FROM T_ORDER_SERVER" + 
+				"         WHERE SUBSTR(WORK_FINISH_TIME, 1, 4) = TO_CHAR(SYSDATE, 'YYYY')" + 
+				"           and data_state_order <> '已删除'" + 
+				"           and data_state_order <> '草稿'" + 
+				"           and audit_state_order <> '草稿'" + 
+				"           and product_line_uuid_st1 = '99'" + 
+				"         GROUP BY PRODUCT_LINE_NAME_ST1," + 
+				"                  product_line_uuid || '-' || PRODUCT_LINE_NAME" + 
+				"        union all" + 
+				"        SELECT a.PRODUCT_LINE_NAME_ST1," + 
+				"               a.product_id || '-' || a.product_name as PRODUCT_LINE_NAME," + 
+				"               0 as 委托单量," + 
+				"               0 as 年业务收入," + 
+				"               0 as 预测收入," + 
+				"               SUM(total_cost) AS 业务成本" + 
+				"          FROM T_COMPANY_COST_ALL a" + 
+				"         inner join PRODUCT_LINE_2_1 b" + 
+				"            on a.product_id = b.product_line_uuid" + 
+				"         WHERE a.PRODUCT_NAME IS NOT NULL" + 
+				"           and SUBSTR(PAY_END_DATE, 0, 4) = TO_CHAR(SYSDATE, 'yyyy')" + 
+				"         GROUP BY a.PRODUCT_LINE_NAME_ST1," + 
+				"                  a.product_id || '-' || a.product_name)" + 
+				"                  where PRODUCT_LINE_NAME_ST1 is not null" + 
+				" GROUP BY PRODUCT_LINE_NAME_ST1, PRODUCT_LINE_NAME" + 
+				" order by 预测收入 desc" + 
+				"");
 		System.out.println(sql.toString());
 		List<Object[]> resultList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
 
 		Map<String, Object> map = new HashMap<String, Object>();
-
+        
 		if (resultList != null && resultList.size() > 0) {
 			// 进行json格式化
-			JSONArray ja = NewUtils.returnCompanyMsgByCpx(resultList, "父节点");
-
-			map.put("tableData", ja);
+		   JSONArray ja = NewUtils.returnCompanyMsgByCpx(resultList, "父节点");
+		   map.put("tableData", ja);
 		}
-
+		
 		return map;
 	}
 
