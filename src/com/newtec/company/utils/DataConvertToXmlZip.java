@@ -29,7 +29,8 @@ public class DataConvertToXmlZip {
 
 	// 通过数据库查询出 要导出的数据 生成xml 并打包成zip
 	// 生成附件 对应xml 并打包
-	public static void dataToZip(String source, String dest) {
+	// 加入 委托关系编号的逻辑
+	public static void dataToZipWtgx(String source, String dest, JSONArray wtgx) {
 		try {
 			SimpleDateFormat  sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 			
@@ -37,7 +38,7 @@ public class DataConvertToXmlZip {
 			// 下载文件的地址
 			String path = "https://cef-open.ccic.com/document/download?documentId=";
 			// 先将对应文件进行下载,并返回对应的数据库信息
-			List<List<Object>> result = findDataFromDbTFile(dest, path, source);
+			List<List<Object>> result = findDataFromDbTFile(dest, path, source, wtgx);
 			
 			System.out.println(" 结束时间 " + sdf.format(new Date()));
 		} catch (Exception e) {
@@ -45,8 +46,26 @@ public class DataConvertToXmlZip {
 		}
 	}
 	
+	// 通过数据库查询出 要导出的数据 生成xml 并打包成zip
+		// 生成附件 对应xml 并打包
+		public static void dataToZip(String source, String dest) {
+			try {
+				SimpleDateFormat  sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+				
+				System.out.println(" 开始时间 " + sdf.format(new Date()));
+				// 下载文件的地址
+				String path = "https://cef-open.ccic.com/document/download?documentId=";
+				// 先将对应文件进行下载,并返回对应的数据库信息
+				List<List<Object>> result = findDataFromDbTFile(dest, path, source, new JSONArray());
+				
+				System.out.println(" 结束时间 " + sdf.format(new Date()));
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+	
 	// 查询数据库中需要导出的数据 --- t_file
-	public static List<List<Object>> findDataFromDbTFile(String dest, String path, String source) throws Exception {
+	public static List<List<Object>> findDataFromDbTFile(String dest, String path, String source, JSONArray wtgx) throws Exception {
 		List<List<Object>> result = new ArrayList<List<Object>>();
 		
 		// 获取数据
@@ -105,17 +124,31 @@ public class DataConvertToXmlZip {
 				fileSize = Integer.parseInt(pdf.length()+"");
 			}
 			
-			// md5
-			String fmd5 = StringUtil.MD5(ecode);
+			// md5			
+//			String fmd5 = StringUtil.MD5(ecode);
+			// 先将base64转码为pdf 再获取md5 
+			PDFBinaryConvert.base64StringToPDF(ejo.getString("base64"), dest+File.separator+fileName);
+			String fmd5 = Md5Test.findMD5ByFilePath(dest+File.separator+fileName);
+			// 将对应的pdf文件删除
+			File pdf = new File(dest+File.separator+fileName);
+			pdf.delete();
 			
-			sb.append(dbi.get(0)+"@@");
+			if(fmd5 != null && fmd5.equals("NotFoundFile")) {
+				// 给出提示 好进行查找没有对应文件的pdf信息
+				System.out.println(" id 为 "+ dbi.getString(0) + "对应的   " + fileName+"   pdf文件未找到!  ");
+			}
 			
-			// 正在进行
-			System.out.println(dbi.getString(0) + "  正在生成第"+(++jfs)+"个xml --------- ");
+			// 20201222 过滤掉小于3M的文件
+//			if(ecode.length() < 2 * 1024 * 1024) {
+//				continue;
+//			}
 			
 			// 判断ecode 是否大于3M 剩余1M 用来存放其他字符
-			if(ecode.length() > 3 * 1024 * 1024) {
-				int maxel = ecode.length() % (3*1024*1024) > 0 ? ( ecode.length() / (3*1024*1024) + 1 ) : ( ecode.length() / (3*1024*1024) );
+			if(ecode.length() >= 2 * 1024 * 1024) {
+				// 这里有可能需要转换成pdf
+				PDFBinaryConvert.base64StringToPDF(ecode, "F:/hgcsbw/pdf/"+fileName);
+				
+				int maxel = ecode.length() % (2 * 1024 * 1024) > 0 ? ( ecode.length() / (2 * 1024 * 1024) + 1 ) : ( ecode.length() / (2 * 1024 * 1024) );
 				for (int eln = 0; eln < maxel  ; eln++) {
 					// 需要组装成xml中对应的格式
 					List<Object> rut = new ArrayList<Object>();
@@ -135,7 +168,7 @@ public class DataConvertToXmlZip {
 					rut.add(sdf.format(new Date()));
 					rut.add("中检集团证书中心");
 					rut.add("");
-					rut.add(ecode.substring(eln*3 * 1024 * 1024, ( eln == (maxel - 1) ? ecode.length() : (eln + 1) * 3 * 1024 * 1024)) );
+					rut.add(ecode.substring(eln*2 * 1024 * 1024, ( eln == (maxel - 1) ? ecode.length() : (eln + 1) * 2 * 1024 * 1024)) );
 					
 					// 添加新的五个属性
 					rut.add(fileSize);
@@ -145,6 +178,11 @@ public class DataConvertToXmlZip {
 					rut.add(maxel);
 					System.out.println(fileName + " 第 " + (eln+1) + " 个 共 "+maxel+" 个 ");
 					rut.add(dbi.get(0).toString().length() > 40 ? dbi.get(0).toString().substring(0, 40) : dbi.get(0).toString() );
+					if(wtgx != null && wtgx.size() > 0) {
+						rut.add(wtgx.get(jfs));
+					}else {
+						rut.add("");
+					}
 					rut.add("");
 					rut.add("");
 					rut.add("");
@@ -162,6 +200,20 @@ public class DataConvertToXmlZip {
 					
 					js++;
 				} 
+				
+				sb.append(dbi.get(0)+"#"+wtgx.get(jfs)+"@@");
+				
+				// 正在进行
+				System.out.println(dbi.getString(0) + "  正在生成第"+(++jfs)+"个xml --------- ");
+				
+				if(wtgx != null && wtgx.size() > 0 && jfs == wtgx.size()) {
+					break;
+				}
+				
+				// 为了验证错误文件
+//				if( dbi.get(0).toString().equals("2668181580532043959") ) {
+//					break;
+//				}
 				
 				continue;
 			}
@@ -194,11 +246,25 @@ public class DataConvertToXmlZip {
 			rut.add(1);
 			
 			rut.add(dbi.get(0).toString().length() > 40 ? dbi.get(0).toString().substring(0, 40) : dbi.get(0).toString() );
+			if(wtgx != null && wtgx.size() > 0) {
+				rut.add(wtgx.get(jfs));
+			}else {
+				rut.add("");
+			}
 			rut.add("");
 			rut.add("");
 			rut.add("");
 			
 			result.add(rut);
+			
+			sb.append(dbi.get(0)+"#"+wtgx.get(jfs)+"@@");
+			
+			// 正在进行
+			System.out.println(dbi.getString(0) + "  正在生成第"+(++jfs)+"个xml --------- ");
+
+			if(wtgx != null && wtgx.size() > 0 && jfs == wtgx.size()) {
+				break;
+			}
 			
 			if(js == 100) {
 				// 将查询出的数据 封装到xml中
@@ -221,7 +287,7 @@ public class DataConvertToXmlZip {
 		ZipUtils.delDirFiles(dest);
 		
 		// 向txt写入id
-		PDFBinaryConvert.writeContentToTxt("F:/hgcsbw/ids.txt", sb.toString());
+		PDFBinaryConvert.writeContentToTxt("F:/hgcsbw/ids.txt", sb.toString().substring(0, sb.toString().length() - 2));
 		
 		return null;
 	}
@@ -256,7 +322,7 @@ public class DataConvertToXmlZip {
 		
 		try {
 			// zip名称
-			String fileName = dest.substring(0, dest.lastIndexOf("/")) + File.separator + System.currentTimeMillis() + ".zip";
+			String fileName = dest.substring(0, dest.lastIndexOf("/")) + File.separator + System.currentTimeMillis() + "_" + ( dest.substring(dest.lastIndexOf("/")+1) ) + ".zip";
 			
 			// 创建文件
 			File file = new File(fileName);

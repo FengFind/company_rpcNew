@@ -20,13 +20,29 @@ import com.alibaba.fastjson.JSONArray;
 public class PsiIumeCertDataConvertToXmlZip {
 
 	// 通过数据库查询出 要导出的数据 生成xml 并打包成zip
+	// 加入 委托关系编号
+	public static void dataToZipWtgx(String source, String dest, JSONArray wtgx) {
+		try {
+			SimpleDateFormat  sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+			
+			System.out.println(" 开始时间 " + sdf.format(new Date()));
+			// 先将对应文件进行下载,并返回对应的数据库信息
+			List<List<Object>> result = findDataFromDbTFile(dest, source, wtgx);
+			
+			System.out.println(" 结束时间 " + sdf.format(new Date()));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	// 通过数据库查询出 要导出的数据 生成xml 并打包成zip
 	public static void dataToZip(String source, String dest) {
 		try {
 			SimpleDateFormat  sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 			
 			System.out.println(" 开始时间 " + sdf.format(new Date()));
 			// 先将对应文件进行下载,并返回对应的数据库信息
-			List<List<Object>> result = findDataFromDbTFile(dest, source);
+			List<List<Object>> result = findDataFromDbTFile(dest, source, new JSONArray());
 			
 			System.out.println(" 结束时间 " + sdf.format(new Date()));
 		} catch (Exception e) {
@@ -35,7 +51,7 @@ public class PsiIumeCertDataConvertToXmlZip {
 	}
 	
 	// 查询数据库中需要导出的数据 --- t_file
-	public static List<List<Object>> findDataFromDbTFile(String dest, String source) throws Exception {
+	public static List<List<Object>> findDataFromDbTFile(String dest, String source, JSONArray wtgx) throws Exception {
 		List<List<Object>> result = new ArrayList<List<Object>>();
 		
 		// 获取数据
@@ -44,10 +60,11 @@ public class PsiIumeCertDataConvertToXmlZip {
 //		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		// 计数 
-		int js = 0;
+		int js = 0, jfs = 0;
 		
-		// 获取附件对应的ids
-//		String ids = PDFBinaryConvert.findStringFromTxt("F:/hgcsbw/ids.txt");
+		// 获取附件对应的ids 以@@ 分割2个附件  以 #分割证书号与委托关系编号
+		String ids = PDFBinaryConvert.findStringFromTxt("F:/hgcsbw/ids.txt");
+		String[] fjary = ids.split("@@");
 		
 		// 安装海运传输的xml格式模拟数据
 		for (int i = 0; i < db.size(); i++) {
@@ -57,9 +74,9 @@ public class PsiIumeCertDataConvertToXmlZip {
 //			JSONArray dbi = new JSONArray();
 			
 			// 判断是否存在于ids中
-//			if(ids.indexOf(dbi.get(0).toString()) < 0) {
-//				continue;
-//			}
+			if(ids.indexOf(dbi.get(0).toString()) < 0) {
+				continue;
+			}
 			
 			// 需要组装成xml中对应的格式
 			List<Object> rut = new ArrayList<Object>();
@@ -70,7 +87,22 @@ public class PsiIumeCertDataConvertToXmlZip {
 			rut.add("申请人地址"+i);
 			rut.add("收货人名称"+i);
 			rut.add("收货人地址"+i);
-			rut.add(StringUtil.MD5(System.currentTimeMillis()+""+i));
+			
+			// 委托关系编号
+//			rut.add(StringUtil.MD5(System.currentTimeMillis()+""+i));
+			if(wtgx != null && wtgx.size() > 0) {
+//				rut.add(wtgx.get(jfs));
+				// 循环 获取委托关系编号
+				for (int idsj = 0; idsj < fjary.length; idsj++) {
+					if(dbi.get(0).toString().equals(fjary[idsj].split("#")[0])) {
+						rut.add(fjary[idsj].split("#")[1]);
+						break;
+					}
+				}
+			}else {
+				rut.add("");
+			}
+			
 			rut.add("产品名称"+i);
 			rut.add(i);
 			rut.add(StringUtil.MD5(System.currentTimeMillis()+""+i).substring(0, 8));
@@ -79,13 +111,13 @@ public class PsiIumeCertDataConvertToXmlZip {
 			rut.add(StringUtil.MD5(System.currentTimeMillis()+""+i).substring(0, 8));
 			rut.add("币制名称"+i);
 			rut.add("装运前检验机构"+i);
-			rut.add(sdf.format(new Date()).replace(" ", "T")+"Z");
+			rut.add(sdf.format(new Date()).replace(" ", "T"));
 			rut.add("检验地点"+i);
 			rut.add(dbi.get(0).toString().length() > 40 ? dbi.get(0).toString().substring(0, 40) : dbi.get(0).toString());
 			rut.add(StringUtil.MD5(System.currentTimeMillis()+""+i).substring(0, 8));
-			rut.add(sdf.format(sdf.parse(dbi.getString(6))).replace(" ", "T")+"Z");
+			rut.add(sdf.format(sdf.parse(dbi.getString(6))).replace(" ", "T"));
 			rut.add("授权签字人"+i);
-			rut.add(sdf.format(new Date()).replace(" ", "T")+"Z");
+			rut.add(sdf.format(new Date()).replace(" ", "T"));
 			rut.add("1");
 			rut.add(StringUtil.MD5(System.currentTimeMillis()+""+i));
 			rut.add(StringUtil.MD5(System.currentTimeMillis()+""+i));
@@ -94,7 +126,7 @@ public class PsiIumeCertDataConvertToXmlZip {
 			rut.add(StringUtil.MD5(System.currentTimeMillis()+""+i));			
 			rut.add(i);
 			rut.add("产地"+i);
-			rut.add(sdf.format(new Date()).replace(" ", "T")+"Z");
+			rut.add(sdf.format(new Date()).replace(" ", "T"));
 			rut.add("0");			
 			rut.add(dbi.get(4).toString().length() > 64 ? dbi.get(4).toString().substring(0, 64) : dbi.get(4).toString());
 			rut.add(StringUtil.MD5(System.currentTimeMillis()+""+i).substring(0, 8));
@@ -107,6 +139,12 @@ public class PsiIumeCertDataConvertToXmlZip {
 			rut.add(i);
 			
 			result.add(rut);
+			
+			System.out.println(" 正在生成第"+(++jfs)+"个证书报文xml ");
+			
+			if(wtgx != null && wtgx.size() >0 && jfs == wtgx.size()) {
+				break;
+			}
 			
 			if(js == 100) {
 				// 将查询出的数据 封装到xml中
@@ -161,7 +199,7 @@ public class PsiIumeCertDataConvertToXmlZip {
 		
 		try {
 			// zip名称
-			String fileName = dest.substring(0, dest.lastIndexOf("/")) + File.separator + System.currentTimeMillis() + ".zip";
+			String fileName = dest.substring(0, dest.lastIndexOf("/")) + File.separator + System.currentTimeMillis() + "_" + ( dest.substring(dest.lastIndexOf("/")+1) ) + ".zip";
 			
 			// 创建文件
 			File file = new File(fileName);

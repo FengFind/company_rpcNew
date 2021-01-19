@@ -85,7 +85,16 @@ public class XmlBase64ToFile {
 					ls.put("FileName", files[i].getName().substring(0, files[i].getName().lastIndexOf("_")));
 					ls.put("base64", PDFBinaryConvert.findStringFromTxt(files[i].getAbsolutePath()));
 					// 文件大小
-					ls.put("size", files[i].length());
+					String fn = source+File.separator+Math.random()+".pdf";
+					PDFBinaryConvert.base64StringToPDF(ls.getString("base64"), fn);
+					File pdf = new File(fn);
+					ls.put("size", pdf.length());
+					pdf.delete();
+					
+//					System.out.println("  i == " +  i);
+//					System.out.println(ls.get("FileName"));
+//					System.out.println(ls.get("size"));
+					
 					break;
 				}
 			}

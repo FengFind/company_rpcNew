@@ -3,7 +3,9 @@ package com.newtec.company.utils;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -90,6 +92,56 @@ public class NewUtils {
 		jo.put("bword", "今日");
 		jo.put("bnum", "+"+( day > yi ? day/yi  + "亿" : ( day > wan ? day/wan + "万" : day) ));
 		
+		jo.put("unit", (year > yi ? "亿" : ( year > wan ? "万" : "" )));
+		jo.put("num", year > yi ? df.format( (float)year/yi ) : ( year > wan ? df.format( (float)year/wan ) : year) );
+		
+		return jo;
+	}
+	public static JSONObject returnTodayTotalIntMsg2020(String name,  Object y, Object d,
+			DecimalFormat df) {
+		JSONObject jo = new JSONObject();
+		int year =  y == null ? 0 : ((BigDecimal) y).intValue(), 
+			day =  d == null ? 0 : ((BigDecimal) d).intValue();
+		// 亿 万
+		int yi = 100000000, wan = 10000;
+		
+		jo.put("word", name);
+		jo.put("bword", "");
+		jo.put("bnum", "");
+		
+		jo.put("unit", (year > yi ? "亿" : ( year > wan ? "万" : "" )));
+		jo.put("num", year > yi ? df.format( (float)year/yi ) : ( year > wan ? df.format( (float)year/wan ) : year) );
+		
+		return jo;
+	}
+	
+	public static JSONObject returnTodayTotalDoubleMsg2020(String name,  Object y, Object d,
+			DecimalFormat df) {
+		JSONObject jo = new JSONObject();
+		double year =  y == null ? 0 : ((BigDecimal) y).doubleValue(), 
+			day =  d == null ? 0 : ((BigDecimal) d).doubleValue();
+		// 亿 万
+		int yi = 100000000, wan = 10000;
+		
+		jo.put("word", name);
+		jo.put("bword", "");
+		jo.put("bnum", "");
+		
+		jo.put("unit", (year > yi ? "亿" : ( year > wan ? "万" : "" )));
+		jo.put("num", year > yi ? df.format( year/yi ) : ( year > wan ? df.format( year/wan ) : year) );
+		
+		return jo;
+	}
+	
+	public static JSONObject returnTodayTotalIntMsg2020(String name,  Object y,
+			DecimalFormat df) {
+		JSONObject jo = new JSONObject();
+		int year =  y == null ? 0 : ((BigDecimal) y).intValue(); 
+			
+		// 亿 万
+		int yi = 100000000, wan = 10000;
+		
+		jo.put("word", name);
 		jo.put("unit", (year > yi ? "亿" : ( year > wan ? "万" : "" )));
 		jo.put("num", year > yi ? df.format( (float)year/yi ) : ( year > wan ? df.format( (float)year/wan ) : year) );
 		
@@ -1094,6 +1146,22 @@ public class NewUtils {
 		return jo;
 	}
 	
+	
+	public static JSONObject returnTodayTotalIntMsgCpx(String name,  Object y, 
+			DecimalFormat df) {
+		JSONObject jo = new JSONObject();
+		double year =  y == null ? 0 : ((BigDecimal) y).doubleValue(); 	
+		if(name ==null || name == "") {
+			return jo;
+		}
+		// 亿 万
+		int yi = 100000000, wan = 10000;
+		jo.put("word", name);
+		jo.put("unit", (year > yi ? "亿" : ( year > wan ? "万" : "" )));
+		jo.put("num", year > yi ? df.format( year/yi ) : ( year > wan ? df.format( year/wan ) : year) );	
+		return jo;
+	}
+	
 	public static JSONArray newReturnCompanyMsg(List<Object[]> list) {
 		JSONArray res = new JSONArray();
 		
@@ -1313,6 +1381,32 @@ public class NewUtils {
 		return res;
 	}
 	
+	public static JSONArray returnYwskMsgSql2020(List<Object[]> list) {
+		JSONArray res = new JSONArray();
+		
+		if(list == null || list.size() == 0) {
+			return res;
+		}
+		
+		// 结果行 
+		Object[] result = list.get(0);
+		// 四舍五入保留2位小数
+		DecimalFormat df = new DecimalFormat("#.00");
+		// 分为五组数据
+		// 委托单量
+		res.add(NewUtils.returnYwjiqkIntMsg1("委托单量",  result[0],  df));
+		// 开工单量
+		res.add(NewUtils.returnYwjiqkIntMsg1("开工单量",  result[2],  df));
+		// 完工单量
+		res.add(NewUtils.returnYwjiqkIntMsg1("完工单量",  result[3], df));
+		// 委托金额
+		res.add(NewUtils.returnYwjiqkIntMsg1("委托金额",  result[1],  df));
+		// 预测收入
+		res.add(NewUtils.returnYwjiqkIntMsg1("预测收入",  result[4],  df));
+		
+		return res;
+	}
+	
 	public static JSONObject returnYwskMsgSql2(List<BigDecimal> list) {
 		JSONObject res = new JSONObject();
 		
@@ -1362,6 +1456,33 @@ public class NewUtils {
 		return res;
 	}
 	
+	public static JSONObject returnKhslMsgSql2020(List<Object[]> list, int type) {
+		JSONObject res = new JSONObject();
+		
+		if(list == null || list.size() == 0) {
+			return res;
+		}
+		
+		// 结果行 
+		Object[] result = list.get(0);
+		// 四舍五入保留2位小数
+		DecimalFormat df = new DecimalFormat("#.00");
+		// 客户数量
+		res = NewUtils.returnYwjiqkIntMsg1("年客户数量",  result[0], df);
+		// detail
+		JSONArray dl = new JSONArray();
+		
+		dl.add(NewUtils.returnYwjiqkIntMsg1("产品线活跃客户数量", result[1], df));
+		dl.add(NewUtils.returnYwjiqkIntMsg1("非产品线活跃客户数量", result[2], df));
+		if(type == 0) {
+			dl.add(NewUtils.returnYwjiqkIntMsg1("非活跃客户数量", result[5], df));
+		}
+		
+		res.put("detail", dl);
+		
+		return res;
+	}
+	
 	public static JSONObject returnYwskMsgSql4(List<Object[]> list, int type) {
 		JSONObject res = new JSONObject();
 		
@@ -1382,6 +1503,33 @@ public class NewUtils {
 		dl.add(NewUtils.returnYwjiqkIntMsg1("非产品线活跃供应商数量", result[2], df));
 		if(type == 0) {
 			dl.add(NewUtils.returnYwjiqkIntMsg1("非活跃供应商数量", result[4], df));
+		}
+		
+		res.put("detail", dl);
+		
+		return res;
+	}
+	
+	public static JSONObject returnGysMsgSql2020(List<Object[]> list, int type) {
+		JSONObject res = new JSONObject();
+		
+		if(list == null || list.size() == 0) {
+			return res;
+		}
+		
+		// 结果行 
+		Object[] result = list.get(0);
+		// 四舍五入保留2位小数
+		DecimalFormat df = new DecimalFormat("#.00");
+		// 供应商数量
+		res = NewUtils.returnYwjiqkIntMsg1("年供应商数量", result[0],df);
+		// detail
+		JSONArray dl = new JSONArray();
+		
+		dl.add(NewUtils.returnYwjiqkIntMsg1("产品线活跃供应商数量", result[1], df));
+		dl.add(NewUtils.returnYwjiqkIntMsg1("非产品线活跃供应商数量", result[2], df));
+		if(type == 0) {
+			dl.add(NewUtils.returnYwjiqkIntMsg1("非活跃供应商数量", result[3], df));
 		}
 		
 		res.put("detail", dl);
@@ -1413,6 +1561,30 @@ public class NewUtils {
 		return res;
 	}
 	
+	public static JSONObject returnCzslMsgSql2020(List<Object[]> list) {
+		JSONObject res = new JSONObject();
+		
+		if(list == null || list.size() == 0) {
+			return res;
+		}
+		
+		// 结果行 
+		Object[] result = list.get(0);
+		// 四舍五入保留2位小数
+		DecimalFormat df = new DecimalFormat("#.00");
+		// 出证数量
+		res = NewUtils.returnYwjiqkIntMsg1("出证数量",  result[0],  df);
+		// detail
+		JSONArray dl = new JSONArray();
+		
+		dl.add(NewUtils.returnYwjiqkIntMsg1("证书数量", result[1], df));
+		dl.add(NewUtils.returnYwjiqkIntMsg1("其他成果物数量", result[2], df));
+		
+		res.put("detail", dl);
+		
+		return res;
+	}
+	
 	public static JSONObject returnYwskMsgSql1Jt(List<Object[]> list, String name) {
 		if(list == null || list.size() == 0) {
 			return new JSONObject();
@@ -1425,4 +1597,127 @@ public class NewUtils {
 		
 		return NewUtils.returnYwjiqkDoubleMsg(name, "今日", result[0], result[1], df);
 	}	
+
+	public static Map<String, Object> returnYwjyqstObj(List<Object[]> source) {
+		Map<String, Object> res = new HashMap<String, Object>();
+		
+		JSONArray saceDate = new JSONArray();
+		// x轴月份
+		JSONArray yueX = new JSONArray();
+		// 业务收入总额
+		JSONArray srze = new JSONArray();
+		// 业务收入环比
+		JSONArray srhb = new JSONArray();
+		// 业务成本总额
+		JSONArray cbze = new JSONArray();
+		// 业务成本环比
+		JSONArray cbhb = new JSONArray();
+		// 左y轴
+		JSONObject leftY = new JSONObject();
+		// 右y轴
+		JSONObject rightY = new JSONObject();
+		
+		// y轴最大最小值
+		JSONArray yAxis = new JSONArray();
+
+		Double leftYMin = 0d, leftYMax = 0d, rightYMin = 0d, rightYMax = 0d;
+		if (source != null && source.size() != 0) {
+			for (int i = 0; i < source.size(); i++) {
+				Object[] ob = source.get(i);
+				
+				if (ob == null || ob.length == 0) {
+					continue;
+				}
+				
+				yueX.add(ob[0]);
+				
+				srze.add(ob[1] == null ? 0 : ob[1]);
+				srhb.add(ob[2] == null ? 0 : ob[2]);
+				cbze.add(ob[3] == null ? 0 : ob[3]);
+				cbhb.add(ob[4] == null ? 0 : ob[4]);
+				
+				if (ob[1] != null && ob[1] != "") {
+					if (leftYMin > Double.parseDouble(ob[1].toString())) {
+						leftYMin = Double.parseDouble(ob[1].toString());
+					}
+
+					if (leftYMax < Double.parseDouble(ob[1].toString())) {
+						leftYMax = Double.parseDouble(ob[1].toString());
+					}
+				}
+				
+				if (ob[3] != null && ob[3] != "") {
+					if (leftYMin > Double.parseDouble(ob[3].toString())) {
+						leftYMin = Double.parseDouble(ob[3].toString());
+					}
+
+					if (leftYMax < Double.parseDouble(ob[3].toString())) {
+						leftYMax = Double.parseDouble(ob[3].toString());
+					}
+				}
+				
+				if (ob[2] != null && ob[2] != "") {
+					if (rightYMin > Double.parseDouble(ob[2].toString())) {
+						rightYMin = Double.parseDouble(ob[2].toString());
+					}
+
+					if (rightYMax < Double.parseDouble(ob[2].toString())) {
+						rightYMax = Double.parseDouble(ob[2].toString());
+					}
+				}
+				
+				if (ob[4] != null && ob[4] != "") {
+					if (rightYMin > Double.parseDouble(ob[4].toString())) {
+						rightYMin = Double.parseDouble(ob[4].toString());
+					}
+
+					if (rightYMax < Double.parseDouble(ob[4].toString())) {
+						rightYMax = Double.parseDouble(ob[4].toString());
+					}
+				}
+			}
+			
+			saceDate.add(srze);
+			saceDate.add(srhb);
+			saceDate.add(cbze);
+			saceDate.add(cbhb);
+			
+			leftY.put("min", leftYMin);
+			leftY.put("max", leftYMax);
+			
+			yAxis.add(leftY);
+			
+			rightY.put("min", rightYMin);
+			rightY.put("max", rightYMax);
+			
+			yAxis.add(rightY);
+			
+			res.put("seriesData", saceDate);
+			res.put("xAxisData", yueX);
+			res.put("yAxis", yAxis);
+		}else {
+			yueX.add("");
+			
+			saceDate.add(new JSONArray());
+			saceDate.add(new JSONArray());
+			saceDate.add(new JSONArray());
+			saceDate.add(new JSONArray());
+			
+			leftY.put("min", 0);
+			leftY.put("max", 1);
+			
+			yAxis.add(leftY);
+			
+			rightY.put("min", 0);
+			rightY.put("max", 1);
+			
+			yAxis.add(rightY);
+			
+			res.put("seriesData", saceDate);
+			res.put("xAxisData", yueX);
+			res.put("yAxis", yAxis);
+		}
+
+		return res;
+	}
 }

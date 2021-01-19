@@ -1,16 +1,33 @@
 package com.newtec.company.utils;
 
+import java.io.File;
 import java.security.MessageDigest;
+
+import com.alibaba.fastjson.JSONObject;
 
 public class StringUtil {
 
 	public static void main(String[] args) {
 		try {
-			String str = StringUtil.MD5("123456");
-			System.out.println(str.length()); 
+//			String str = StringUtil.MD5(s);
+//			System.out.println(str); 
+//			PDFBinaryConvert.base64StringToPDF(s, "F:/hgcsbw/Microsoft Word - 报告-非工程机械.pdf");
+//			System.out.println(Md5Test.findMD5ByFilePath("F:\\hgcsbw\\loaded\\pdf\\Microsoft Word - 报告-工程机械-2019-5-1.pdf"));
+			// 获取 已经存在的 pdf文件名称和base64
+//			String exist = "F:/hgcsbw/loaded/txt";
+//			// 存放信息的jsonobject
+//			JSONObject ejo = XmlBase64ToFile.isExistPdf(exist, "2726584847872307392");
+//			PDFBinaryConvert.base64StringToPDF(ejo.getString("base64"), "F:/hgcsbw/123.pdf");
+//			File pdf = new File("F:/hgcsbw/123.pdf");
+//			System.out.println(" size === " + pdf.length());
+			
+			System.out.println("5.旧机电装运前检验证书-AU2000003AUUM.pdf".length());
+			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			//2C55E4D37720129B61F54AF936CDAEA9
+			//2C55E4D37720129B61F54AF936CDAEA9
 		}
 	}
 
