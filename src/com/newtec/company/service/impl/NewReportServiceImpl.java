@@ -22,13 +22,28 @@ public class NewReportServiceImpl implements NewReportService {
 	@Override
 	public Map<String, Object> findTotalByZhongjian(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception {
 		// TODO Auto-generated method stub
-		String sql = " select '总计' 总计, sum(营业收入),sum(营业成本),sum(营业利润),sum(利润总额),sum(净利润)  from "
-				+ "(select sum(b.M10081) 营业收入," + "        sum(b.M10101) 营业成本," + "       sum(b.M10030) 营业利润,"
-				+ "        sum(b.M10129) 利润总额," + "        sum(b.M10017) 净利润," + "        a.COMPANY_NAME as 公司名称,"
-				+ "        a.business_region as 区域," + "        b.KEYWORD3" + "   from NC_QZLJ a"
-				+ "   left join INFOSHAR_1733409658 b" + "     on a.org_code = b.ORG_CODE"
-				+ "  where b.KEYWORD3 = '2021-01'" + "    and substr(b.KEYWORD3, 1, 4) = '2021'"
-				+ "    and A.org_code NOT LIKE 'CE%'" + "  group by a.COMPANY_NAME, a.business_region, b.KEYWORD3)  ";
+		String sql = "select '总计' 总计," + 
+				"        sum(营业收入)," + 
+				"        sum(营业成本)," + 
+				"        sum(营业利润)," + 
+				"        sum(利润总额)," + 
+				"        sum(净利润)" + 
+				"   from (select sum(b.M10081) 营业收入," + 
+				"                sum(b.M10101) 营业成本," + 
+				"                sum(b.M10030) 营业利润," + 
+				"                sum(b.M10129) 利润总额," + 
+				"                sum(b.M10017) 净利润," + 
+				"                a.COMPANY_NAME as 公司名称," + 
+				"                a.business_region as 区域," + 
+				"                b.KEYWORD3" + 
+				"           from NC_QZLJ a" + 
+				"           left join INFOSHAR_1733409658 b" + 
+				"             on a.org_code = b.ORG_CODE" + 
+				"          where b.KEYWORD3 = (select max(KEYWORD3) from INFOSHAR_1733409658)" + 
+				"            and substr(b.KEYWORD3, 1, 4) = '2021'" + 
+				"            and A.org_code NOT LIKE 'CE%'" + 
+				"          group by a.COMPANY_NAME, a.business_region, b.KEYWORD3)" + 
+				" ";
 		System.out.println(sql);
 		List<Object[]> list = DBManager.get("kabBan").createNativeQuery(sql).getResultList();
 		Map<String, Object> map = new HashMap<String, Object>();
@@ -54,14 +69,30 @@ public class NewReportServiceImpl implements NewReportService {
 		// TODO Auto-generated method stub
 		Map<String, String> reMap = fetchWebReq.getData();
 		String companyId = reMap.get("companyId");
-		String sql = "select '总计' 总计, sum(营业收入),sum(营业成本),sum(营业利润),sum(利润总额),sum(净利润)  from"
-				+ "(select a.COMPANY_NAME as 公司名称," + "       sum(b.M10081) 营业收入," + "       sum(b.M10101) 营业成本,"
-				+ "       sum(b.M10030) 营业利润," + "       sum(b.M10129) 利润总额," + "       sum(b.M10017) 净利润,"
-				+ "       b.KEYWORD3" + "  from NC_QZLJ a" + "  left join INFOSHAR_1733409658 b"
-				+ "    on a.org_code = b.ORG_CODE" + " where b.KEYWORD3 = '2021-01'"
-				+ "   and substr(b.KEYWORD3, 1, 4) = '2021'" + "   and A.org_code NOT LIKE 'CE%'"
-				+ "   and a.COMPANY_NAME is not null" + "   and a.COMPANY_NAME = '" + companyId + "'"
-				+ " group by a.COMPANY_NAME, b.KEYWORD3" + " order by a.COMPANY_NAME)";
+		String sql = "select '总计' 总计," + 
+				"       sum(营业收入)," + 
+				"       sum(营业成本)," + 
+				"       sum(营业利润)," + 
+				"       sum(利润总额)," + 
+				"       sum(净利润)" + 
+				"  from (select a.COMPANY_NAME as 公司名称," + 
+				"               sum(b.M10081) 营业收入," + 
+				"               sum(b.M10101) 营业成本," + 
+				"               sum(b.M10030) 营业利润," + 
+				"               sum(b.M10129) 利润总额," + 
+				"               sum(b.M10017) 净利润," + 
+				"               b.KEYWORD3" + 
+				"          from NC_QZLJ a" + 
+				"          left join INFOSHAR_1733409658 b" + 
+				"            on a.org_code = b.ORG_CODE" + 
+				"         where b.KEYWORD3 = (select max(KEYWORD3) from INFOSHAR_1733409658)" + 
+				"           and substr(b.KEYWORD3, 1, 4) = '2021'" + 
+				"           and A.org_code NOT LIKE 'CE%'" + 
+				"           and a.COMPANY_NAME is not null" + 
+				"           and a.COMPANY_NAME = '"+companyId+"'" + 
+				"         group by a.COMPANY_NAME, b.KEYWORD3" + 
+				"         order by a.COMPANY_NAME)" + 
+				"";
 		System.out.println(sql);
 		List<Object[]> list = DBManager.get("kabBan").createNativeQuery(sql).getResultList();
 		Map<String, Object> map = new HashMap<String, Object>();
@@ -86,14 +117,29 @@ public class NewReportServiceImpl implements NewReportService {
 		// TODO Auto-generated method stub
 		Map<String, String> reMap = fetchWebReq.getData();
 		String companyId = reMap.get("companyId");
-		String sql = " select '总计' 总计, sum(营业收入),sum(营业成本),sum(营业利润),sum(利润总额),sum(净利润)  from"
-				+ "(select a.business_region as 区域," + "       sum(b.M10081) 营业收入," + "       sum(b.M10101) 营业成本,"
-				+ "       sum(b.M10030) 营业利润," + "       sum(b.M10129) 利润总额," + "       sum(b.M10017) 净利润,"
-				+ "       b.KEYWORD3" + "  from NC_QZLJ a" + "  left join INFOSHAR_1733409658 b"
-				+ "    on a.org_code = b.ORG_CODE" + " where b.KEYWORD3 = '2021-01'"
-				+ "   and substr(b.KEYWORD3, 1, 4) = '2021'" + "   and A.org_code NOT LIKE 'CE%'"
-				+ "   and a.COMPANY_NAME is not null" + "   and a.business_region = '" + companyId + "'"
-				+ " group by a.business_region, b.KEYWORD3)";
+		String sql = " select '总计' 总计," + 
+				"       sum(营业收入)," + 
+				"       sum(营业成本)," + 
+				"       sum(营业利润)," + 
+				"       sum(利润总额)," + 
+				"       sum(净利润)" + 
+				"  from (select a.business_region as 区域," + 
+				"               sum(b.M10081) 营业收入," + 
+				"               sum(b.M10101) 营业成本," + 
+				"               sum(b.M10030) 营业利润," + 
+				"               sum(b.M10129) 利润总额," + 
+				"               sum(b.M10017) 净利润," + 
+				"               b.KEYWORD3" + 
+				"          from NC_QZLJ a" + 
+				"          left join INFOSHAR_1733409658 b" + 
+				"            on a.org_code = b.ORG_CODE" + 
+				"         where b.KEYWORD3 = (select max(KEYWORD3) from INFOSHAR_1733409658)" + 
+				"           and substr(b.KEYWORD3, 1, 4) = '2021'" + 
+				"           and A.org_code NOT LIKE 'CE%'" + 
+				"           and a.COMPANY_NAME is not null" + 
+				"           and a.business_region = '"+companyId+"'" + 
+				"         group by a.business_region, b.KEYWORD3)" + 
+				"";
 		System.out.println(sql);
 		List<Object[]> list = DBManager.get("kabBan").createNativeQuery(sql).getResultList();
 		Map<String, Object> map = new HashMap<String, Object>();
@@ -118,16 +164,18 @@ public class NewReportServiceImpl implements NewReportService {
 	public Map<String, Object> findYysrTbByZhongjian(FetchWebRequest<Map<String, String>> fetchWebReq)
 			throws Exception {
 		// TODO Auto-generated method stub
-		String sql = "select to_number(substr(b.KEYWORD3, 6, 2))||'月' as KEYWORD3，"
-				+ "               round(sum(b.M10081),2) 今年营业收入," + "               round(sum(b.M10006),2) 去年营业收入,"
-				+ "               round((sum(b.M10081)-sum(b.M10006))/sum(b.M10006)*100,2)同比"
-				+ "          from NC_QZLJ a" + "          left join INFOSHAR_1733409658 b"
-				+ "            on a.org_code = b.ORG_CODE"
-				+ "         where substr(b.KEYWORD3, 6, 2) < to_char(sysdate, 'mm')"
-				+ "           and substr(b.KEYWORD3, 1, 4) = '2021'"
-				+ "           and to_number(substr(b.KEYWORD3, 6, 2)) != 11"
-				+ "           and A.org_code NOT LIKE 'CE%'"
-				+ "         group by substr(b.KEYWORD3, 6, 2) order by to_number(substr(b.KEYWORD3, 6, 2))";
+		String sql = "select to_number(substr(b.KEYWORD3, 6, 2)) || '月' as KEYWORD3， round(sum(b.M10081), 2) 今年营业收入," + 
+				"       round(sum(b.M10006), 2) 去年营业收入," + 
+				"       round((sum(b.M10081) - sum(b.M10006)) / sum(b.M10006) * 100, 2) 同比" + 
+				"  from NC_QZLJ a" + 
+				"  left join INFOSHAR_1733409658 b" + 
+				"    on a.org_code = b.ORG_CODE" + 
+				" where substr(b.KEYWORD3, 6, 2) < '13'" + 
+				"   and substr(b.KEYWORD3, 1, 4) = '2021'" + 
+				"   and A.org_code NOT LIKE 'CE%'" + 
+				" group by substr(b.KEYWORD3, 6, 2)" + 
+				" order by to_number(substr(b.KEYWORD3, 6, 2))" + 
+				"";
 		System.out.println(sql);
 		List<Object[]> reList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
 		Map<String, Object> map = new HashMap<String, Object>();
@@ -211,16 +259,18 @@ public class NewReportServiceImpl implements NewReportService {
 	public Map<String, Object> findYycbTbByZhongjian(FetchWebRequest<Map<String, String>> fetchWebReq)
 			throws Exception {
 		// TODO Auto-generated method stub
-		String sql = "select to_number(substr(b.KEYWORD3, 6, 2)) || '月' as KEYWORD3，"
-				+ "               round(sum(b.M10101),2) 今年营业成本," + "               round(sum(b.M10108),2) 去年营业成本,"
-				+ "               round((sum(b.M10101)-sum(b.M10108))/sum(b.M10108)*100,2) 同比" + "               "
-				+ "          from NC_QZLJ a" + "          left join INFOSHAR_1733409658 b"
-				+ "            on a.org_code = b.ORG_CODE"
-				+ "         where substr(b.KEYWORD3, 6, 2) < to_char(sysdate, 'mm')"
-				+ "           and substr(b.KEYWORD3, 1, 4) = '2021'"
-				+ "           and to_number(substr(b.KEYWORD3, 6, 2)) != 11"
-				+ "           and A.org_code NOT LIKE 'CE%'" + "         group by substr(KEYWORD3, 6, 2)"
-				+ " order by to_number(substr(b.KEYWORD3, 6, 2))";
+		String sql = "select to_number(substr(b.KEYWORD3, 6, 2)) || '月' as KEYWORD3， round(sum(b.M10101), 2) 今年营业成本," + 
+				"       round(sum(b.M10108), 2) 去年营业成本," + 
+				"       round((sum(b.M10101) - sum(b.M10108)) / sum(b.M10108) * 100, 2) 同比" + 
+				"  from NC_QZLJ a" + 
+				"  left join INFOSHAR_1733409658 b" + 
+				"    on a.org_code = b.ORG_CODE" + 
+				" where substr(b.KEYWORD3, 6, 2) < '13'" + 
+				"   and substr(b.KEYWORD3, 1, 4) = '2021'" + 
+				"   and A.org_code NOT LIKE 'CE%'" + 
+				" group by substr(KEYWORD3, 6, 2)" + 
+				" order by to_number(substr(b.KEYWORD3, 6, 2))" + 
+				"";
 		System.out.println(sql);
 		List<Object[]> reList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
 		Map<String, Object> map = new HashMap<String, Object>();
@@ -303,15 +353,18 @@ public class NewReportServiceImpl implements NewReportService {
 	public Map<String, Object> findYylrTbByZhongjian(FetchWebRequest<Map<String, String>> fetchWebReq)
 			throws Exception {
 		// TODO Auto-generated method stub
-		String sql = "select to_number(substr(b.KEYWORD3, 6, 2)) || '月' as KEYWORD3，"
-				+ "       round(sum(b.M10030),2) 今年营业利润, " + "       round(sum(b.M10091),2) 去年营业利润,"
-				+ "       round((sum(b.M10030)-sum(b.M10091))/sum(b.M10091)*100,2) 同比     " + "          from NC_QZLJ a"
-				+ "          left join INFOSHAR_1733409658 b" + "            on a.org_code = b.ORG_CODE"
-				+ "         where substr(b.KEYWORD3, 6, 2) < to_char(sysdate, 'mm')"
-				+ "           and substr(b.KEYWORD3, 1, 4) = '2021'"
-				+ "           and to_number(substr(b.KEYWORD3, 6, 2)) != 11"
-				+ "           and A.org_code NOT LIKE 'CE%'" + "         group by substr(KEYWORD3, 6, 2)"
-				+ " order by to_number(substr(b.KEYWORD3, 6, 2))";
+		String sql = "select to_number(substr(b.KEYWORD3, 6, 2)) || '月' as KEYWORD3， round(sum(b.M10030), 2) 今年营业利润," + 
+				"       round(sum(b.M10091), 2) 去年营业利润," + 
+				"       round((sum(b.M10030) - sum(b.M10091)) / sum(b.M10091) * 100, 2) 同比" + 
+				"  from NC_QZLJ a" + 
+				"  left join INFOSHAR_1733409658 b" + 
+				"    on a.org_code = b.ORG_CODE" + 
+				" where substr(b.KEYWORD3, 6, 2) < '13'" + 
+				"   and substr(b.KEYWORD3, 1, 4) = '2021'" + 
+				"   and A.org_code NOT LIKE 'CE%'" + 
+				" group by substr(KEYWORD3, 6, 2)" + 
+				" order by to_number(substr(b.KEYWORD3, 6, 2))" + 
+				"";
 		System.out.println(sql);
 		List<Object[]> reList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
 		Map<String, Object> map = new HashMap<String, Object>();
@@ -395,17 +448,25 @@ public class NewReportServiceImpl implements NewReportService {
 		// TODO Auto-generated method stub
 		Map<String, String> reMap = fetchWebReq.getData();
 		String companyId = reMap.get("companyId");
-		String sql = "select to_number(substr(b.KEYWORD3, 6, 2)) || '月' as KEYWORD3，"
-				+ "               round(sum(b.M10081),2) 今年营业收入,              "
-				+ "               round(sum(b.M10006),2) 去年营业收入,"
-				+ "               round((sum(b.M10081)-sum(b.M10006))/(case when sum(b.M10006)='0.00' then 1 else sum(b.M10006) end) *100,2) 同比"
-				+ "          from NC_QZLJ a" + "          left join INFOSHAR_1733409658 b"
-				+ "            on a.org_code = b.ORG_CODE"
-				+ "         where substr(b.KEYWORD3, 6, 2) < to_char(sysdate, 'mm')"
-				+ "           and substr(b.KEYWORD3, 1, 4) = '2021'"
-				+ "           and to_number(substr(b.KEYWORD3, 6, 2)) != 11"
-				+ "           and A.org_code NOT LIKE 'CE%'" + "           and COMPANY_NAME = '" + companyId + "'"
-				+ "         group by substr(KEYWORD3, 6, 2)" + " order by to_number(substr(b.KEYWORD3, 6, 2))";
+		String sql = "select to_number(substr(b.KEYWORD3, 6, 2)) || '月' as KEYWORD3， round(sum(b.M10081), 2) 今年营业收入," + 
+				"       round(sum(b.M10006), 2) 去年营业收入," + 
+				"       round((sum(b.M10081) - sum(b.M10006)) / (case" + 
+				"               when sum(b.M10006) = '0.00' then" + 
+				"                1" + 
+				"               else" + 
+				"                sum(b.M10006)" + 
+				"             end) * 100," + 
+				"             2) 同比" + 
+				"  from NC_QZLJ a" + 
+				"  left join INFOSHAR_1733409658 b" + 
+				"    on a.org_code = b.ORG_CODE" + 
+				" where substr(b.KEYWORD3, 6, 2) < '13'" + 
+				"   and substr(b.KEYWORD3, 1, 4) = '2021'" + 
+				"   and A.org_code NOT LIKE 'CE%'" + 
+				"   and COMPANY_NAME = '"+companyId+"'" + 
+				" group by substr(KEYWORD3, 6, 2)" + 
+				" order by to_number(substr(b.KEYWORD3, 6, 2))" + 
+				"";
 		System.out.println(sql);
 		List<Object[]> reList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
 		Map<String, Object> map = new HashMap<String, Object>();
@@ -489,16 +550,25 @@ public class NewReportServiceImpl implements NewReportService {
 		// TODO Auto-generated method stub
 		Map<String, String> reMap = fetchWebReq.getData();
 		String companyId = reMap.get("companyId");
-		String sql = "select  to_number(substr(b.KEYWORD3, 6, 2)) || '月' as KEYWORD3，"
-				+ "         round(sum(b.M10101),2) 今年营业成本," + "         round(sum(b.M10108),2) 去年营业成本,"
-				+ "         round((sum(b.M10101)-sum(b.M10108))/(case when sum(b.M10108)='0.00' then 1 else sum(b.M10108) end) *100,2) 同比   "
-				+ "          from NC_QZLJ a" + "          left join INFOSHAR_1733409658 b"
-				+ "            on a.org_code = b.ORG_CODE"
-				+ "         where substr(b.KEYWORD3, 6, 2) < to_char(sysdate, 'mm')"
-				+ "           and substr(b.KEYWORD3, 1, 4) = '2021'"
-				+ "           and to_number(substr(b.KEYWORD3, 6, 2)) != 11"
-				+ "           and A.org_code NOT LIKE 'CE%'" + "           and COMPANY_NAME = '" + companyId + "'"
-				+ "         group by substr(KEYWORD3, 6, 2)" + " order by to_number(substr(b.KEYWORD3, 6, 2))";
+		String sql = "select to_number(substr(b.KEYWORD3, 6, 2)) || '月' as KEYWORD3， round(sum(b.M10101), 2) 今年营业成本," + 
+				"       round(sum(b.M10108), 2) 去年营业成本," + 
+				"       round((sum(b.M10101) - sum(b.M10108)) / (case" + 
+				"               when sum(b.M10108) = '0.00' then" + 
+				"                1" + 
+				"               else" + 
+				"                sum(b.M10108)" + 
+				"             end) * 100," + 
+				"             2) 同比" + 
+				"  from NC_QZLJ a" + 
+				"  left join INFOSHAR_1733409658 b" + 
+				"    on a.org_code = b.ORG_CODE" + 
+				" where substr(b.KEYWORD3, 6, 2) < '13'" + 
+				"   and substr(b.KEYWORD3, 1, 4) = '2021'" + 
+				"   and A.org_code NOT LIKE 'CE%'" + 
+				"   and COMPANY_NAME = '"+companyId+"'" + 
+				" group by substr(KEYWORD3, 6, 2)" + 
+				" order by to_number(substr(b.KEYWORD3, 6, 2))" + 
+				"";
 		System.out.println(sql);
 		List<Object[]> reList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
 		Map<String, Object> map = new HashMap<String, Object>();
@@ -582,16 +652,26 @@ public class NewReportServiceImpl implements NewReportService {
 		// TODO Auto-generated method stub
 		Map<String, String> reMap = fetchWebReq.getData();
 		String companyId = reMap.get("companyId");
-		String sql = "select  to_number(substr(b.KEYWORD3, 6, 2)) || '月' as KEYWORD3,"
-				+ "          round(sum(b.M10030),2) 今年营业利润, " + "          round(sum(b.M10091),2) 去年营业利润,"
-				+ "          round((sum(b.M10030)-sum(b.M10091))/(case when sum(b.M10091)='0.00' then 1 else sum(b.M10091) end) *100,2) 同比     "
-				+ "          from NC_QZLJ a" + "          left join INFOSHAR_1733409658 b"
-				+ "            on a.org_code = b.ORG_CODE"
-				+ "         where substr(b.KEYWORD3, 6, 2) < to_char(sysdate, 'mm')"
-				+ "           and substr(b.KEYWORD3, 1, 4) = '2021'"
-				+ "           and to_number(substr(b.KEYWORD3, 6, 2)) != '11'"
-				+ "           and A.org_code NOT LIKE 'CE%'" + "           and COMPANY_NAME = '" + companyId + "'"
-				+ "         group by substr(KEYWORD3, 6, 2)" + " order by to_number(substr(b.KEYWORD3, 6, 2))";
+		String sql = "select to_number(substr(b.KEYWORD3, 6, 2)) || '月' as KEYWORD3," + 
+				"       round(sum(b.M10030), 2) 今年营业利润," + 
+				"       round(sum(b.M10091), 2) 去年营业利润," + 
+				"       round((sum(b.M10030) - sum(b.M10091)) / (case" + 
+				"               when sum(b.M10091) = '0.00' then" + 
+				"                1" + 
+				"               else" + 
+				"                sum(b.M10091)" + 
+				"             end) * 100," + 
+				"             2) 同比" + 
+				"  from NC_QZLJ a" + 
+				"  left join INFOSHAR_1733409658 b" + 
+				"    on a.org_code = b.ORG_CODE" + 
+				" where substr(b.KEYWORD3, 6, 2) < '13'" + 
+				"   and substr(b.KEYWORD3, 1, 4) = '2021'" + 
+				"   and A.org_code NOT LIKE 'CE%'" + 
+				"   and COMPANY_NAME = '"+companyId+"'" + 
+				" group by substr(KEYWORD3, 6, 2)" + 
+				" order by to_number(substr(b.KEYWORD3, 6, 2))" + 
+				"";
 		System.out.println(sql);
 		List<Object[]> reList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
 		Map<String, Object> map = new HashMap<String, Object>();
@@ -675,17 +755,25 @@ public class NewReportServiceImpl implements NewReportService {
 		// TODO Auto-generated method stub
 		Map<String, String> reMap = fetchWebReq.getData();
 		String companyId = reMap.get("companyId");
-		String sql = "select to_number(substr(b.KEYWORD3, 6, 2)) || '月' as KEYWORD3，"
-				+ "               round(sum(b.M10081),2) 今年营业收入,              "
-				+ "               round(sum(b.M10006),2) 去年营业收入,"
-				+ "               round((sum(b.M10081)-sum(b.M10006))/(case when sum(b.M10006)='0.00' then 1 else sum(b.M10006) end) *100,2) 同比"
-				+ "          from NC_QZLJ a" + "          left join INFOSHAR_1733409658 b"
-				+ "            on a.org_code = b.ORG_CODE"
-				+ "         where substr(b.KEYWORD3, 6, 2) < to_char(sysdate, 'mm')"
-				+ "           and substr(b.KEYWORD3, 1, 4) = '2021'"
-				+ "           and to_number(substr(b.KEYWORD3, 6, 2)) != 11"
-				+ "           and A.org_code NOT LIKE 'CE%'" + "           and business_region = '" + companyId + "'"
-				+ "         group by substr(KEYWORD3, 6, 2)" + " order by to_number(substr(b.KEYWORD3, 6, 2))";
+		String sql = "select to_number(substr(b.KEYWORD3, 6, 2)) || '月' as KEYWORD3， round(sum(b.M10081), 2) 今年营业收入," + 
+				"       round(sum(b.M10006), 2) 去年营业收入," + 
+				"       round((sum(b.M10081) - sum(b.M10006)) / (case" + 
+				"               when sum(b.M10006) = '0.00' then" + 
+				"                1" + 
+				"               else" + 
+				"                sum(b.M10006)" + 
+				"             end) * 100," + 
+				"             2) 同比" + 
+				"  from NC_QZLJ a" + 
+				"  left join INFOSHAR_1733409658 b" + 
+				"    on a.org_code = b.ORG_CODE" + 
+				" where substr(b.KEYWORD3, 6, 2) < '13'" + 
+				"   and substr(b.KEYWORD3, 1, 4) = '2021'" + 
+				"   and A.org_code NOT LIKE 'CE%'" + 
+				"   and business_region = '"+companyId+"'" + 
+				" group by substr(KEYWORD3, 6, 2)" + 
+				" order by to_number(substr(b.KEYWORD3, 6, 2))" + 
+				"";
 		System.out.println(sql);
 		List<Object[]> reList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
 		Map<String, Object> map = new HashMap<String, Object>();
@@ -769,16 +857,25 @@ public class NewReportServiceImpl implements NewReportService {
 		// TODO Auto-generated method stub
 		Map<String, String> reMap = fetchWebReq.getData();
 		String companyId = reMap.get("companyId");
-		String sql = "select  to_number(substr(b.KEYWORD3, 6, 2)) || '月' as KEYWORD3， "
-				+ "         round(sum(b.M10101),2) 今年营业成本, " + "         round(sum(b.M10108),2) 去年营业成本,"
-				+ "         round((sum(b.M10101)-sum(b.M10108))/(case when sum(b.M10108)='0.00' then 1 else sum(b.M10108) end) *100,2) 同比    "
-				+ "          from NC_QZLJ a" + "          left join INFOSHAR_1733409658 b"
-				+ "            on a.org_code = b.ORG_CODE"
-				+ "         where substr(b.KEYWORD3, 6, 2) < to_char(sysdate, 'mm')"
-				+ "           and substr(b.KEYWORD3, 1, 4) = '2021'"
-				+ "           and to_number(substr(b.KEYWORD3, 6, 2)) != 11"
-				+ "           and A.org_code NOT LIKE 'CE%'" + "           and business_region = '" + companyId + "'"
-				+ "         group by substr(KEYWORD3, 6, 2)" + " order by to_number(substr(b.KEYWORD3, 6, 2))";
+		String sql = "select to_number(substr(b.KEYWORD3, 6, 2)) || '月' as KEYWORD3， round(sum(b.M10101), 2) 今年营业成本," + 
+				"       round(sum(b.M10108), 2) 去年营业成本," + 
+				"       round((sum(b.M10101) - sum(b.M10108)) / (case" + 
+				"               when sum(b.M10108) = '0.00' then" + 
+				"                1" + 
+				"               else" + 
+				"                sum(b.M10108)" + 
+				"             end) * 100," + 
+				"             2) 同比" + 
+				"  from NC_QZLJ a" + 
+				"  left join INFOSHAR_1733409658 b" + 
+				"    on a.org_code = b.ORG_CODE" + 
+				" where substr(b.KEYWORD3, 6, 2) < '13'" + 
+				"   and substr(b.KEYWORD3, 1, 4) = '2021'" + 
+				"   and A.org_code NOT LIKE 'CE%'" + 
+				"   and business_region = '"+companyId+"'" + 
+				" group by substr(KEYWORD3, 6, 2)" + 
+				" order by to_number(substr(b.KEYWORD3, 6, 2))" + 
+				"";
 		System.out.println(sql);
 		List<Object[]> reList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
 		Map<String, Object> map = new HashMap<String, Object>();
@@ -862,16 +959,26 @@ public class NewReportServiceImpl implements NewReportService {
 		// TODO Auto-generated method stub
 		Map<String, String> reMap = fetchWebReq.getData();
 		String companyId = reMap.get("companyId");
-		String sql = "select  to_number(substr(b.KEYWORD3, 6, 2)) || '月' as KEYWORD3,"
-				+ "          round(sum(b.M10030),2) 今年营业利润, " + "          round(sum(b.M10091),2) 去年营业利润,"
-				+ "          round((sum(b.M10030)-sum(b.M10091))/(case when sum(b.M10091)='0.00' then 1 else sum(b.M10091) end) *100,2) 同比     "
-				+ "          from NC_QZLJ a" + "          left join INFOSHAR_1733409658 b"
-				+ "            on a.org_code = b.ORG_CODE"
-				+ "         where substr(b.KEYWORD3, 6, 2) < to_char(sysdate, 'mm')"
-				+ "           and substr(b.KEYWORD3, 1, 4) = '2021'"
-				+ "           and to_number(substr(b.KEYWORD3, 6, 2)) != '11'"
-				+ "           and A.org_code NOT LIKE 'CE%'" + "           and business_region = '" + companyId + "'"
-				+ "         group by substr(KEYWORD3, 6, 2)" + " order by to_number(substr(b.KEYWORD3, 6, 2))";
+		String sql = "select to_number(substr(b.KEYWORD3, 6, 2)) || '月' as KEYWORD3," + 
+				"       round(sum(b.M10030), 2) 今年营业利润," + 
+				"       round(sum(b.M10091), 2) 去年营业利润," + 
+				"       round((sum(b.M10030) - sum(b.M10091)) / (case" + 
+				"               when sum(b.M10091) = '0.00' then" + 
+				"                1" + 
+				"               else" + 
+				"                sum(b.M10091)" + 
+				"             end) * 100," + 
+				"             2) 同比" + 
+				"  from NC_QZLJ a" + 
+				"  left join INFOSHAR_1733409658 b" + 
+				"    on a.org_code = b.ORG_CODE" + 
+				" where substr(b.KEYWORD3, 6, 2) < '13'" + 
+				"   and substr(b.KEYWORD3, 1, 4) = '2021'" + 
+				"   and A.org_code NOT LIKE 'CE%'" + 
+				"   and business_region = '"+companyId+"'" + 
+				" group by substr(KEYWORD3, 6, 2)" + 
+				" order by to_number(substr(b.KEYWORD3, 6, 2))" + 
+				"";
 		System.out.println(sql);
 		List<Object[]> reList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
 		Map<String, Object> map = new HashMap<String, Object>();

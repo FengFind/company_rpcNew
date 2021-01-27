@@ -22,7 +22,7 @@ public class NewReport2020ServiceImpl implements NewReport2020Service {
 	@Override
 	public Map<String, Object> findTotalByZhongjian(FetchWebRequest<Map<String, String>> fetchWebReq) throws Exception {
 		// TODO Auto-generated method stub
-		String sql = "  select '总计' 总计," + 
+		String sql = "   select '总计' 总计," + 
 				"        sum(营业收入)," + 
 				"        sum(营业成本)," + 
 				"        sum(营业利润)," + 
@@ -39,11 +39,11 @@ public class NewReport2020ServiceImpl implements NewReport2020Service {
 				"           from NC_QZLJ a" + 
 				"           left join INFOSHAR_1733409658 b" + 
 				"             on a.org_code = b.ORG_CODE" + 
-				"          where b.KEYWORD3 = '2020-11'" + 
+				"          where b.KEYWORD3 = '2020-12'" + 
 				"            and substr(b.KEYWORD3, 1, 4) = '2020'" + 
 				"            and A.org_code NOT LIKE 'CE%'" + 
 				"          group by a.COMPANY_NAME, a.business_region, b.KEYWORD3)" + 
-				"  ";
+				" ";
 		System.out.println(sql);
 		List<Object[]> list = DBManager.get("kabBan").createNativeQuery(sql).getResultList();
 		Map<String, Object> map = new HashMap<String, Object>();
@@ -85,13 +85,13 @@ public class NewReport2020ServiceImpl implements NewReport2020Service {
 				"          from NC_QZLJ a" + 
 				"          left join INFOSHAR_1733409658 b" + 
 				"            on a.org_code = b.ORG_CODE" + 
-				"         where b.KEYWORD3 = '2020-11'" + 
+				"         where b.KEYWORD3 = '2020-12'" + 
 				"           and substr(b.KEYWORD3, 1, 4) = '2020'" + 
 				"           and A.org_code NOT LIKE 'CE%'" + 
 				"           and a.COMPANY_NAME is not null" + 
 				"           and a.COMPANY_NAME = '"+companyId+"'" + 
 				"         group by a.COMPANY_NAME, b.KEYWORD3" + 
-				"         order by a.COMPANY_NAME)" ;
+				"         order by a.COMPANY_NAME)"  ;
 		System.out.println(sql);
 		List<Object[]> list = DBManager.get("kabBan").createNativeQuery(sql).getResultList();
 		Map<String, Object> map = new HashMap<String, Object>();
@@ -132,7 +132,7 @@ public class NewReport2020ServiceImpl implements NewReport2020Service {
 				"          from NC_QZLJ a" + 
 				"          left join INFOSHAR_1733409658 b" + 
 				"            on a.org_code = b.ORG_CODE" + 
-				"         where b.KEYWORD3 = '2020-11'" + 
+				"         where b.KEYWORD3 = '2020-12'" + 
 				"           and substr(b.KEYWORD3, 1, 4) = '2020'" + 
 				"           and A.org_code NOT LIKE 'CE%'" + 
 				"           and a.COMPANY_NAME is not null" + 
@@ -168,7 +168,7 @@ public class NewReport2020ServiceImpl implements NewReport2020Service {
 				"  from NC_QZLJ a" + 
 				"  left join INFOSHAR_1733409658 b" + 
 				"    on a.org_code = b.ORG_CODE" + 
-				" where substr(b.KEYWORD3, 6, 2) < '12'" + 
+				" where substr(b.KEYWORD3, 6, 2) < '13'" + 
 				"   and substr(b.KEYWORD3, 1, 4) = '2020'" + 
 				"   and A.org_code NOT LIKE 'CE%'" + 
 				" group by substr(b.KEYWORD3, 6, 2)" + 
@@ -262,11 +262,11 @@ public class NewReport2020ServiceImpl implements NewReport2020Service {
 				"  from NC_QZLJ a" + 
 				"  left join INFOSHAR_1733409658 b" + 
 				"    on a.org_code = b.ORG_CODE" + 
-				" where substr(b.KEYWORD3, 6, 2) < '12'" + 
+				" where substr(b.KEYWORD3, 6, 2) < '13'" + 
 				"   and substr(b.KEYWORD3, 1, 4) = '2020'" + 
 				"   and A.org_code NOT LIKE 'CE%'" + 
 				" group by substr(KEYWORD3, 6, 2)" + 
-				" order by to_number(substr(b.KEYWORD3, 6, 2))" ;
+				" order by to_number(substr(b.KEYWORD3, 6, 2))"  ;
 		System.out.println(sql);
 		List<Object[]> reList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
 		Map<String, Object> map = new HashMap<String, Object>();
@@ -355,11 +355,11 @@ public class NewReport2020ServiceImpl implements NewReport2020Service {
 				"  from NC_QZLJ a" + 
 				"  left join INFOSHAR_1733409658 b" + 
 				"    on a.org_code = b.ORG_CODE" + 
-				" where substr(b.KEYWORD3, 6, 2) < '12'" + 
+				" where substr(b.KEYWORD3, 6, 2) < '13'" + 
 				"   and substr(b.KEYWORD3, 1, 4) = '2020'" + 
 				"   and A.org_code NOT LIKE 'CE%'" + 
 				" group by substr(KEYWORD3, 6, 2)" + 
-				" order by to_number(substr(b.KEYWORD3, 6, 2))";
+				" order by to_number(substr(b.KEYWORD3, 6, 2))" ;
 		System.out.println(sql);
 		List<Object[]> reList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
 		Map<String, Object> map = new HashMap<String, Object>();
@@ -455,7 +455,7 @@ public class NewReport2020ServiceImpl implements NewReport2020Service {
 				"  from NC_QZLJ a" + 
 				"  left join INFOSHAR_1733409658 b" + 
 				"    on a.org_code = b.ORG_CODE" + 
-				" where substr(b.KEYWORD3, 6, 2) < '12'" + 
+				" where substr(b.KEYWORD3, 6, 2) < '13'" + 
 				"   and substr(b.KEYWORD3, 1, 4) = '2020'" + 
 				"   and A.org_code NOT LIKE 'CE%'" + 
 				"   and COMPANY_NAME = '"+companyId+"'" + 
@@ -556,12 +556,13 @@ public class NewReport2020ServiceImpl implements NewReport2020Service {
 				"  from NC_QZLJ a" + 
 				"  left join INFOSHAR_1733409658 b" + 
 				"    on a.org_code = b.ORG_CODE" + 
-				" where substr(b.KEYWORD3, 6, 2) < '12'" + 
+				" where substr(b.KEYWORD3, 6, 2) < '13'" + 
 				"   and substr(b.KEYWORD3, 1, 4) = '2020'" + 
 				"   and A.org_code NOT LIKE 'CE%'" + 
 				"   and COMPANY_NAME = '"+companyId+"'" + 
 				" group by substr(KEYWORD3, 6, 2)" + 
-				" order by to_number(substr(b.KEYWORD3, 6, 2))" ;
+				" order by to_number(substr(b.KEYWORD3, 6, 2))" + 
+				"" ;
 		System.out.println(sql);
 		List<Object[]> reList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
 		Map<String, Object> map = new HashMap<String, Object>();
@@ -658,7 +659,7 @@ public class NewReport2020ServiceImpl implements NewReport2020Service {
 				"  from NC_QZLJ a" + 
 				"  left join INFOSHAR_1733409658 b" + 
 				"    on a.org_code = b.ORG_CODE" + 
-				" where substr(b.KEYWORD3, 6, 2) < '12'" + 
+				" where substr(b.KEYWORD3, 6, 2) < '13'" + 
 				"   and substr(b.KEYWORD3, 1, 4) = '2020'" + 
 				"   and A.org_code NOT LIKE 'CE%'" + 
 				"   and COMPANY_NAME = '"+companyId+"'" + 
@@ -759,12 +760,13 @@ public class NewReport2020ServiceImpl implements NewReport2020Service {
 				"  from NC_QZLJ a" + 
 				"  left join INFOSHAR_1733409658 b" + 
 				"    on a.org_code = b.ORG_CODE" + 
-				" where substr(b.KEYWORD3, 6, 2) < '12'" + 
+				" where substr(b.KEYWORD3, 6, 2) < '13'" + 
 				"   and substr(b.KEYWORD3, 1, 4) = '2020'" + 
 				"   and A.org_code NOT LIKE 'CE%'" + 
 				"   and business_region = '"+companyId+"'" + 
 				" group by substr(KEYWORD3, 6, 2)" + 
-				" order by to_number(substr(b.KEYWORD3, 6, 2))" ;
+				" order by to_number(substr(b.KEYWORD3, 6, 2))" + 
+				"" ;
 		System.out.println(sql);
 		List<Object[]> reList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
 		Map<String, Object> map = new HashMap<String, Object>();
@@ -860,12 +862,13 @@ public class NewReport2020ServiceImpl implements NewReport2020Service {
 				"  from NC_QZLJ a" + 
 				"  left join INFOSHAR_1733409658 b" + 
 				"    on a.org_code = b.ORG_CODE" + 
-				" where substr(b.KEYWORD3, 6, 2) < '12'" + 
+				" where substr(b.KEYWORD3, 6, 2) < '13'" + 
 				"   and substr(b.KEYWORD3, 1, 4) = '2020'" + 
 				"   and A.org_code NOT LIKE 'CE%'" + 
 				"   and business_region = '"+companyId+"'" + 
 				" group by substr(KEYWORD3, 6, 2)" + 
-				" order by to_number(substr(b.KEYWORD3, 6, 2))" ;
+				" order by to_number(substr(b.KEYWORD3, 6, 2))" + 
+				"" ;
 		System.out.println(sql);
 		List<Object[]> reList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
 		Map<String, Object> map = new HashMap<String, Object>();
@@ -962,12 +965,13 @@ public class NewReport2020ServiceImpl implements NewReport2020Service {
 				"  from NC_QZLJ a" + 
 				"  left join INFOSHAR_1733409658 b" + 
 				"    on a.org_code = b.ORG_CODE" + 
-				" where substr(b.KEYWORD3, 6, 2) < '12'" + 
+				" where substr(b.KEYWORD3, 6, 2) < '13'" + 
 				"   and substr(b.KEYWORD3, 1, 4) = '2020'" + 
 				"   and A.org_code NOT LIKE 'CE%'" + 
 				"   and business_region = '"+companyId+"'" + 
 				" group by substr(KEYWORD3, 6, 2)" + 
-				" order by to_number(substr(b.KEYWORD3, 6, 2))" ;
+				" order by to_number(substr(b.KEYWORD3, 6, 2))" + 
+				"" ;
 		System.out.println(sql);
 		List<Object[]> reList = DBManager.get("kabBan").createNativeQuery(sql.toString()).getResultList();
 		Map<String, Object> map = new HashMap<String, Object>();
