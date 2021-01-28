@@ -119,24 +119,63 @@ public class PsiIumeCertDataConvertToXmlZip {
 			rut.add("授权签字人"+i);
 			rut.add(sdf.format(new Date()).replace(" ", "T"));
 			rut.add("1");
+			
+			// ------ PsiIumeCertDetail   证书表体 start
+			// 主键 Id 32位
 			rut.add(StringUtil.MD5(System.currentTimeMillis()+""+i));
+			// 证书ID CertId 32位
 			rut.add(StringUtil.MD5(System.currentTimeMillis()+""+i));
+			// 序号 SerialNo 10位
 			rut.add(i);
+			// 产品名称 ProductName 300位
 			rut.add("产品名称"+i);
+			// 规格（型号） SpecModel 300位
 			rut.add(StringUtil.MD5(System.currentTimeMillis()+""+i));			
+			// HS编码 HsCode 11位
+			rut.add(StringUtil.MD5(System.currentTimeMillis()+"").substring(0, 10));
+			// 数量 Quantity 19位
+			rut.add(i+"");
+			// 数量单位 Unit 20
+			rut.add(i+"");
+			// 金额 Amount 类型为 number(19,2) 最多17位整数，2位小数
 			rut.add(i);
+			// 金额单位 TradeCurr 20
+			rut.add(i+"01");
+			// 美元金额 AmoutUs number(19,2) 最多17位整数，2位小数
+			rut.add(i);
+			// 产地 ProductAddress 100
 			rut.add("产地"+i);
+			// 制造日期 ManufactureDate 日期
 			rut.add(sdf.format(new Date()).replace(" ", "T"));
+			// 检验日期 CheckTime 日期
+			rut.add(sdf.format(new Date()).replace(" ", "T"));
+			// 检验地点 CheckPlace 300
+			rut.add("检验地点"+i);
+			// 初步评价 PreEvaluation 1
 			rut.add("0");			
+			// ------ PsiIumeCertDetail   证书表体 end
+			
+			// ------ EdocRealation   电子随附单据关联关系信息 start
+			// EdocID文件名、随附单据编号（命名规则是：随附单据类别代码+IM+18位流水号）
+			// EdocID 64
 			rut.add(dbi.get(4).toString().length() > 64 ? dbi.get(4).toString().substring(0, 64) : dbi.get(4).toString());
+			// 随附单证类别 EdocCode 8
 			rut.add(StringUtil.MD5(System.currentTimeMillis()+""+i).substring(0, 8));
+			// 随附单据格式类型 EdocFomatType 2
 			rut.add(i%3+"");
+			// 随附单据文件企业名 EdocCopId 64
 			rut.add(StringUtil.MD5(System.currentTimeMillis()+""+i));
+			// 所属单位海关编号 EdocOwnerCode 10
 			rut.add(StringUtil.MD5(System.currentTimeMillis()+""+i).substring(0, 8));
+			// 签名单位代码 SignUnit 10
 			rut.add(StringUtil.MD5(System.currentTimeMillis()+""+i).substring(0, 8));
+			// 签名时间 SignTime 14
 			rut.add(sdf.format(new Date()).substring(0, 10));
+			// 所属单位名称 EdocOwnerName 100
 			rut.add("所属单位名称"+i);
+			// 随附单据文件大小 EdocSize 12
 			rut.add(i);
+			// ------ EdocRealation   电子随附单据关联关系信息 end
 			
 			result.add(rut);
 			

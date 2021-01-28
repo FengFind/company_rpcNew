@@ -16,9 +16,9 @@ public class CreatePsiCertAndCliDoc {
 		// 先获取 委托关系编号
 		JSONArray wtgx = findWtgx();
 		// 先生成 doc 附件报文
-		DataConvertToXmlZip.dataToZipWtgx("F:/工作内容/海关数据对接/测试报文样例/CliPsiEdoc_last.xml", "F:/hgcsbw/CliDoc", wtgx);
+		DataConvertToXmlZip.dataToZipWtgx("F:/工作内容/海关数据对接/测试报文样例/CliPsiEdoc_last -20210125.xml", "F:/hgcsbw/CliDoc", wtgx);
 		// 再生成 psi 证书报文
-		PsiIumeCertDataConvertToXmlZip.dataToZipWtgx("F:/工作内容/海关数据对接/测试报文样例/PsiIumeCert.xml", "F:/hgcsbw/PsiCert", wtgx);
+		PsiIumeCertDataConvertToXmlZip.dataToZipWtgx("F:/工作内容/海关数据对接/测试报文样例/PsiIumeCert - 20210125.xml", "F:/hgcsbw/PsiCert", wtgx);
 	}
 	
 	public static JSONArray findWtgx() {

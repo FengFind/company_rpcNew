@@ -21,7 +21,50 @@ public class StringUtil {
 //			File pdf = new File("F:/hgcsbw/123.pdf");
 //			System.out.println(" size === " + pdf.length());
 			
-			System.out.println("5.旧机电装运前检验证书-AU2000003AUUM.pdf".length());
+//			System.out.println("5.旧机电装运前检验证书-AU2000003AUUM.pdf".length());
+			
+			// 生成18位随机数
+			for (int i = 0; i < 10; i++) {
+				for (int j = 0; j < 18; j++) {
+					String str = "";
+					int d = (int)(Math.random()*10) ;
+					switch(d) {
+						case 0:
+							str += 0;
+							break;
+						case 1:
+							str += 1;
+							break;
+						case 2:
+							str += 2;
+							break;
+						case 3:
+							str += 3;
+							break;
+						case 4:
+							str += 4;
+							break;
+						case 5:
+							str += 5;
+							break;
+						case 6:
+							str += 6;
+							break;
+						case 7:
+							str += 7;
+							break;
+						case 8:
+							str += 8;
+							break;
+						case 9:
+							str += 9;
+							break;
+					}
+					
+					System.out.print(str);
+				}
+				System.out.println();
+			}
 			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
